@@ -1,14 +1,38 @@
 defmodule CldrMessages.MixProject do
   use Mix.Project
 
+  @version "0.1.0"
+
   def project do
     [
-      app: :cldr_messages,
-      version: "0.1.0",
+      app: :ex_cldr_messages,
+      version: @version,
       elixir: "~> 1.8",
+      name: "Cldr Messages",
+      source_url: "https://github.com/elixir-cldr/cldr_messages",
+      docs: docs(),
+      build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      description: description(),
+      package: package(),
+      test_coverage: [tool: ExCoveralls],
+      aliases: aliases(),
+      elixirc_paths: elixirc_paths(Mix.env()),
+      dialyzer: [
+        ignore_warnings: ".dialyzer_ignore_warnings",
+        plt_add_apps: ~w(gettext inets jason mix plug)a
+      ],
+      compilers: Mix.compilers()
     ]
+  end
+
+  defp description do
+    """
+    Localized and internationalized message formatting using the
+    ICU message format integrated with  the ex_cldr family supporting
+    over 500 locales
+    """
   end
 
   # Run "mix help compile.app" to learn about applications.
@@ -21,8 +45,65 @@ defmodule CldrMessages.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      {:nimble_parsec, "~> 0.5"},
+      {:ex_cldr, "~> 2.7"},
+      {:ex_cldr_numbers, "~> 2.6"},
+      {:jason, "~> 1.1"},
+      {:ex_cldr_dates_times, "~> 2.0", optional: true},
+      {:ex_money, "~> 3.0", optional: true},
+      {:ex_cldr_units, "~> 2.0", optional: true},
+      {:ex_cldr_lists, "~> 2.0", options: true}
     ]
   end
+
+  defp package do
+    [
+      maintainers: ["Kip Cole"],
+      licenses: ["Apache 2.0"],
+      links: links(),
+      files: [
+        "lib",
+        "config",
+        "mix.exs",
+        "README*",
+        "CHANGELOG*",
+        "LICENSE*"
+      ]
+    ]
+  end
+
+  def links do
+    %{
+      "GitHub" => "https://github.com/elixir-cldr/cldr_messages",
+      "Readme" => "https://github.com/elixir-cldr/cldr_messages/blob/v#{@version}/README.md",
+      "Changelog" => "https://github.com/elixir-cldr/cldr_messages/blob/v#{@version}/CHANGELOG.md"
+    }
+  end
+
+  def docs do
+    [
+      source_ref: "v#{@version}",
+      main: "readme",
+      logo: "logo.png",
+      extras: [
+        "README.md",
+        "LICENSE.md",
+        "CHANGELOG.md"
+      ],
+      groups_for_modules: groups_for_modules(),
+      skip_undefined_reference_warnings_on: ["changelog"]
+    ]
+  end
+
+  def aliases do
+    []
+  end
+
+  defp groups_for_modules do
+    []
+  end
+
+  defp elixirc_paths(:test), do: ["lib", "mix", "test"]
+  defp elixirc_paths(:dev), do: ["lib", "mix"]
+  defp elixirc_paths(_), do: ["lib"]
 end
