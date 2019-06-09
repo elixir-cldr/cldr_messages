@@ -4,6 +4,16 @@ Implements the [ICU Message Format]()
 
 The code in this repository is not ready for use.
 
+## Basic message format
+
+```
+On {takenDate, date, short} {name} took {numPhotos, plural,
+    =0 {no photos.}
+    =1 {one photo.}
+    other {# photos.}
+}
+```
+
 ## Installation
 
 ```elixir
