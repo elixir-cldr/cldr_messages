@@ -3,5 +3,4 @@ defmodule MyApp.Cldr do
     locales: ["en", "fr", "ja"],
     default_locale: "en",
     providers: [Cldr.Number, Cldr.DateTime, Cldr.Unit, Cldr.List]
-
 end
