@@ -158,7 +158,7 @@ defmodule Cldr.Message.Parser.Combinator do
   def plural_select([arg, offset, selects]) do
     {:plural, arg, offset, selects}
   end
-	
+
   def plural_select([arg, selects]) do
     {:plural, arg, {:offset, 0}, selects}
   end
@@ -223,22 +223,32 @@ defmodule Cldr.Message.Parser.Combinator do
   @spec plural_style :: NimbleParsec.t()
   def plural_style do
     optional(offset_value() |> reduce(:offset))
-    |> reduce(times(
-      wrap(
-        plural_selector()
-        |> concat(left_brace())
-        |> concat(parsec(:plural_message))
-        |> concat(right_brace())
+    |> reduce(
+      times(
+        wrap(
+          plural_selector()
+          |> concat(left_brace())
+          |> concat(parsec(:plural_message))
+          |> concat(right_brace())
+        ),
+        min: 1
       ),
-      min: 1), :list_to_map)
+      :list_to_map
+    )
   end
-	
-	def offset([_, offset]) do
-		{:offset, offset}
-	end
-	
+
+  def offset([_, offset]) do
+    {:offset, offset}
+  end
+
   def list_to_map(list) do
-    Map.new(list, fn [key | value] -> {key, value} end)
+    map = Map.new(list, fn [key | value] -> {key, value} end)
+
+    if Map.has_key?(map, :other) or Map.has_key?(map, "other") do
+      map
+    else
+      raise Cldr.Message.ParseError, "'plural', 'select' and 'selectordinal' arguments must have an 'other' clause. Found #{inspect map}"
+    end
   end
 
   # offsetValue = "offset:" number
@@ -381,6 +391,16 @@ defmodule Cldr.Message.Parser.Combinator do
 
   @spec arg_format :: NimbleParsec.t()
   def arg_format do
+    choice([atom_arg(), string_arg()])
+  end
+
+  def atom_arg do
+    ignore(ascii_char([?:]))
+    |> repeat(ascii_char([?a..?z, ?A..?Z, ?0..?9, ?_]))
+    |> reduce({List, :to_existing_atom, []})
+  end
+
+  def string_arg do
     choice([
       string("'}") |> reduce(:escaped_char),
       utf8_char([{:not, ?}}, {:not, ?\n}])

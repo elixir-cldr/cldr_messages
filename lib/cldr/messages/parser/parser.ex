@@ -10,6 +10,8 @@ defmodule Cldr.Message.Parser do
   def parse(rule \\ :message, input) when is_atom(rule) and is_binary(input) do
     apply(__MODULE__, rule, [input])
     |> unwrap
+  rescue exception in [Cldr.Message.ParseError] ->
+    {:error, {Cldr.Message.ParseError, exception.message}}
   end
 
   defparsec :message, message()

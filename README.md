@@ -37,17 +37,18 @@ For the initial release. This is a simple function interface to message formatti
         {:literal, "\n    "},  <---- Ignore this when its whitespace only
         {:plural, {:named_arg, "num_guests"},
 
-* [X] Support decimal for selectors
+* [X] Support decimal numbers for selectors
 * [X] Won't do. Support `spellout` format for `Money.t` types ? (Maybe can't because of floating point RBNF rule limitations)
 * [X] Check for all occurences in README's for `Cldr.get_current_locale/0` and change it to `Cldr.get_locale/0`
-* [X] Implement `=0` argument selection for plurals
+* [X] Implement explicit `=0` argument selection for plurals
 * [X] Add remaining formatters for dates, times, datetimes
-* [X] In `ex_money`, if no configured `default_cldr_backend`, delegate to `Cldr.default_backend`
+* [X] In `ex_money`, if no configured `default_cldr_backend`, delegate to `Cldr.default_backend/0`
 * [X] Implement a `{arg, list, format}` formatter that uses `ex_cldr_lists`
 * [X] Implement a `{arg, unit, format}` formatter that uses `ex_cldr_units`
-* [ ] Implement `offset`
-* [ ] Implement custom formats in backend config provider; probably requires updating the `struct` in `ex_cldr`
+* [X] Implement `offset`
+* [X] Implement custom formats in backend config provider; probably requires updating the `struct` in `ex_cldr`
 * [X] Implement `selectordinal`
+* [ ] Assert that `plural`, `select` and `selectordinal` all have an `other` clause
 * [ ] Implement `to_message` for parse trees.  This will define a canonical form which we can use to compare message and create keys.
 * [ ] Tests
 * [ ] @specs

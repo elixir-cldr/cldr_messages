@@ -9,6 +9,15 @@ defmodule Cldr.Message do
   @type arguments :: list() | map()
   @type options :: Keyword.t()
 
+  @doc false
+  def cldr_backend_provider(config) do
+    Cldr.Message.Backend.define_message_module(config)
+  end
+
+  def message_format(format, backend) do
+    Module.concat(backend, Message).message_format(format)
+  end
+
   @spec to_string(message(), arguments(), options()) ::
           {:ok, binary()} | {:error, {module(), binary()}}
   def to_string(message, args, options \\ []) do
@@ -34,13 +43,13 @@ defmodule Cldr.Message do
 
     case Parser.parse(message) do
       {:ok, result} ->
-        result =
+        formatted = 
           result
           |> remove_nested_whitespace
           |> format(args, options)
 
-        {:ok, result}
-
+        {:ok, formatted}
+        
       {:ok, _result, rest} ->
         {:error,
          {Cldr.Message.ParseError, "Couldn't parse message. Error detected at #{inspect(rest)}"}}
@@ -131,6 +140,12 @@ defmodule Cldr.Message do
     Cldr.Number.to_string!(number, options)
   end
 
+  def format({number, :number, format}, _args, options) when is_atom(format) do
+    format_options = message_format(format, options[:backend])
+    options = Keyword.merge(options, format_options)
+    Cldr.Number.to_string!(number, options)
+  end
+
   def format({number, :spellout}, _args, options) do
     options = Keyword.put(options, :format, :spellout)
     Cldr.Number.to_string!(number, options)
@@ -166,6 +181,12 @@ defmodule Cldr.Message do
     Cldr.Date.to_string!(date, options)
   end
 
+  def format({number, :date, format}, _args, options) when is_atom(format) do
+    format_options = message_format(format, options[:backend])
+    options = Keyword.merge(options, format_options)
+    Cldr.Date.to_string!(number, options)
+  end
+
   def format({time, :time}, _args, options) do
     Cldr.Time.to_string!(time, options)
   end
@@ -179,6 +200,12 @@ defmodule Cldr.Message do
       when format in [:short, :medium, :long, :full] do
     options = Keyword.put(options, :format, format)
     Cldr.Time.to_string!(time, options)
+  end
+
+  def format({number, :time, format}, _args, options) when is_atom(format) do
+    format_options = message_format(format, options[:backend])
+    options = Keyword.merge(options, format_options)
+    Cldr.Time.to_string!(number, options)
   end
 
   def format({datetime, :datetime}, _args, options) do
@@ -196,9 +223,21 @@ defmodule Cldr.Message do
     Cldr.DateTime.to_string!(datetime, options)
   end
 
+  def format({number, :datetime, format}, _args, options) when is_atom(format) do
+    format_options = message_format(format, options[:backend])
+    options = Keyword.merge(options, format_options)
+    Cldr.DateTime.to_string!(number, options)
+  end
+
   def format({money, :money, format}, _args, options) when format in [:short, :long] do
     options = Keyword.put(options, :format, format)
     Money.to_string!(money, options)
+  end
+
+  def format({number, :money, format}, _args, options) when is_atom(format) do
+    format_options = message_format(format, options[:backend])
+    options = Keyword.merge(options, format_options)
+    Money.to_string!(number, options)
   end
 
   def format({list, :list}, _args, options) do
@@ -225,6 +264,12 @@ defmodule Cldr.Message do
     Cldr.List.to_string!(list, options)
   end
 
+  def format({number, :list, format}, _args, options) when is_atom(format) do
+    format_options = message_format(format, options[:backend])
+    options = Keyword.merge(options, format_options)
+    Cldr.List.to_string!(number, options)
+  end
+
   def format({unit, :unit}, _args, options) do
     Cldr.Unit.to_string!(unit, options)
   end
@@ -233,6 +278,12 @@ defmodule Cldr.Message do
       when format in [:long, :short, :narrow] do
     options = Keyword.put(options, :format, format)
     Cldr.Unit.to_string!(unit, options)
+  end
+
+  def format({number, :unit, format}, _args, options) when is_atom(format) do
+    format_options = message_format(format, options[:backend])
+    options = Keyword.merge(options, format_options)
+    Cldr.Unit.to_string!(number, options)
   end
 
   def format({:select, arg, selections}, args, options) do
@@ -245,7 +296,7 @@ defmodule Cldr.Message do
     format(message, args, options)
   end
 
-  def format({:plural, arg, offset, plurals}, args, options) do
+  def format({:plural, arg, {:offset, offset}, plurals}, args, options) do
     format_plural(arg, Cardinal, offset, plurals, args, options)
   end
 
@@ -253,20 +304,20 @@ defmodule Cldr.Message do
     format_plural(arg, Ordinal, 0, plurals, args, options)
   end
 
-  defp format_plural(arg, type, _offset, plurals, args, options) do
+  defp format_plural(arg, type, offset, plurals, args, options) do
     arg =
       arg
       |> format(args, options)
       |> to_integer
 
-    formatted_arg = Cldr.Number.to_string!(arg, options)
+    formatted_arg = Cldr.Number.to_string!(arg - offset, options)
 
     options =
       options
       |> Keyword.put(:type, type)
       |> Keyword.put(:arg, formatted_arg)
 
-    plural_type = Cldr.Number.PluralRule.plural_type(arg, options)
+    plural_type = Cldr.Number.PluralRule.plural_type(arg - offset, options)
     message = Map.get(plurals, arg) || Map.get(plurals, plural_type) || other(plurals, arg)
     format(message, args, options)
   end
@@ -299,21 +350,22 @@ defmodule Cldr.Message do
     other
   end
 
-  def remove_nested_whitespace([maybe_complex]) do
+  defp remove_nested_whitespace([maybe_complex]) do
     [remove_nested_whitespace(maybe_complex)]
   end
 
-  def remove_nested_whitespace([{complex_arg, _arg, _selects} = complex | rest])
+  defp remove_nested_whitespace([{complex_arg, _arg, _selects} = complex | rest])
       when complex_arg in [:plural, :select, :select_ordinal] do
     [remove_nested_whitespace(complex), remove_nested_whitespace(rest)]
   end
 
-  def remove_nested_whitespace([head | rest]) do
+  defp remove_nested_whitespace([head | rest]) do
     [head | remove_nested_whitespace(rest)]
   end
 
-  def remove_nested_whitespace({complex_arg, arg, selects}) when complex_arg in [:select, :plural, :select_ordinal] do
-    selects = 
+  defp remove_nested_whitespace({complex_arg, arg, selects})
+      when complex_arg in [:select, :plural, :select_ordinal] do
+    selects =
       Enum.map(selects, fn
         {k, [{:literal, string} = literal, {:select, _, _} = select | other]} ->
           if is_whitespace?(string), do: {k, [select | other]}, else: [literal, select | other]
@@ -328,31 +380,31 @@ defmodule Cldr.Message do
           other
       end)
       |> Map.new()
-      
+
     {complex_arg, arg, selects}
   end
 
-  def remove_nested_whitespace(other) do
+  defp remove_nested_whitespace(other) do
     other
   end
 
-  def is_whitespace?(<<" ", rest::binary>>) do
+  defp is_whitespace?(<<" ", rest::binary>>) do
     is_whitespace?(rest)
   end
 
-  def is_whitespace?(<<"\n", rest::binary>>) do
+  defp is_whitespace?(<<"\n", rest::binary>>) do
     is_whitespace?(rest)
   end
 
-  def is_whitespace?(<<"\t", rest::binary>>) do
+  defp is_whitespace?(<<"\t", rest::binary>>) do
     is_whitespace?(rest)
   end
 
-  def is_whitespace?(<<_char::bytes-1, _rest::binary>>) do
+  defp is_whitespace?(<<_char::bytes-1, _rest::binary>>) do
     false
   end
 
-  def is_whitespace?("") do
+  defp is_whitespace?("") do
     true
   end
 end
