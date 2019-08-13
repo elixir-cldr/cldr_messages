@@ -1,5 +1,8 @@
 defmodule Cldr.Message.Parser do
-  @moduledoc false
+  @moduledoc """
+  Implements a parser for the [ICU Message format]()
+
+  """
 
   import NimbleParsec
   import Cldr.Message.Parser.Combinator
@@ -10,8 +13,7 @@ defmodule Cldr.Message.Parser do
   end
 
   defparsec :message, message()
-	
-	defparsec :plural_message, plural_message()
+  defparsec :plural_message, plural_message()
 
   defp unwrap({:ok, acc, "", _, _, _}) when is_list(acc) do
     {:ok, acc}

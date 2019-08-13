@@ -5,3 +5,6 @@ use Mix.Config
 config :ex_cldr,
   default_backend: MyApp.Cldr,
   default_locale: "en"
+
+config :ex_money,
+  default_cldr_backend: MyApp.Cldr

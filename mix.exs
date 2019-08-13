@@ -48,13 +48,15 @@ defmodule CldrMessages.MixProject do
       {:nimble_parsec, "~> 0.5"},
       {:ex_cldr, path: "../cldr", override: true},
       # {:ex_cldr, "~> 2.8"},
-			{:ex_cldr_numbers, path: "../cldr_numbers", override: true},
+      {:ex_cldr_numbers, path: "../cldr_numbers", override: true},
       # {:ex_cldr_numbers, "~> 2.7"},
       {:jason, "~> 1.1"},
       {:ex_cldr_dates_times, "~> 2.0", optional: true},
       {:ex_money, "~> 4.0", optional: true},
       {:ex_cldr_units, "~> 2.0", optional: true},
-      {:ex_cldr_lists, "~> 2.0", options: true}
+			{:ex_cldr_lists, path: "../cldr_lists", override: true},
+      # {:ex_cldr_lists, "~> 2.0", options: true},
+      {:dialyxir, "~> 1.0.0-rc.4", only: [:dev], runtime: false}
     ]
   end
 
