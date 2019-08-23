@@ -58,7 +58,7 @@ defmodule CldrMessages.MixProject do
       # {:ex_cldr_units, "~> 2.0", optional: true},
       {:ex_cldr_lists, path: "../cldr_lists", override: true},
       # {:ex_cldr_lists, "~> 2.0", options: true},
-      {:dialyxir, "~> 1.0.0-rc.4", only: [:dev], runtime: false}
+      {:dialyxir, "~> 1.0.0-rc", only: [:dev], runtime: false}
     ]
   end
 
