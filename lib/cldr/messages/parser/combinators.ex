@@ -7,7 +7,7 @@ defmodule Cldr.Message.Parser.Combinator do
   def message do
     optional(message_text())
     |> repeat(argument() |> concat(message_text()))
-    |> label("a CLDR message")
+    # |> label("a CLDR message")
   end
 
   @spec message_text :: NimbleParsec.t()
@@ -21,7 +21,7 @@ defmodule Cldr.Message.Parser.Combinator do
   def plural_message do
     optional(plural_message_text())
     |> repeat(argument() |> concat(plural_message_text()))
-    |> label("a CLDR plural message")
+    # |> label("a CLDR plural message")
   end
 
   @spec plural_message_text :: NimbleParsec.t()
@@ -52,7 +52,6 @@ defmodule Cldr.Message.Parser.Combinator do
     |> reduce(:literal)
   end
 
-  @spec literal :: NimbleParsec.t()
   def literal(args) do
     {:literal, List.to_string(args)}
   end
@@ -197,7 +196,6 @@ defmodule Cldr.Message.Parser.Combinator do
     {:select_ordinal, arg, selects}
   end
 
-  @spec argument :: NimbleParsec.t()
   def argument(type) do
     ignore(optional(whitespace()))
     |> string(type)
@@ -211,7 +209,7 @@ defmodule Cldr.Message.Parser.Combinator do
       wrap(
         choice_selector()
         |> concat(left_brace())
-        |> concat(parsec(:message))
+        |> concat(parse(:message))
         |> concat(right_brace())
       ),
       min: 1
@@ -228,13 +226,18 @@ defmodule Cldr.Message.Parser.Combinator do
         wrap(
           plural_selector()
           |> concat(left_brace())
-          |> concat(parsec(:plural_message))
+          |> concat(parse(:plural_message))
           |> concat(right_brace())
         ),
         min: 1
       ),
       :list_to_map
     )
+  end
+
+  @spec parse(atom()) :: NimbleParsec.t()
+  defp parse(parser) do
+    parsec(parser)
   end
 
   def offset([_, offset]) do
@@ -247,7 +250,10 @@ defmodule Cldr.Message.Parser.Combinator do
     if Map.has_key?(map, :other) or Map.has_key?(map, "other") do
       map
     else
-      raise Cldr.Message.ParseError, "'plural', 'select' and 'selectordinal' arguments must have an 'other' clause. Found #{inspect map}"
+      raise Cldr.Message.ParseError,
+            "'plural', 'select' and 'selectordinal' arguments must have an 'other' clause. Found #{
+              inspect(map)
+            }"
     end
   end
 

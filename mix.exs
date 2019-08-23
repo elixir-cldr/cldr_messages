@@ -1,7 +1,7 @@
 defmodule CldrMessages.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.1.0-dev"
 
   def project do
     [
@@ -21,7 +21,8 @@ defmodule CldrMessages.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore_warnings",
-        plt_add_apps: ~w(gettext inets jason mix plug)a
+        plt_add_apps:
+          ~w(inets jason mix ex_cldr ex_cldr_numbers ex_cldr_units ex_cldr_dates_times ex_cldr_calendars ex_money)a
       ],
       compilers: Mix.compilers()
     ]
@@ -46,14 +47,15 @@ defmodule CldrMessages.MixProject do
   defp deps do
     [
       {:nimble_parsec, "~> 0.5"},
-      {:ex_cldr, path: "../cldr", override: true},
-      # {:ex_cldr, "~> 2.8"},
-      {:ex_cldr_numbers, path: "../cldr_numbers", override: true},
+      {:ex_cldr, "~> 2.8"},
       # {:ex_cldr_numbers, "~> 2.7"},
+      {:ex_cldr_numbers, path: "../cldr_numbers", override: true},
       {:jason, "~> 1.1"},
-      {:ex_cldr_dates_times, "~> 2.0", optional: true},
+      {:ex_cldr_dates_times, path: "../cldr_dates_times", override: true},
+      # {:ex_cldr_dates_times, "~> 2.2", optional: true},
       {:ex_money, "~> 4.0", optional: true},
-      {:ex_cldr_units, "~> 2.0", optional: true},
+      {:ex_cldr_units, path: "../cldr_units", override: true},
+      # {:ex_cldr_units, "~> 2.0", optional: true},
       {:ex_cldr_lists, path: "../cldr_lists", override: true},
       # {:ex_cldr_lists, "~> 2.0", options: true},
       {:dialyxir, "~> 1.0.0-rc.4", only: [:dev], runtime: false}

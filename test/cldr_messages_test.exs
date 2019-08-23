@@ -123,22 +123,21 @@ defmodule Cldr_Messages_Test do
     assert Cldr.Message.format("{:a, plural, =0 {zero} other {other #}}", a: Decimal.new(0)) ==
              {:ok, ["zero"]}
   end
-  
+
   test "plural, select and selectordinal with no other argument raises" do
-    assert Cldr.Message.format("{:num, plural, =0 {it's zero}}", num: 1) == 
-    {:error,
-     {Cldr.Message.ParseError,
-      "'plural', 'select' and 'selectordinal' arguments must have an 'other' clause. Found %{0 => [literal: \"it's zero\"]}"}}
-      
-    assert Cldr.Message.format("{:num, select, zero {it's zero}}", num: 1) == 
-    {:error,
-     {Cldr.Message.ParseError,
-      "'plural', 'select' and 'selectordinal' arguments must have an 'other' clause. Found %{\"zero\" => [literal: \"it's zero\"]}"}}
+    assert Cldr.Message.format("{:num, plural, =0 {it's zero}}", num: 1) ==
+             {:error,
+              {Cldr.Message.ParseError,
+               "'plural', 'select' and 'selectordinal' arguments must have an 'other' clause. Found %{0 => [literal: \"it's zero\"]}"}}
 
-    assert Cldr.Message.format("{:num, selectordinal, =0 {it's zero}}", num: 1) == 
-    {:error,
-     {Cldr.Message.ParseError,
-      "'plural', 'select' and 'selectordinal' arguments must have an 'other' clause. Found %{0 => [literal: \"it's zero\"]}"}}
+    assert Cldr.Message.format("{:num, select, zero {it's zero}}", num: 1) ==
+             {:error,
+              {Cldr.Message.ParseError,
+               "'plural', 'select' and 'selectordinal' arguments must have an 'other' clause. Found %{\"zero\" => [literal: \"it's zero\"]}"}}
 
+    assert Cldr.Message.format("{:num, selectordinal, =0 {it's zero}}", num: 1) ==
+             {:error,
+              {Cldr.Message.ParseError,
+               "'plural', 'select' and 'selectordinal' arguments must have an 'other' clause. Found %{0 => [literal: \"it's zero\"]}"}}
   end
 end

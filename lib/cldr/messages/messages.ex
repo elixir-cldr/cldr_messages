@@ -1,6 +1,6 @@
 defmodule Cldr.Message do
   @moduledoc """
-  Implements the [ICU Message Format]() with functions to 
+  Implements the [ICU Message Format]() with functions to
   parse and interpolate message.
   """
   alias Cldr.Message.Parser
@@ -27,7 +27,7 @@ defmodule Cldr.Message do
     end
   end
 
-  @spec to_string(message(), arguments(), options()) :: binary() | no_return()
+  @spec to_string!(message(), arguments(), options()) :: binary() | no_return()
   def to_string!(message, args, options \\ []) do
     case to_string(message, args, options) do
       {:ok, message} -> message
@@ -35,7 +35,9 @@ defmodule Cldr.Message do
     end
   end
 
-  @spec format(message() | list() | tuple(), arguments(), options()) :: list() | no_return()
+  @spec format(message() | list() | tuple(), arguments(), options()) ::
+          list() | {:ok, list()} | {:error, {module(), binary()}}
+
   def format(message, args, options \\ [])
 
   def format(message, args, options) when is_binary(message) do
@@ -43,13 +45,13 @@ defmodule Cldr.Message do
 
     case Parser.parse(message) do
       {:ok, result} ->
-        formatted = 
+        formatted =
           result
           |> remove_nested_whitespace
           |> format(args, options)
 
         {:ok, formatted}
-        
+
       {:ok, _result, rest} ->
         {:error,
          {Cldr.Message.ParseError, "Couldn't parse message. Error detected at #{inspect(rest)}"}}
@@ -286,29 +288,40 @@ defmodule Cldr.Message do
     Cldr.Unit.to_string!(number, options)
   end
 
-  def format({:select, arg, selections}, args, options) do
+  def format({:select, arg, selections}, args, options) when is_map(selections) do
     arg =
       arg
-      |> format(args, options)
-      |> to_integer
+      |> format!(args, options)
+      |> to_maybe_integer
 
     message = Map.get(selections, arg) || other(selections, arg)
     format(message, args, options)
   end
 
-  def format({:plural, arg, {:offset, offset}, plurals}, args, options) do
+  def format({:plural, arg, {:offset, offset}, plurals}, args, options) when is_map(plurals) do
     format_plural(arg, Cardinal, offset, plurals, args, options)
   end
 
-  def format({:select_ordinal, arg, plurals}, args, options) do
+  def format({:select_ordinal, arg, plurals}, args, options) when is_map(plurals) do
     format_plural(arg, Ordinal, 0, plurals, args, options)
+  end
+
+  @spec format!(message() | list() | tuple(), arguments(), options()) ::
+          list() | String.t()
+
+  def format!(arg, args, options) do
+    case format(arg, args, options) do
+      {:ok, any} -> any
+      {:error, {exception, reason}} -> raise exception, reason
+      any -> any
+    end
   end
 
   defp format_plural(arg, type, offset, plurals, args, options) do
     arg =
       arg
-      |> format(args, options)
-      |> to_integer
+      |> format!(args, options)
+      |> to_maybe_integer
 
     formatted_arg = Cldr.Number.to_string!(arg - offset, options)
 
@@ -326,27 +339,29 @@ defmodule Cldr.Message do
     [locale: Cldr.get_locale(), backend: Cldr.default_backend()]
   end
 
-  defp other(arg, map) when is_atom(arg) do
+  @spec other(map(), atom() | binary()) :: any()
+  defp other(map, arg) when is_map(map) and is_atom(arg) do
     Map.fetch!(map, :other)
   end
 
-  defp other(map, arg) when is_binary(arg) do
+  defp other(map, arg) when is_map(map) and is_binary(arg) do
     Map.fetch!(map, "other")
   end
 
-  defp to_integer(arg) when is_integer(arg) do
+  @spec to_maybe_integer(number | Decimal.t() | String.t() | list()) :: number() | String.t() | atom()
+  defp to_maybe_integer(arg) when is_integer(arg) do
     arg
   end
 
-  defp to_integer(arg) when is_float(arg) do
+  defp to_maybe_integer(arg) when is_float(arg) do
     trunc(arg)
   end
 
-  defp to_integer(%Decimal{} = arg) do
+  defp to_maybe_integer(%Decimal{} = arg) do
     Decimal.to_integer(arg)
   end
 
-  defp to_integer(other) do
+  defp to_maybe_integer(other) do
     other
   end
 
@@ -355,7 +370,7 @@ defmodule Cldr.Message do
   end
 
   defp remove_nested_whitespace([{complex_arg, _arg, _selects} = complex | rest])
-      when complex_arg in [:plural, :select, :select_ordinal] do
+       when complex_arg in [:plural, :select, :select_ordinal] do
     [remove_nested_whitespace(complex), remove_nested_whitespace(rest)]
   end
 
@@ -364,7 +379,7 @@ defmodule Cldr.Message do
   end
 
   defp remove_nested_whitespace({complex_arg, arg, selects})
-      when complex_arg in [:select, :plural, :select_ordinal] do
+       when complex_arg in [:select, :plural, :select_ordinal] do
     selects =
       Enum.map(selects, fn
         {k, [{:literal, string} = literal, {:select, _, _} = select | other]} ->
