@@ -14,7 +14,7 @@ Two specific shortcomings that the ICU message format addresses:
 
 Many languages inflect in gender specific way. One example in French might be:
 ```
- # You are the only pariticipant for a male and female
+ # You are the only participant for a male and female
  Vous êtes the seul participant
  Vous êtes la seule participante
 
@@ -84,16 +84,17 @@ As of [ex_cldr_messages](https://hex.pm/packages/ex_cldr_messages) version `0.1.
 Using the above messages are examples:
 
 ```elixir
- iex> Cldr.Message.to_string! "My name is {name}", name: "Kip"
- "My name is Kip"
+iex> Cldr.Message.to_string! "My name is {name}", name: "Kip"
+"My name is Kip"
 
- iex> Cldr.Message.to_string!  "On {taken_date, date, short} {name} took {num_photos, plural,
-        =0 {no photos.}
-        =1 {one photo.}
-        other {# photos.}}", taken_date: Date.utc_today, name: "Kip", num_photos: 10
- "On 8/26/19 Kip took 10 photos."
+iex> Cldr.Message.to_string!  "On {taken_date, date, short} {name} took {num_photos, plural,
+       =0 {no photos.}
+       =1 {one photo.}
+       other {# photos.}}", taken_date: Date.utc_today, name: "Kip", num_photos: 10
+"On 8/26/19 Kip took 10 photos."
+```
 
-Additional examples are in the test.
+Additional examples are in the tests.
 
 ## Installation
 
