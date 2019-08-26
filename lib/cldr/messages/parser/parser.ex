@@ -1,6 +1,6 @@
 defmodule Cldr.Message.Parser do
   @moduledoc """
-  Implements a parser for the [ICU Message format]()
+  Implements a parser for the [ICU Message format](http://userguide.icu-project.org/formatparse/messages)
 
   """
 

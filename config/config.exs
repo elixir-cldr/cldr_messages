@@ -8,3 +8,6 @@ config :ex_cldr,
 
 config :ex_money,
   default_cldr_backend: MyApp.Cldr
+
+config :ex_doc,
+  pure_links: true

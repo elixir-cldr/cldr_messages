@@ -326,8 +326,7 @@ defmodule Cldr.Message.Parser.Combinator do
 
   @spec arg_name :: NimbleParsec.t()
   def arg_name do
-    optional(utf8_char([?:]))
-    |> utf8_string([?a..?z, ?A..?Z, ?0..?9, ?_], min: 1)
+    utf8_string([?a..?z, ?A..?Z, ?0..?9, ?_], min: 1)
     |> reduce(:named_arg)
   end
 

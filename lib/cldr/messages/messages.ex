@@ -1,7 +1,8 @@
 defmodule Cldr.Message do
   @moduledoc """
-  Implements the [ICU Message Format]() with functions to
-  parse and interpolate message.
+  Implements the [ICU Message Format](http://userguide.icu-project.org/formatparse/messages)
+  with functions to parse and interpolate messages.
+
   """
   alias Cldr.Message.Parser
 
@@ -14,10 +15,17 @@ defmodule Cldr.Message do
     Cldr.Message.Backend.define_message_module(config)
   end
 
+  @doc false
   def message_format(format, backend) do
     Module.concat(backend, Message).message_format(format)
   end
 
+  @doc """
+  Formats an ICU message into a string.
+
+  Returns `{:ok, message}` or `{:error, reason}`.
+
+  """
   @spec to_string(message(), arguments(), options()) ::
           {:ok, binary()} | {:error, {module(), binary()}}
   def to_string(message, args, options \\ []) do
@@ -27,6 +35,12 @@ defmodule Cldr.Message do
     end
   end
 
+  @doc """
+  Formats an ICU message into a string.
+
+  Returns a string or raises on error
+
+  """
   @spec to_string!(message(), arguments(), options()) :: binary() | no_return()
   def to_string!(message, args, options \\ []) do
     case to_string(message, args, options) do
@@ -35,6 +49,10 @@ defmodule Cldr.Message do
     end
   end
 
+  @doc """
+  Formats an ICU messages into an IO list
+
+  """
   @spec format(message() | list() | tuple(), arguments(), options()) ::
           list() | {:ok, list()} | {:error, {module(), binary()}}
 
@@ -74,7 +92,7 @@ defmodule Cldr.Message do
   end
 
   def format({:pos_arg, arg}, args, _options) when is_map(args) do
-    Map.fetch!(args, arg)
+    Map.fetch!(args, String.to_existing_atom(arg))
   end
 
   def format({:pos_arg, arg}, args, _options) when is_list(args) do
@@ -86,11 +104,11 @@ defmodule Cldr.Message do
   end
 
   def format({:named_arg, arg}, args, _options) when is_map(args) do
-    Map.fetch!(args, arg)
+    Map.fetch!(args, String.to_existing_atom(arg))
   end
 
   def format({:named_arg, arg}, args, _options) when is_list(args) do
-    Keyword.fetch!(args, arg)
+    Keyword.fetch!(args, String.to_existing_atom(arg))
   end
 
   def format(:value, _args, options) do
@@ -340,11 +358,7 @@ defmodule Cldr.Message do
   end
 
   @spec other(map(), atom() | binary()) :: any()
-  defp other(map, arg) when is_map(map) and is_atom(arg) do
-    Map.fetch!(map, :other)
-  end
-
-  defp other(map, arg) when is_map(map) and is_binary(arg) do
+  defp other(map, _arg) when is_map(map) do
     Map.fetch!(map, "other")
   end
 
