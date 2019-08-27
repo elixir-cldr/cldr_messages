@@ -11,7 +11,7 @@ iex> Cldr.Message.to_string "You have {number} jelly beans", number: 1234
 "You have 1,234 jelly beans"
 ```
 
-* Similarly applies localized formatting for dates, times, datetimes and lists.
+* Similarly applies localized formatting for dates, times, datetimes.
 
 # Changelog for Cldr_Messages v0.1.0
 
