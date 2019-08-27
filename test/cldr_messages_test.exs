@@ -2,6 +2,27 @@ defmodule Cldr_Messages_Test do
   use ExUnit.Case
   doctest Cldr.Message
 
+  test "simple formatting of a number" do
+    assert Cldr.Message.to_string("You have {number} jelly beans", number: 1234) ==
+      {:ok, "You have 1,234 jelly beans"}
+
+    assert Cldr.Message.to_string("You have {number} jelly beans", number: Decimal.new(1234)) ==
+      {:ok, "You have 1,234 jelly beans"}
+  end
+
+  test "formatting a unit" do
+    assert Cldr.Message.to_string("I am {height} tall", height: Cldr.Unit.new(1.8, :meter)) ==
+      {:ok, "I am 1.8 meters tall"}
+  end
+
+  test "formatting money" do
+    assert Cldr.Message.to_string("I have {money}", money: Money.new(:USD, 123)) ==
+      {:ok, "I have $123.00"}
+
+    assert Cldr.Message.to_string("I have {money, money, short}", money: Money.new(:USD, 123)) ==
+      {:ok, "I have $123"}
+  end
+
   test "arguments are inserted positionally" do
     assert Cldr.Message.format("{0} {1, plural,
       one {est {2, select, female {allée} other  {allé}}}

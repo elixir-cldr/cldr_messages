@@ -84,7 +84,7 @@ defmodule Cldr.Message do
   end
 
   def format([head | rest], args, options) do
-    [to_string(format(head, args, options)) | format(rest, args, options)]
+    [format_to_string(format(head, args, options)) | format(rest, args, options)]
   end
 
   def format({:literal, literal}, _args, _options) when is_binary(literal) do
@@ -97,10 +97,6 @@ defmodule Cldr.Message do
 
   def format({:pos_arg, arg}, args, _options) when is_list(args) do
     Enum.at(args, arg)
-  end
-
-  def format({:pos_arg, arg}, args, _options) when is_tuple(args) do
-    elem(args, arg)
   end
 
   def format({:named_arg, arg}, args, _options) when is_map(args) do
@@ -333,6 +329,30 @@ defmodule Cldr.Message do
       {:error, {exception, reason}} -> raise exception, reason
       any -> any
     end
+  end
+
+  defp format_to_string(value) when is_number(value) do
+    Cldr.Number.to_string!(value)
+  end
+
+  defp format_to_string(%Decimal{} = value) do
+    Cldr.Number.to_string!(value)
+  end
+
+  defp format_to_string(%Date{} = value) do
+    Cldr.Date.to_string!(value)
+  end
+
+  defp format_to_string(%Time{} = value) do
+    Cldr.Time.to_string!(value)
+  end
+
+  defp format_to_string(%DateTime{} = value) do
+    Cldr.DateTime.to_string!(value)
+  end
+
+  defp format_to_string(value) do
+    to_string(value)
   end
 
   defp format_plural(arg, type, offset, plurals, args, options) do
