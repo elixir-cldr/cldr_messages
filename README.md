@@ -79,12 +79,10 @@ ICU message formats are Elixir strings with embedded formatting directives inser
 
 ## Message formatting
 
-As of [ex_cldr_messages](https://hex.pm/packages/ex_cldr_messages) version `0.1.0`, the only functionality is to format a given message interpolated with supplied bindings.
-
-Using the above messages are examples:
+Using the above messages as examples:
 
 ```elixir
-iex> Cldr.Message.to_string! "My name is {name}", name: "Kip"
+iex> Cldr.Message.format! "My name is {name}", name: "Kip"
 "My name is Kip"
 
 iex> Cldr.Message.to_string!  "On {taken_date, date, short} {name} took {num_photos, plural,
@@ -94,14 +92,25 @@ iex> Cldr.Message.to_string!  "On {taken_date, date, short} {name} took {num_pho
 "On 8/26/19 Kip took 10 photos."
 ```
 
-Additional examples are in the tests.
+As of `ex_cldr_messages` version 0.3.0 a macro form is introduced which parses the message at compile time in order to optimize performance at run time. To use the macro, a backend module must be imported (or required) into a module that uses formatting.  For example:
+
+```elixir
+defmodule SomeModule do
+  # Import a <backend>.Cldr.Message module
+  import MyApp.Cldr.Message
+
+  def my_function do
+    format("this is a string with a param {param}", param: 3)
+  end
+end
+```
 
 ## Installation
 
 ```elixir
 def deps do
   [
-    {:ex_cldr_messages, "~> 0.1.0"}
+    {:ex_cldr_messages, "~> 0.3.0"}
   ]
 end
 ```

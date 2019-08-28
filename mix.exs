@@ -1,7 +1,7 @@
 defmodule CldrMessages.MixProject do
   use Mix.Project
 
-  @version "0.2.0"
+  @version "0.3.0"
 
   def project do
     [
@@ -53,7 +53,7 @@ defmodule CldrMessages.MixProject do
       {:ex_cldr_dates_times, "~> 2.2", optional: true},
       {:ex_money, "~> 4.0", optional: true},
       {:ex_cldr_units, "~> 2.0", optional: true},
-      {:ex_cldr_lists, "~> 2.0", options: true},
+      {:ex_cldr_lists, "~> 2.3", options: true},
       {:dialyxir, "~> 1.0.0-rc", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.20", only: [:dev, :test, :release]}
     ]
@@ -106,7 +106,7 @@ defmodule CldrMessages.MixProject do
     []
   end
 
-  defp elixirc_paths(:test), do: ["lib", "mix", "test"]
+  defp elixirc_paths(:test), do: ["lib", "mix", "test", "test/support"]
   defp elixirc_paths(:dev), do: ["lib", "mix"]
   defp elixirc_paths(_), do: ["lib"]
 end

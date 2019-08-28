@@ -8,8 +8,14 @@ defmodule Cldr.Message.Parser do
   import Cldr.Message.Parser.Combinator
 
   def parse(rule \\ :message, input) when is_atom(rule) and is_binary(input) do
-    apply(__MODULE__, rule, [input])
-    |> unwrap
+    case apply(__MODULE__, rule, [input]) |> unwrap do
+      {:ok, result} ->
+        {:ok, remove_nested_whitespace(result)}
+
+      {:ok, _result, rest} ->
+        {:error,
+         {Cldr.Message.ParseError, "Couldn't parse message. Error detected at #{inspect(rest)}"}}
+    end
   rescue
     exception in [Cldr.Message.ParseError] ->
       {:error, {Cldr.Message.ParseError, exception.message}}
@@ -31,5 +37,63 @@ defmodule Cldr.Message.Parser do
      {Cldr.Message.ParseError,
       "#{String.capitalize(first)}#{reason}. Could not parse the remaining #{inspect(rest)} " <>
         "starting at position #{offset + 1}"}}
+  end
+
+  defp remove_nested_whitespace([maybe_complex]) do
+    [remove_nested_whitespace(maybe_complex)]
+  end
+
+  defp remove_nested_whitespace([{complex_arg, _arg, _selects} = complex | rest])
+       when complex_arg in [:plural, :select, :select_ordinal] do
+    [remove_nested_whitespace(complex), remove_nested_whitespace(rest)]
+  end
+
+  defp remove_nested_whitespace([head | rest]) do
+    [head | remove_nested_whitespace(rest)]
+  end
+
+  defp remove_nested_whitespace({complex_arg, arg, selects})
+       when complex_arg in [:select, :plural, :select_ordinal] do
+    selects =
+      Enum.map(selects, fn
+        {k, [{:literal, string} = literal, {:select, _, _} = select | other]} ->
+          if is_whitespace?(string), do: {k, [select | other]}, else: [literal, select | other]
+
+        {k, [{:literal, string} = literal, {:plural, _, _, _} = plural | other]} ->
+          if is_whitespace?(string), do: {k, [plural | other]}, else: [literal, plural | other]
+
+        {k, [{:literal, string} = literal, {:select_ordinal, _, _} = select | other]} ->
+          if is_whitespace?(string), do: {k, [select | other]}, else: [literal, select | other]
+
+        other ->
+          other
+      end)
+      |> Map.new()
+
+    {complex_arg, arg, selects}
+  end
+
+  defp remove_nested_whitespace(other) do
+    other
+  end
+
+  defp is_whitespace?(<<" ", rest::binary>>) do
+    is_whitespace?(rest)
+  end
+
+  defp is_whitespace?(<<"\n", rest::binary>>) do
+    is_whitespace?(rest)
+  end
+
+  defp is_whitespace?(<<"\t", rest::binary>>) do
+    is_whitespace?(rest)
+  end
+
+  defp is_whitespace?(<<_char::bytes-1, _rest::binary>>) do
+    false
+  end
+
+  defp is_whitespace?("") do
+    true
   end
 end

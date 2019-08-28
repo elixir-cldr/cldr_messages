@@ -7,6 +7,7 @@ defmodule Cldr.Message.Parser.Combinator do
   def message do
     optional(message_text())
     |> repeat(argument() |> concat(message_text()))
+
     # |> label("a CLDR message")
   end
 
@@ -21,6 +22,7 @@ defmodule Cldr.Message.Parser.Combinator do
   def plural_message do
     optional(plural_message_text())
     |> repeat(argument() |> concat(plural_message_text()))
+
     # |> label("a CLDR plural message")
   end
 
