@@ -1,3 +1,11 @@
+# Changelog for Cldr_Messages v0.4.0
+
+This is the changelog for Cldr_Messages v0.4.0 released on August 29th, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+
+### Bug Fixes
+
+* Conditionally compile functions that depend on optional dependencies
+
 # Changelog for Cldr_Messages v0.3.0
 
 This is the changelog for Cldr_Messages v0.3.0 released on August 29th, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)

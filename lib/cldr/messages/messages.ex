@@ -169,78 +169,113 @@ defmodule Cldr.Message do
     Cldr.Number.to_string!(number, options)
   end
 
-  def format_to_list({date, :date}, _args, options) do
-    Cldr.Date.to_string!(date, options)
+  if Code.ensure_loaded?(Cldr.Date) do
+    def format_to_list({date, :date}, _args, options) do
+      Cldr.Date.to_string!(date, options)
+    end
+
+    def format_to_list({date, :date, format}, _args, options) when is_binary(format) do
+      options = Keyword.put(options, :format, format)
+      Cldr.Date.to_string!(date, options)
+    end
+
+    def format_to_list({date, :date, format}, _args, options)
+        when format in [:short, :medium, :long, :full] do
+      options = Keyword.put(options, :format, format)
+      Cldr.Date.to_string!(date, options)
+    end
+
+    def format_to_list({number, :date, format}, _args, options) when is_atom(format) do
+      format_options = configured_message_format(format, options[:backend])
+      options = Keyword.merge(options, format_options)
+      Cldr.Date.to_string!(number, options)
+    end
+
+    def format_to_list({time, :time}, _args, options) do
+      Cldr.Time.to_string!(time, options)
+    end
+
+    def format_to_list({time, :time, format}, _args, options) when is_binary(format) do
+      options = Keyword.put(options, :format, format)
+      Cldr.Time.to_string!(time, options)
+    end
+
+    def format_to_list({time, :time, format}, _args, options)
+        when format in [:short, :medium, :long, :full] do
+      options = Keyword.put(options, :format, format)
+      Cldr.Time.to_string!(time, options)
+    end
+
+    def format_to_list({number, :time, format}, _args, options) when is_atom(format) do
+      format_options = configured_message_format(format, options[:backend])
+      options = Keyword.merge(options, format_options)
+      Cldr.Time.to_string!(number, options)
+    end
+
+    def format_to_list({datetime, :datetime}, _args, options) do
+      Cldr.DateTime.to_string!(datetime, options)
+    end
+
+    def format_to_list({datetime, :datetime, format}, _args, options) when is_binary(format) do
+      options = Keyword.put(options, :format, format)
+      Cldr.DateTime.to_string!(datetime, options)
+    end
+
+    def format_to_list({datetime, :datetime, format}, _args, options)
+        when format in [:short, :medium, :long, :full] do
+      options = Keyword.put(options, :format, format)
+      Cldr.DateTime.to_string!(datetime, options)
+    end
+
+    def format_to_list({number, :datetime, format}, _args, options) when is_atom(format) do
+      format_options = configured_message_format(format, options[:backend])
+      options = Keyword.merge(options, format_options)
+      Cldr.DateTime.to_string!(number, options)
+    end
+  else
+    def format_to_list({_number, type, _format}, _args, _options)
+        when type in [:date, :time, :datetime] do
+      raise Cldr.Message.ParseError, datetime_configuration_error()
+    end
   end
 
-  def format_to_list({date, :date, format}, _args, options) when is_binary(format) do
-    options = Keyword.put(options, :format, format)
-    Cldr.Time.to_string!(date, options)
+  if Code.ensure_loaded?(Money) do
+    def format_to_list({money, :money, format}, _args, options) when format in [:short, :long] do
+      options = Keyword.put(options, :format, format)
+      Money.to_string!(money, options)
+    end
+
+    def format_to_list({number, :money, format}, _args, options) when is_atom(format) do
+      format_options = configured_message_format(format, options[:backend])
+      options = Keyword.merge(options, format_options)
+      Money.to_string!(number, options)
+    end
+  else
+    def format_to_list({_number, :money, _format}, _args, _options) do
+      raise Cldr.Message.ParseError, money_configuration_error()
+    end
   end
 
-  def format_to_list({date, :date, format}, _args, options)
-      when format in [:short, :medium, :long, :full] do
-    options = Keyword.put(options, :format, format)
-    Cldr.Date.to_string!(date, options)
-  end
+  if Code.ensure_loaded?(Cldr.Unit) do
+    def format_to_list({unit, :unit}, _args, options) do
+      Cldr.Unit.to_string!(unit, options)
+    end
 
-  def format_to_list({number, :date, format}, _args, options) when is_atom(format) do
-    format_options = configured_message_format(format, options[:backend])
-    options = Keyword.merge(options, format_options)
-    Cldr.Date.to_string!(number, options)
-  end
+    def format_to_list({unit, :unit, format}, _args, options)
+        when format in [:long, :short, :narrow] do
+      options = Keyword.put(options, :format, format)
+      Cldr.Unit.to_string!(unit, options)
+    end
 
-  def format_to_list({time, :time}, _args, options) do
-    Cldr.Time.to_string!(time, options)
-  end
-
-  def format_to_list({time, :time, format}, _args, options) when is_binary(format) do
-    options = Keyword.put(options, :format, format)
-    Cldr.Time.to_string!(time, options)
-  end
-
-  def format_to_list({time, :time, format}, _args, options)
-      when format in [:short, :medium, :long, :full] do
-    options = Keyword.put(options, :format, format)
-    Cldr.Time.to_string!(time, options)
-  end
-
-  def format_to_list({number, :time, format}, _args, options) when is_atom(format) do
-    format_options = configured_message_format(format, options[:backend])
-    options = Keyword.merge(options, format_options)
-    Cldr.Time.to_string!(number, options)
-  end
-
-  def format_to_list({datetime, :datetime}, _args, options) do
-    Cldr.DateTime.to_string!(datetime, options)
-  end
-
-  def format_to_list({datetime, :datetime, format}, _args, options) when is_binary(format) do
-    options = Keyword.put(options, :format, format)
-    Cldr.DateTime.to_string!(datetime, options)
-  end
-
-  def format_to_list({datetime, :datetime, format}, _args, options)
-      when format in [:short, :medium, :long, :full] do
-    options = Keyword.put(options, :format, format)
-    Cldr.DateTime.to_string!(datetime, options)
-  end
-
-  def format_to_list({number, :datetime, format}, _args, options) when is_atom(format) do
-    format_options = configured_message_format(format, options[:backend])
-    options = Keyword.merge(options, format_options)
-    Cldr.DateTime.to_string!(number, options)
-  end
-
-  def format_to_list({money, :money, format}, _args, options) when format in [:short, :long] do
-    options = Keyword.put(options, :format, format)
-    Money.to_string!(money, options)
-  end
-
-  def format_to_list({number, :money, format}, _args, options) when is_atom(format) do
-    format_options = configured_message_format(format, options[:backend])
-    options = Keyword.merge(options, format_options)
-    Money.to_string!(number, options)
+    def format_to_list({number, :unit, format}, _args, options) when is_atom(format) do
+      format_options = configured_message_format(format, options[:backend])
+      options = Keyword.merge(options, format_options)
+      Cldr.Unit.to_string!(number, options)
+    end
+  else
+    def format_to_list({_unit, :unit, _format}, _args, _options) do
+      raise Cldr.Message.ParseError, unit_configuration_error()
+    end
   end
 
   def format_to_list({list, :list}, _args, options) do
@@ -262,22 +297,6 @@ defmodule Cldr.Message do
     format_options = configured_message_format(format, options[:backend])
     options = Keyword.merge(options, format_options)
     Cldr.List.to_string!(number, options)
-  end
-
-  def format_to_list({unit, :unit}, _args, options) do
-    Cldr.Unit.to_string!(unit, options)
-  end
-
-  def format_to_list({unit, :unit, format}, _args, options)
-      when format in [:long, :short, :narrow] do
-    options = Keyword.put(options, :format, format)
-    Cldr.Unit.to_string!(unit, options)
-  end
-
-  def format_to_list({number, :unit, format}, _args, options) when is_atom(format) do
-    format_options = configured_message_format(format, options[:backend])
-    options = Keyword.merge(options, format_options)
-    Cldr.Unit.to_string!(number, options)
   end
 
   def format_to_list({:select, arg, selections}, args, options) when is_map(selections) do
@@ -307,16 +326,18 @@ defmodule Cldr.Message do
     Cldr.Number.to_string!(value)
   end
 
-  defp format_to_string(%Date{} = value) do
-    Cldr.Date.to_string!(value)
-  end
+  if Code.ensure_loaded?(Cldr.DateTime) do
+    defp format_to_string(%Date{} = value) do
+      Cldr.Date.to_string!(value)
+    end
 
-  defp format_to_string(%Time{} = value) do
-    Cldr.Time.to_string!(value)
-  end
+    defp format_to_string(%Time{} = value) do
+      Cldr.Time.to_string!(value)
+    end
 
-  defp format_to_string(%DateTime{} = value) do
-    Cldr.DateTime.to_string!(value)
+    defp format_to_string(%DateTime{} = value) do
+      Cldr.DateTime.to_string!(value)
+    end
   end
 
   defp format_to_string(value) do
@@ -367,5 +388,29 @@ defmodule Cldr.Message do
 
   defp to_maybe_integer(other) do
     other
+  end
+
+  @doc false
+  def unit_configuration_error do
+    """
+    A `unit` formatting style cannot be applied unless the hex package `ex_cldr_units`
+    is configured in `mix.exs`.
+    """
+  end
+
+  @doc false
+  def datetime_configuration_error do
+    """
+    A `date`, `time` or `datetime` formatting style cannot be applied unless the hex package
+    `ex_cldr_dates_times` is configured in `mix.exs`.
+    """
+  end
+
+  @doc false
+  def money_configuration_error do
+    """
+    A `money` formatting style cannot be applied unless the hex package `ex_money`
+    is configured in `mix.exs`.
+    """
   end
 end
