@@ -171,4 +171,49 @@ defmodule Cldr_Messages_Test do
   test "the format macro" do
     assert MessageMacro.test() == "this is my message with a 1"
   end
+
+  test "that a macro with invalid binding raises" do
+    assert_raise KeyError, fn ->
+      defmodule MessageMacro do
+        import MyApp.Cldr.Message
+
+        def test do
+          format("this is my message with a {number}", [])
+        end
+      end
+    end
+  end
+
+  test "that a dynamic binding compiles without error" do
+    defmodule MessageMacro3 do
+      import MyApp.Cldr.Message
+
+      def test do
+        binding = [this: :that]
+        format("this is my message with a {number}", binding)
+      end
+    end
+  end
+
+  test "that a a map binding" do
+    defmodule MessageMacro4 do
+      import MyApp.Cldr.Message
+
+      def test do
+        format("this is my message with a {number}", %{number: 1})
+      end
+    end
+  end
+
+  test "plural with no binding" do
+    assert_raise KeyError, fn ->
+      defmodule MessageMacro2 do
+        import MyApp.Cldr.Message
+
+        def test do
+          format("{num, plural, =0 {it's zero} other {other}}", [])
+        end
+      end
+    end
+  end
 end

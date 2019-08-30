@@ -42,12 +42,15 @@ defmodule Cldr.Message.Backend do
         """
         defmacro format(message, bindings \\ [], options \\ []) do
           alias Cldr.Message.Parser
+          alias Cldr.Message.Backend
 
           message = Cldr.Message.Backend.expand_to_binary(message, __CALLER__)
           backend = unquote(Macro.escape(config)) |> Map.get(:backend)
 
           case Parser.parse(message) do
             {:ok, parsed_message} ->
+              Backend.validate_bindings!(parsed_message, bindings)
+
               quote do
                 options =
                   unquote(options)
@@ -65,6 +68,58 @@ defmodule Cldr.Message.Backend do
         end
       end
     end
+  end
+
+  def validate_bindings!(message, bindings) do
+    prewalk(message, fn
+      {:named_arg, arg} -> validate_binding!(arg, bindings)
+      {:pos_arg, arg} -> validate_binding!(arg, bindings)
+      other -> other
+    end)
+  end
+
+  defp validate_binding!(arg, bindings) do
+    arg = String.to_existing_atom(arg)
+    if has_key?(arg, bindings) do
+      :ok
+    else
+      raise KeyError, "No argument binding was found for #{inspect arg} in #{inspect bindings}"
+    end
+  end
+
+  defp has_key?(arg, bindings) when is_list(bindings) do
+    Keyword.has_key?(bindings, arg)
+  end
+
+  # A map binding. Treat the arg list
+  # as a keyword list
+  defp has_key?(arg, {:%{}, _, list}) do
+    has_key?(arg, list)
+  end
+
+  # Dynamic runtime bindngs - we can't check
+  defp has_key?(_arg, _bindings) do
+    true
+  end
+
+  defp prewalk([], _fun) do
+    []
+  end
+
+  defp prewalk([head | rest], fun) do
+    case head do
+      {:plural, arg, _, plurals} ->
+        fun.(arg)
+        Enum.each(plurals, fn {_k, v} -> prewalk(v, fun) end)
+      {:select, arg, selections} ->
+        fun.(arg)
+        Enum.each(selections, fn {_k, v} -> prewalk(v, fun) end)
+      {:select_ordinal, arg, plurals} ->
+        fun.(arg)
+        Enum.each(plurals, fn {_k, v} -> prewalk(v, fun) end)
+      other -> fun.(other)
+    end
+    prewalk(rest, fun)
   end
 
   @doc """

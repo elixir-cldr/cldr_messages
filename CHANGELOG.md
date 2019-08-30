@@ -1,3 +1,11 @@
+# Changelog for Cldr_Messages v0.5.0
+
+This is the changelog for Cldr_Messages v0.5.0 released on ____, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+
+### Enhancements
+
+* Adds compile time checking that bindings are provided to the `format/3` macro wherever possible
+
 # Changelog for Cldr_Messages v0.4.0
 
 This is the changelog for Cldr_Messages v0.4.0 released on August 29th, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
