@@ -55,7 +55,7 @@ defmodule Cldr.Message.Backend do
                   |> Keyword.put_new(:locale, Cldr.get_locale(unquote(backend)))
 
                 unquote(parsed_message)
-                |> Cldr.Message.format(unquote(bindings), options)
+                |> Cldr.Message.format_list(unquote(bindings), options)
                 |> :erlang.iolist_to_binary()
               end
 
