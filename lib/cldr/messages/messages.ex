@@ -40,7 +40,10 @@ defmodule Cldr.Message do
       {:ok, format_list(result, args, options) |> :erlang.iolist_to_binary}
     end
   rescue
-    e -> inspect e; {:error, {ArgumentError, "Some error"}}
+    e in [KeyError] ->
+      {:error, {KeyError, "No argument binding was found for #{inspect e.key} in #{inspect e.term}"}}
+    e in [Cldr.Message.ParseError, Cldr.FormatCompileError]->
+      {:error, {e.__struct__, e.message}}
   end
 
   @spec format!(String.t(), arguments(), options()) :: String.t() | no_return
