@@ -14,7 +14,11 @@ defmodule Cldr.Message.Print do
   def to_string(message, options \\ [])
 
   def to_string(message, options) when is_list(options) do
-    options = Map.new(options)
+    options =
+      default_options()
+      |> Keyword.merge(options)
+      |> Map.new
+
     message
     |> to_string(options)
     |> :erlang.iolist_to_binary
@@ -61,9 +65,31 @@ defmodule Cldr.Message.Print do
     [?{, var, ", ", Kernel.to_string(format), ", ", Kernel.to_string(style), ?}]
   end
 
+  def to_string({:plural, arg, {:offset, 0}, choices}, %{pretty: true, level: 0} = options) do
+    [_, arg, _] = to_string(arg, options)
+    [?{, arg, "plural", ", ", to_string(choices, increment_level(options)), ?}]
+  end
+
+  def to_string({:plural, arg, {:offset, 0}, choices}, %{pretty: true, level: level} = options) do
+    [_, arg, _] = to_string(arg, options)
+    [?\n, pad(level), ?{, arg, "plural", ", ", to_string(choices, increment_level(options)), ?}]
+  end
+
   def to_string({:plural, arg, {:offset, 0}, choices}, options) do
     [_, arg, _] = to_string(arg, options)
     [?{, arg, ", ", "plural", ", ", to_string(choices, options), ?}]
+  end
+
+  def to_string({:plural, arg, {:offset, offset}, choices}, %{pretty: true, level: 0} = options) do
+    [_, arg, _] = to_string(arg, options)
+    [?{, arg, ", ", "plural", ", ", "offset: ", Kernel.to_string(offset), ?\s,
+      to_string(choices, increment_level(options)), ?}]
+  end
+
+  def to_string({:plural, arg, {:offset, offset}, choices}, %{pretty: true, level: level} = options) do
+    [_, arg, _] = to_string(arg, options)
+    [?\n, pad(level), ?{, arg, ", ", "plural", ", ", "offset: ", Kernel.to_string(offset), ?\s,
+      to_string(choices, increment_level(options)), ?}]
   end
 
   def to_string({:plural, arg, {:offset, offset}, choices}, options) do
@@ -72,14 +98,45 @@ defmodule Cldr.Message.Print do
       to_string(choices, options), ?}]
   end
 
+  def to_string({:select, arg, choices}, %{pretty: true, level: 0} = options) do
+    [_, arg, _] = to_string(arg, options)
+    [?{, arg, ", ", "select", ", ", to_string(choices, increment_level(options)), ?}]
+  end
+
+  def to_string({:select, arg, choices}, %{pretty: true, level: level} = options) do
+    [_, arg, _] = to_string(arg, options)
+    [?\n, pad(level), ?{, arg, ", ", "select", ", ", to_string(choices, increment_level(options)), ?}]
+  end
+
   def to_string({:select, arg, choices}, options) do
     [_, arg, _] = to_string(arg, options)
     [?{, arg, ", ", "select", ", ", to_string(choices, options), ?}]
   end
 
+  def to_string({:selectordinal, arg, choices}, %{pretty: true, level: 0} = options) do
+    [_, arg, _] = to_string(arg, options)
+    [?{, arg, ", ", "selectordinal", ", ", to_string(choices, increment_level(options)), ?}]
+  end
+
+  def to_string({:selectordinal, arg, choices}, %{pretty: true, level: level} = options) do
+    [_, arg, _] = to_string(arg, options)
+    [?\n, pad(level), ?{, arg, ", ", "selectordinal", ", ", to_string(choices, increment_level(options)), ?}]
+  end
+
   def to_string({:selectordinal, arg, choices}, options) do
     [_, arg, _] = to_string(arg, options)
     [?{, arg, ", ", "selectordinal", ", ", to_string(choices, options), ?}]
+  end
+
+  def to_string(%{} = choices, %{pretty: true, level: level} = options) do
+    next_level_options = %{options | level: level + 1, nested: true}
+
+    Enum.map(choices, fn
+      {choice, value} when is_integer(choice) ->
+        [?\n, pad(level), ?=, Kernel.to_string(choice), ?\s, ?{, to_string(value, next_level_options), ?}]
+      {choice, value} ->
+        [?\n, pad(level), Kernel.to_string(choice), ?\s, ?{, to_string(value, next_level_options), ?}]
+    end)
   end
 
   def to_string(%{} = choices, options) do
@@ -91,4 +148,19 @@ defmodule Cldr.Message.Print do
     end)
     |> Enum.intersperse(?\s)
   end
+
+  defp default_options do
+    [pretty: false, level: 0, nested: false]
+  end
+
+  def increment_level(%{level: level} = options, inc \\ 1) do
+    %{options | level: level + inc}
+  end
+
+  def pad(0), do: ""
+  def pad(1), do: "  "
+  def pad(2), do: "    "
+  def pad(3), do: "      "
+  def pad(4), do: "        "
+  def pad(5), do: "          "
 end
