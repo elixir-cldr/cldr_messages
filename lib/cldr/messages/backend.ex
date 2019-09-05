@@ -80,10 +80,11 @@ defmodule Cldr.Message.Backend do
 
   defp validate_binding!(arg, bindings) do
     arg = String.to_existing_atom(arg)
+
     if has_key?(arg, bindings) do
       :ok
     else
-      raise KeyError, "No argument binding was found for #{inspect arg} in #{inspect bindings}"
+      raise KeyError, "No argument binding was found for #{inspect(arg)} in #{inspect(bindings)}"
     end
   end
 
@@ -111,14 +112,19 @@ defmodule Cldr.Message.Backend do
       {:plural, arg, _, plurals} ->
         fun.(arg)
         Enum.each(plurals, fn {_k, v} -> prewalk(v, fun) end)
+
       {:select, arg, selections} ->
         fun.(arg)
         Enum.each(selections, fn {_k, v} -> prewalk(v, fun) end)
+
       {:select_ordinal, arg, plurals} ->
         fun.(arg)
         Enum.each(plurals, fn {_k, v} -> prewalk(v, fun) end)
-      other -> fun.(other)
+
+      other ->
+        fun.(other)
     end
+
     prewalk(rest, fun)
   end
 
