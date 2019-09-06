@@ -35,5 +35,13 @@ defmodule Cldr.Message.PrintTest do
       |> Cldr.Message.Parser.parse()
 
     assert parsed2 == parsed
+
+    {:ok, parsed3} =
+      parsed
+      |> Cldr.Message.Print.to_string(pretty: true)
+      |> Cldr.Message.Parser.parse()
+
+    assert parsed2 == parsed
+    assert parsed3 == parsed
   end
 end

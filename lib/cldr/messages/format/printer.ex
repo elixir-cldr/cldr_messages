@@ -67,7 +67,7 @@ defmodule Cldr.Message.Print do
 
   def to_string({:plural, arg, {:offset, 0}, choices}, %{pretty: true, level: 0} = options) do
     [_, arg, _] = to_string(arg, options)
-    [?{, arg, "plural", ", ", to_string(choices, increment_level(options)), ?}]
+    [?{, arg, ", ", "plural", ", ", to_string(choices, increment_level(options)), ?}]
   end
 
   def to_string({:plural, arg, {:offset, 0}, choices}, %{pretty: true, level: level} = options) do
