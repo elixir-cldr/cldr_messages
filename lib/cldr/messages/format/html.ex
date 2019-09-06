@@ -38,7 +38,8 @@ defmodule Cldr.Message.HTML do
   end
 
   def to_html({arg_type, format, style, arg}, _options) when arg_type in [:named_arg, :pos_arg] do
-    [lbrace(), arg(arg), syntax(","), literal(?\s), format(format), syntax(","), literal(?\s), style(style), rbrace()]
+    [lbrace(), arg(arg), syntax(","), literal(?\s), format(format), syntax(","),
+      literal(?\s), style(style), rbrace()]
   end
 
   def to_html({:literal, literal}, _options), do: literal(literal)

@@ -4,7 +4,7 @@ defmodule Cldr.Message do
   with functions to parse and interpolate messages.
 
   """
-  alias Cldr.Message.{Parser, Interpreter}
+  alias Cldr.Message.{Parser, Interpreter, Print}
   import Kernel, except: [to_string: 1]
   defdelegate format_list(message, args, options), to: Interpreter
 
@@ -51,6 +51,17 @@ defmodule Cldr.Message do
     case format(message, args, options) do
       {:ok, message} -> :erlang.iolist_to_binary(message)
       {:error, {exception, reason}} -> raise exception, reason
+    end
+  end
+
+  def jaro_distance(message1, message2, options \\ []) do
+    with {:ok, message1} <- maybe_trim(message1, options[:trim]),
+         {:ok, message2} <- maybe_trim(message2, options[:trim]),
+         {:ok, message1_ast} <- Parser.parse(message1),
+         {:ok, message2_ast} <- Parser.parse(message2) do
+       canonical_message1 = Print.to_string(message1_ast)
+       canonical_message2 = Print.to_string(message2_ast)
+       String.jaro_distance(canonical_message1, canonical_message2)
     end
   end
 
