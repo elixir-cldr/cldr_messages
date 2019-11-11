@@ -7,6 +7,7 @@ defmodule CldrMessages.MixProject do
     [
       app: :ex_cldr_messages,
       version: @version,
+      licenses: ["Apache-2.0"],
       elixir: "~> 1.8",
       name: "Cldr Messages",
       source_url: "https://github.com/elixir-cldr/cldr_messages",
