@@ -1,10 +1,17 @@
 # Cldr Messages
 
+![Build Status](http://sweatbox.noexpectations.com.au:8080/buildStatus/icon?job=cldr_messages)
+[![Hex.pm](https://img.shields.io/hexpm/v/ex_cldr_messages.svg)](https://hex.pm/packages/ex_cldr_messages)
+[![Hex.pm](https://img.shields.io/hexpm/dw/ex_cldr_messages.svg?)](https://hex.pm/packages/ex_cldr_messages)
+[![Hex.pm](https://img.shields.io/hexpm/l/ex_cldr_messages.svg)](https://hex.pm/packages/ex_cldr_messages)
+
+## Introduction and Getting Started
+
 Implements the [ICU Message Format](http://userguide.icu-project.org/formatparse/messages) for Elixir.
 
 In any application that addresses audiences from different cultures, the need arises to support the presentation of user interfaces, messages, alerts and other content in the appropriate language for a user.
 
-For [nearly 30 years](https://www.gnu.org/software/gettext/manual/gettext.html#gettext) the go-to solution for this requirement in many computer langauges is [gettext](https://www.gnu.org/software/gettext). There is a full-featured [implemenation for Elixir](https://hex.pm/packages/gettext) that is installed by default with [Phoenix]() with over 10,000,000 downloads.
+For [nearly 30 years](https://www.gnu.org/software/gettext/manual/gettext.html#gettext) the go-to solution for this requirement in many computer langauges is [gettext](https://www.gnu.org/software/gettext). There is a full-featured [implementation for Elixir](https://hex.pm/packages/gettext) that is installed by default with [Phoenix](https://hex.pm/packages/phoenix) with over 10,000,000 downloads.
 
 Given the maturity and widespread adoption of `Gettext`, why implement another format? Leveraging the content from the [Unicode CLDR](https://cldr.unicode.com) project we can address some of the shortcomings of `Gettext`. A good description of motivations and differences can be found in [this presentation](https://docs.google.com/presentation/d/1ZyN8-0VXmod5hbHveq-M1AeQ61Ga3BmVuahZjbmbBxo/pub?start=false&loop=false&delayms=3000&slide=id.g1bc43a82_2_14) by Mark Davis from Google in 2012.
 
