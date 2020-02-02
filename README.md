@@ -149,6 +149,6 @@ For the initial release. This is a simple function interface to message formatti
 * [X] Assert that `plural`, `select` and `selectordinal` all have an `other` clause
 * [X] Tests
 * [X] @specs
-* [ ] Dialyzer. Ask José to push nimble_parsec 0.5.2 to remove combinator errors
+* [X] Dialyzer. Ask José to push nimble_parsec 0.5.2 to remove combinator errors
 * [ ] Documentation
-* [ ] Implement `to_message` for parse trees.  This will define a canonical form which we can use to compare messages and create keys.
+* [X] Implement `to_string` for parse trees.  This will define a canonical form which we can use to compare messages and create keys.
