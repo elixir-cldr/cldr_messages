@@ -231,9 +231,16 @@ defmodule Cldr.Message.Interpreter do
       [Cldr.List.to_string!(list, options)]
     end
 
-    @list_styles Cldr.List.known_list_styles()
+    list_format_function =
+      if Code.ensure_loaded?(Cldr.List) && function_exported?(Cldr.List, :known_list_formats, 0) do
+        :known_list_formats
+      else
+        :known_list_styles
+      end
 
-    def format_list({list, :list, format}, _args, options) when format in @list_styles do
+    @list_formats apply(Cldr.List, list_format_function, [])
+
+    def format_list({list, :list, format}, _args, options) when format in @list_formats do
       options = Keyword.put(options, :format, format)
       [Cldr.List.to_string!(list, options)]
     end

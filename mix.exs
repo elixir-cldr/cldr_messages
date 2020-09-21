@@ -1,7 +1,7 @@
 defmodule CldrMessages.MixProject do
   use Mix.Project
 
-  @version "0.4.0"
+  @version "0.5.0"
 
   def project do
     [
@@ -47,14 +47,13 @@ defmodule CldrMessages.MixProject do
   defp deps do
     [
       {:nimble_parsec, "~> 0.5"},
-      {:ex_cldr, "~> 2.8"},
       {:ex_cldr_numbers, "~> 2.7"},
       {:jason, "~> 1.1"},
       {:ex_cldr_dates_times, "~> 2.2", optional: true},
-      {:ex_money, "~> 4.0", optional: true},
-      {:ex_cldr_units, "~> 2.0", optional: true},
+      {:ex_money, "~> 4.0 or ~> 5.0", optional: true},
+      {:ex_cldr_units, "~> 2.0 or ~> 3.0", optional: true},
       {:ex_cldr_lists, "~> 2.3", options: true},
-      {:dialyxir, "~> 1.0.0-rc", only: [:dev], runtime: false},
+      {:dialyxir, "~> 1.0.0", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.20", only: [:dev, :test, :release]}
     ]
   end

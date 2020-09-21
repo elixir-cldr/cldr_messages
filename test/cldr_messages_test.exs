@@ -11,7 +11,7 @@ defmodule Cldr_Messages_Test do
   end
 
   test "formatting a unit" do
-    assert Cldr.Message.format("I am {height} tall", height: Cldr.Unit.new(1.8, :meter)) ==
+    assert Cldr.Message.format("I am {height} tall", height: Cldr.Unit.new!(1.8, :meter)) ==
              {:ok, "I am 1.8 meters tall"}
   end
 

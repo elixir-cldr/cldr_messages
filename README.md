@@ -92,7 +92,7 @@ Using the above messages as examples:
 iex> Cldr.Message.format! "My name is {name}", name: "Kip"
 "My name is Kip"
 
-iex> Cldr.Message.to_string!  "On {taken_date, date, short} {name} took {num_photos, plural,
+iex> Cldr.Message.format!  "On {taken_date, date, short} {name} took {num_photos, plural,
        =0 {no photos.}
        =1 {one photo.}
        other {# photos.}}", taken_date: Date.utc_today, name: "Kip", num_photos: 10
@@ -117,7 +117,7 @@ end
 ```elixir
 def deps do
   [
-    {:ex_cldr_messages, "~> 0.3.0"}
+    {:ex_cldr_messages, "~> 0.5.0"}
   ]
 end
 ```
@@ -128,6 +128,7 @@ Documentation is at [https://hexdocs.pm/cldr_messages](https://hexdocs.pm/cldr_m
 
 For the initial release. This is a simple function interface to message formatting. Before 1.0 it needs to also have a means like gettext of managing messages in multiple different locales for the same message content.
 
+* [ ] Documentation
 * [X] Ignore whitespace between nested complex arguments at the top level. Example:
   {:select, {:named_arg, "gender_of_host"},
     %{
@@ -150,5 +151,4 @@ For the initial release. This is a simple function interface to message formatti
 * [X] Tests
 * [X] @specs
 * [X] Dialyzer. Ask José to push nimble_parsec 0.5.2 to remove combinator errors
-* [ ] Documentation
 * [X] Implement `to_string` for parse trees.  This will define a canonical form which we can use to compare messages and create keys.
