@@ -4,7 +4,7 @@ This is the changelog for Cldr_Messages v0.7.0 released on September 26th, 2019.
 
 ### Enhancements
 
-* Allow `Jason` versions `~> 0.5 or ~> 1.0`
+* Allow `nimble_parsec` versions `~> 0.5 or ~> 1.0`
 
 # Changelog for Cldr_Messages v0.6.0
 
