@@ -1,3 +1,11 @@
+# Changelog for Cldr_Messages v0.7.0
+
+This is the changelog for Cldr_Messages v0.7.0 released on September 26th, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+
+### Enhancements
+
+* Allow `Jason` versions `~> 0.5 or ~> 1.0`
+
 # Changelog for Cldr_Messages v0.6.0
 
 This is the changelog for Cldr_Messages v0.6.0 released on September 26th, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
