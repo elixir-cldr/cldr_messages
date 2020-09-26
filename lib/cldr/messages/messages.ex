@@ -79,7 +79,7 @@ defmodule Cldr.Message do
 
   ## Returns
 
-  * `{ok, distance}` where `distance is a float value between 0.0
+  * `{ok, distance}` where `distance` is a float value between 0.0
     (equates to no similarity) and 1.0 (is an
     exact match) representing Jaro distance between `message1`
     and `message2` or
@@ -125,7 +125,7 @@ defmodule Cldr.Message do
 
   ## Returns
 
-  * `distance` where `distance is a float value between 0.0
+  * `distance` where `distance` is a float value between 0.0
     (equates to no similarity) and 1.0 (is an
     exact match) representing Jaro distance between `message1`
     and `message2` or
