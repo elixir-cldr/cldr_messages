@@ -54,6 +54,41 @@ defmodule Cldr.Message do
     end
   end
 
+  @doc """
+  Returns the [Jaro distance](https://en.wikipedia.org/wiki/Jaro–Winkler_distance)
+  between two messages.
+
+  This allows for fuzzy matching of message
+  which can be helpful when a message string
+  is changed but the semantics remain the same.
+
+  ## Arguments
+
+  * `message1` is a CLDR message in binary form
+
+  * `message2` is a CLDR message in binary form
+
+  * `options` is a keyword list of options. The
+    default is `[]`
+
+  ## Options
+
+  * `:trim` determines if the message is trimmed
+    of whitespace before formatting. The default is
+    `false`.
+
+  ## Returns
+
+  * `{ok, distance}` where `distance is a float value between 0.0
+    (equates to no similarity) and 1.0 (is an
+    exact match) representing Jaro distance between `message1`
+    and `message2` or
+
+  * `{:error, {exception, reason}}`
+
+  ## Examples
+
+  """
   def jaro_distance(message1, message2, options \\ []) do
     with {:ok, message1} <- maybe_trim(message1, options[:trim]),
          {:ok, message2} <- maybe_trim(message2, options[:trim]),
@@ -61,7 +96,132 @@ defmodule Cldr.Message do
          {:ok, message2_ast} <- Parser.parse(message2) do
        canonical_message1 = Print.to_string(message1_ast)
        canonical_message2 = Print.to_string(message2_ast)
-       String.jaro_distance(canonical_message1, canonical_message2)
+       {:ok, String.jaro_distance(canonical_message1, canonical_message2)}
+    end
+  end
+
+  @doc """
+  Returns the [Jaro distance](https://en.wikipedia.org/wiki/Jaro–Winkler_distance)
+  between two messages or raises.
+
+  This allows for fuzzy matching of message
+  which can be helpful when a message string
+  is changed but the semantics remain the same.
+
+  ## Arguments
+
+  * `message1` is a CLDR message in binary form
+
+  * `message2` is a CLDR message in binary form
+
+  * `options` is a keyword list of options. The
+    default is `[]`
+
+  ## Options
+
+  * `:trim` determines if the message is trimmed
+    of whitespace before formatting. The default is
+    `false`.
+
+  ## Returns
+
+  * `distance` where `distance is a float value between 0.0
+    (equates to no similarity) and 1.0 (is an
+    exact match) representing Jaro distance between `message1`
+    and `message2` or
+
+  * raises an exception
+
+  ## Examples
+
+  """
+  def jaro_distance!(message1, message2, options \\ []) do
+    case jaro_distance(message1, message2, options) do
+      {:ok, distance} -> distance
+      {:error, {exception, reason}} -> raise exception, reason
+    end
+  end
+
+  @doc """
+  Formats a message into a canonical form.
+
+  This allows for messages to be compared
+  directly, or using `Cldr.Message.jaro_distance/3`.
+
+  ## Arguments
+
+  * `message` is a CLDR message in binary form
+
+  * `options` is a keyword list of options. The
+    default is `[]`
+
+  ## Options
+
+  * `:trim` determines if the message is trimmed
+    of whitespace before formatting. The default is
+    `true`.
+
+  * `:pretty` determines if the message if
+    formatted with indentation to aid readability.
+    The default is `false`.
+
+  ## Returns
+
+  * `{ok, canonical_message}` where `canonical_message`
+    is a binary or
+
+  * `{:error, {exception, reason}}`
+
+  ## Examples
+
+  """
+  def canonical_message(message, options \\ []) do
+    options = Keyword.put_new(options, :trim, true)
+
+    with {:ok, message} <- maybe_trim(message, options[:trim]),
+         {:ok, message_ast} <- Parser.parse(message) do
+       {:ok, Print.to_string(message_ast, options)}
+    end
+  end
+
+  @doc """
+  Formats a message into a canonical form
+  or raises if the message cannot be parsed.
+
+  This allows for messages to be compared
+  directly, or using `Cldr.Message.jaro_distance/3`.
+
+  ## Arguments
+
+  * `message` is a CLDR message in binary form
+
+  * `options` is a keyword list of options. The
+    default is `[]`
+
+  ## Options
+
+  * `:trim` determines if the message is trimmed
+    of whitespace before formatting. The default is
+    `true`.
+
+  * `:pretty` determines if the message if
+    formatted with indentation to aid readability.
+    The default is `false`.
+
+  ## Returns
+
+  * `canonical_message` where `canonical_message`
+    is a binary or
+
+  * raises an exception
+
+  ## Examples
+
+  """
+  def canonical_message!(message, options \\ []) do
+    case canonical_message(message, options) do
+      {:ok, message} -> message
+      {:error, {exception, reason}} -> raise exception, reason
     end
   end
 

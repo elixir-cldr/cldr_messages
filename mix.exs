@@ -1,7 +1,7 @@
 defmodule CldrMessages.MixProject do
   use Mix.Project
 
-  @version "0.5.0"
+  @version "0.6.0"
 
   def project do
     [
@@ -93,7 +93,7 @@ defmodule CldrMessages.MixProject do
         "CHANGELOG.md"
       ],
       groups_for_modules: groups_for_modules(),
-      skip_undefined_reference_warnings_on: ["changelog"]
+      skip_undefined_reference_warnings_on: ["changelog", "CHANGELOG.md", "README.md"]
     ]
   end
 

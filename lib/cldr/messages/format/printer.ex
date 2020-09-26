@@ -8,6 +8,27 @@ defmodule Cldr.Message.Print do
 
   1. To define a canonical string form of a message that can be used as a translation key
   2. To pretty print it for use in translation workbenches
+
+  ## Arguments
+
+  * `message` is a message AST returned by
+    `Cldr.Message.Parser.parse/1`
+
+  * `options` is a keyword list of options. The
+    default is `[]`
+
+  ## Options
+
+  * `:pretty` determines if the message if
+    formatted with indentation to aid readability.
+    The default is `false`.
+
+  ## Returns
+
+  * The message AST formatted as a string
+
+  ## Examples
+
   """
   import Kernel, except: [to_string: 1]
 
@@ -113,17 +134,17 @@ defmodule Cldr.Message.Print do
     [?{, arg, ", ", "select", ", ", to_string(choices, options), ?}]
   end
 
-  def to_string({:selectordinal, arg, choices}, %{pretty: true, level: 0} = options) do
+  def to_string({:select_ordinal, arg, choices}, %{pretty: true, level: 0} = options) do
     [_, arg, _] = to_string(arg, options)
     [?{, arg, ", ", "selectordinal", ", ", to_string(choices, increment_level(options)), ?}]
   end
 
-  def to_string({:selectordinal, arg, choices}, %{pretty: true, level: level} = options) do
+  def to_string({:select_ordinal, arg, choices}, %{pretty: true, level: level} = options) do
     [_, arg, _] = to_string(arg, options)
     [?\n, pad(level), ?{, arg, ", ", "selectordinal", ", ", to_string(choices, increment_level(options)), ?}]
   end
 
-  def to_string({:selectordinal, arg, choices}, options) do
+  def to_string({:select_ordinal, arg, choices}, options) do
     [_, arg, _] = to_string(arg, options)
     [?{, arg, ", ", "selectordinal", ", ", to_string(choices, options), ?}]
   end

@@ -1,3 +1,13 @@
+# Changelog for Cldr_Messages v0.6.0
+
+This is the changelog for Cldr_Messages v0.6.0 released on September 26th, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+
+### Enhancements
+
+* Add `Cldr.Message.canonical_message/2` that converts a string message into a canonical form. This allows for fuzzy matching between two messages that may have different formatting (this is possible since the CLDR message format allows for non-formatting whitepsace in parts of the syntax).
+
+* Add documentation for some of the key functions. Much more documentation required before 1.0 release.
+
 # Changelog for Cldr_Messages v0.5.0
 
 This is the changelog for Cldr_Messages v0.5.0 released on September 22nd, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
