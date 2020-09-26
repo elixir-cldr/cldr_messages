@@ -1,7 +1,7 @@
 defmodule CldrMessages.MixProject do
   use Mix.Project
 
-  @version "0.6.0"
+  @version "0.7.0"
 
   def project do
     [
@@ -46,7 +46,7 @@ defmodule CldrMessages.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:nimble_parsec, "~> 0.5"},
+      {:nimble_parsec, "~> 0.5 or ~> 1.0"},
       {:ex_cldr_numbers, "~> 2.7"},
       {:jason, "~> 1.1"},
       {:ex_cldr_dates_times, "~> 2.2", optional: true},
