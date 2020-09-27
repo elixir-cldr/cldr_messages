@@ -1,3 +1,11 @@
+# Changelog for Cldr_Messages v0.8.0
+
+This is the changelog for Cldr_Messages v0.8.0 released on September 27th, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+
+### Enhancements
+
+* Fix `Cldr.Message.Print.to_string/2` to omit blank spaces at the end of lines when pretty printing.
+
 # Changelog for Cldr_Messages v0.7.0
 
 This is the changelog for Cldr_Messages v0.7.0 released on September 26th, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)

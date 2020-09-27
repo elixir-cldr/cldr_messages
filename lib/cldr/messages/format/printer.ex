@@ -88,12 +88,12 @@ defmodule Cldr.Message.Print do
 
   def to_string({:plural, arg, {:offset, 0}, choices}, %{pretty: true, level: 0} = options) do
     [_, arg, _] = to_string(arg, options)
-    [?{, arg, ", ", "plural", ", ", to_string(choices, increment_level(options)), ?}]
+    [?{, arg, ", ", "plural", ",", to_string(choices, increment_level(options)), ?}]
   end
 
   def to_string({:plural, arg, {:offset, 0}, choices}, %{pretty: true, level: level} = options) do
     [_, arg, _] = to_string(arg, options)
-    [?\n, pad(level), ?{, arg, "plural", ", ", to_string(choices, increment_level(options)), ?}]
+    [?\n, pad(level), ?{, arg, "plural", ",", to_string(choices, increment_level(options)), ?}]
   end
 
   def to_string({:plural, arg, {:offset, 0}, choices}, options) do
@@ -103,13 +103,13 @@ defmodule Cldr.Message.Print do
 
   def to_string({:plural, arg, {:offset, offset}, choices}, %{pretty: true, level: 0} = options) do
     [_, arg, _] = to_string(arg, options)
-    [?{, arg, ", ", "plural", ", ", "offset: ", Kernel.to_string(offset), ?\s,
+    [?{, arg, ", ", "plural", ", ", "offset: ", Kernel.to_string(offset),
       to_string(choices, increment_level(options)), ?}]
   end
 
   def to_string({:plural, arg, {:offset, offset}, choices}, %{pretty: true, level: level} = options) do
     [_, arg, _] = to_string(arg, options)
-    [?\n, pad(level), ?{, arg, ", ", "plural", ", ", "offset: ", Kernel.to_string(offset), ?\s,
+    [?\n, pad(level), ?{, arg, ", ", "plural", ", ", "offset: ", Kernel.to_string(offset),
       to_string(choices, increment_level(options)), ?}]
   end
 
@@ -121,12 +121,12 @@ defmodule Cldr.Message.Print do
 
   def to_string({:select, arg, choices}, %{pretty: true, level: 0} = options) do
     [_, arg, _] = to_string(arg, options)
-    [?{, arg, ", ", "select", ", ", to_string(choices, increment_level(options)), ?}]
+    [?{, arg, ", ", "select", ?,, to_string(choices, increment_level(options)), ?}]
   end
 
   def to_string({:select, arg, choices}, %{pretty: true, level: level} = options) do
     [_, arg, _] = to_string(arg, options)
-    [?\n, pad(level), ?{, arg, ", ", "select", ", ", to_string(choices, increment_level(options)), ?}]
+    [?\n, pad(level), ?{, arg, ?,, "select", ", ", to_string(choices, increment_level(options)), ?}]
   end
 
   def to_string({:select, arg, choices}, options) do
@@ -136,12 +136,13 @@ defmodule Cldr.Message.Print do
 
   def to_string({:select_ordinal, arg, choices}, %{pretty: true, level: 0} = options) do
     [_, arg, _] = to_string(arg, options)
-    [?{, arg, ", ", "selectordinal", ", ", to_string(choices, increment_level(options)), ?}]
+    [?{, arg, ", ", "selectordinal", ?,, to_string(choices, increment_level(options)), ?}]
   end
 
   def to_string({:select_ordinal, arg, choices}, %{pretty: true, level: level} = options) do
     [_, arg, _] = to_string(arg, options)
-    [?\n, pad(level), ?{, arg, ", ", "selectordinal", ", ", to_string(choices, increment_level(options)), ?}]
+    [?\n, pad(level), ?{, arg, ?,, "selectordinal", ?,,
+      to_string(choices, increment_level(options)), ?}]
   end
 
   def to_string({:select_ordinal, arg, choices}, options) do
@@ -154,18 +155,20 @@ defmodule Cldr.Message.Print do
 
     Enum.map(choices, fn
       {choice, value} when is_integer(choice) ->
-        [?\n, pad(level), ?=, Kernel.to_string(choice), ?\s, ?{, to_string(value, next_level_options), ?}]
+        [?\n, pad(level), ?=, Kernel.to_string(choice), ?\s, ?{,
+          to_string(value, next_level_options), ?}]
       {choice, value} ->
-        [?\n, pad(level), Kernel.to_string(choice), ?\s, ?{, to_string(value, next_level_options), ?}]
+        [?\n, pad(level), Kernel.to_string(choice), ?\s, ?{,
+          to_string(value, next_level_options), ?}]
     end)
   end
 
   def to_string(%{} = choices, options) do
     Enum.map(choices, fn
       {choice, value} when is_integer(choice) ->
-        [?=, Kernel.to_string(choice), ?{, to_string(value, options), ?}]
+        [?=, Kernel.to_string(choice), ?\s, ?{, to_string(value, options), ?}]
       {choice, value} ->
-        [Kernel.to_string(choice), ?{, to_string(value, options), ?}]
+        [Kernel.to_string(choice), ?\s, ?{, to_string(value, options), ?}]
     end)
     |> Enum.intersperse(?\s)
   end
