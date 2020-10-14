@@ -92,7 +92,9 @@ defmodule Cldr.Message.Parser.Combinator do
 
   @spec comma :: NimbleParsec.t()
   def comma do
-    ignore(utf8_char([?,]))
+    ignore(optional(whitespace()))
+    |> ignore(utf8_char([?,]))
+    |> ignore(optional(whitespace()))
   end
 
   # argument = noneArg | simpleArg | complexArg
@@ -150,7 +152,6 @@ defmodule Cldr.Message.Parser.Combinator do
     |> concat(arg_name_or_number())
     |> concat(comma())
     |> ignore(argument("plural"))
-    |> concat(comma())
     |> concat(plural_style())
     |> concat(right_brace())
     |> reduce(:plural_select)
@@ -188,7 +189,6 @@ defmodule Cldr.Message.Parser.Combinator do
     |> concat(arg_name_or_number())
     |> concat(comma())
     |> ignore(argument("selectordinal"))
-    |> concat(comma())
     |> concat(plural_style())
     |> concat(right_brace())
     |> reduce(:select_ordinal)
@@ -222,7 +222,8 @@ defmodule Cldr.Message.Parser.Combinator do
   # pluralStyle = [offsetValue] (selector '{' message '}')+
   @spec plural_style :: NimbleParsec.t()
   def plural_style do
-    optional(offset_value() |> reduce(:offset))
+    optional(plural_arguments())
+    |> optional(comma())
     |> reduce(
       times(
         wrap(
@@ -246,6 +247,10 @@ defmodule Cldr.Message.Parser.Combinator do
     {:offset, offset}
   end
 
+  def plural_type([_, type]) do
+    {:plural_type, type}
+  end
+
   def list_to_map(list) do
     map = Map.new(list, fn [key | value] -> {key, value} end)
 
@@ -259,6 +264,19 @@ defmodule Cldr.Message.Parser.Combinator do
     end
   end
 
+  def plural_arguments do
+    one_plural_argument()
+    |> repeat
+  end
+
+  def one_plural_argument do
+    comma()
+    |> choice([
+      offset_value() |> reduce(:offset),
+      plural_type_value() |> reduce(:plural_type)
+    ])
+  end
+
   # offsetValue = "offset:" number
   @spec offset_value :: NimbleParsec.t()
   def offset_value do
@@ -266,6 +284,15 @@ defmodule Cldr.Message.Parser.Combinator do
     |> string("offset:")
     |> ignore(optional(whitespace()))
     |> integer(min: 1)
+  end
+
+  # pluralType = "type:" [ordinal, cardinal, short]
+  @spec plural_type_value :: NimbleParsec.t()
+  def plural_type_value do
+    ignore(optional(whitespace()))
+    |> string("type:")
+    |> ignore(optional(whitespace()))
+    |> choice([string("cardinal"), string("ordinal"), string("short")])
   end
 
   # selector = explicitValue | keyword
