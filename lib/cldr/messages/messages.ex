@@ -94,9 +94,9 @@ defmodule Cldr.Message do
          {:ok, message2} <- maybe_trim(message2, options[:trim]),
          {:ok, message1_ast} <- Parser.parse(message1),
          {:ok, message2_ast} <- Parser.parse(message2) do
-       canonical_message1 = Print.to_string(message1_ast)
-       canonical_message2 = Print.to_string(message2_ast)
-       {:ok, String.jaro_distance(canonical_message1, canonical_message2)}
+      canonical_message1 = Print.to_string(message1_ast)
+      canonical_message2 = Print.to_string(message2_ast)
+      {:ok, String.jaro_distance(canonical_message1, canonical_message2)}
     end
   end
 
@@ -180,7 +180,7 @@ defmodule Cldr.Message do
 
     with {:ok, message} <- maybe_trim(message, options[:trim]),
          {:ok, message_ast} <- Parser.parse(message) do
-       {:ok, Print.to_string(message_ast, options)}
+      {:ok, Print.to_string(message_ast, options)}
     end
   end
 

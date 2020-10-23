@@ -10,6 +10,10 @@ defmodule Cldr.Message.Interpreter do
 
   def format_list(message, args \\ [], options \\ [])
 
+  def format_list([], _args, _options) do
+    []
+  end
+
   def format_list([head], args, options) do
     [format_to_string(format_list(head, args, options))]
   end
@@ -266,9 +270,12 @@ defmodule Cldr.Message.Interpreter do
     format_list(message, args, options)
   end
 
-  def format_list({:plural, arg, {:offset, offset}, plurals}, args, options)
+  def format_list({:plural, arg, plural_args, plurals}, args, options)
       when is_map(plurals) do
-    format_plural(arg, Cardinal, offset, plurals, args, options)
+    offset = Keyword.get(plural_args, :offset, 0)
+    plural_type = Keyword.get(plural_args, :plural_type, "cardinal")
+
+    format_plural(arg, plural_type, offset, plurals, args, options)
   end
 
   def format_list({:select_ordinal, arg, plurals}, args, options) when is_map(plurals) do

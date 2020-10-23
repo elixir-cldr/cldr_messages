@@ -12,13 +12,13 @@ defmodule Cldr.Message.HTML do
     options =
       default_options()
       |> Keyword.merge(options)
-      |> Map.new
+      |> Map.new()
 
     message
     |> to_html(options)
     |> wrap_tag(:code)
     |> List.insert_at(0, css())
-    |> :erlang.iolist_to_binary
+    |> :erlang.iolist_to_binary()
   end
 
   def to_html([head | []], %{} = options) do
@@ -38,8 +38,17 @@ defmodule Cldr.Message.HTML do
   end
 
   def to_html({arg_type, format, style, arg}, _options) when arg_type in [:named_arg, :pos_arg] do
-    [lbrace(), arg(arg), syntax(","), literal(?\s), format(format), syntax(","),
-      literal(?\s), style(style), rbrace()]
+    [
+      lbrace(),
+      arg(arg),
+      syntax(","),
+      literal(?\s),
+      format(format),
+      syntax(","),
+      literal(?\s),
+      style(style),
+      rbrace()
+    ]
   end
 
   def to_html({:literal, literal}, _options), do: literal(literal)
@@ -48,48 +57,107 @@ defmodule Cldr.Message.HTML do
 
   def to_html({:simple_format, var, format, style}, options) do
     [_, var, _] = to_html(var, options)
-    [lbrace(), var, syntax(","), literal(?\s), format(format), syntax(","), literal(?\s),
-      style(style), rbrace()]
+
+    [
+      lbrace(),
+      var,
+      syntax(","),
+      literal(?\s),
+      format(format),
+      syntax(","),
+      literal(?\s),
+      style(style),
+      rbrace()
+    ]
   end
 
   def to_html({:plural, arg, {:offset, 0}, choices}, options) do
     [_, arg, _] = to_html(arg, options)
-    [lbrace(), arg, syntax(","), literal(?\s), keyword("plural"), syntax(","), literal(?\s),
-      to_html(choices, options), rbrace()]
+
+    [
+      lbrace(),
+      arg,
+      syntax(","),
+      literal(?\s),
+      keyword("plural"),
+      syntax(","),
+      literal(?\s),
+      to_html(choices, options),
+      rbrace()
+    ]
     |> wrap_tag(:div, class: :plural)
   end
 
   def to_html({:plural, arg, {:offset, offset}, choices}, options) do
     [_, arg, _] = to_html(arg, options)
-    [lbrace(), arg, syntax(","), literal(?\s), keyword("plural"), syntax(","), literal(?\s),
-      keyword("offset"), syntax(":"), literal(?\s), offset(offset), literal(?\s),
-      to_html(choices, options), rbrace()]
-      |> wrap_tag(:div, class: :plural)
+
+    [
+      lbrace(),
+      arg,
+      syntax(","),
+      literal(?\s),
+      keyword("plural"),
+      syntax(","),
+      literal(?\s),
+      keyword("offset"),
+      syntax(":"),
+      literal(?\s),
+      offset(offset),
+      literal(?\s),
+      to_html(choices, options),
+      rbrace()
+    ]
+    |> wrap_tag(:div, class: :plural)
   end
 
   def to_html({:select, arg, choices}, options) do
     [_, arg, _] = to_html(arg, options)
-    [lbrace(), arg, syntax(","), literal(?\s), keyword("select"), syntax(","), literal(?\s),
-      to_html(choices, options), rbrace()]
+
+    [
+      lbrace(),
+      arg,
+      syntax(","),
+      literal(?\s),
+      keyword("select"),
+      syntax(","),
+      literal(?\s),
+      to_html(choices, options),
+      rbrace()
+    ]
     |> wrap_tag(:div, class: :select)
   end
 
   def to_html({:selectordinal, arg, choices}, options) do
     [_, arg, _] = to_html(arg, options)
-    [lbrace(), arg, syntax(","), literal(?\s), keyword("selectordinal"), syntax(","), literal(?\s),
-      to_html(choices, options), rbrace()]
+
+    [
+      lbrace(),
+      arg,
+      syntax(","),
+      literal(?\s),
+      keyword("selectordinal"),
+      syntax(","),
+      literal(?\s),
+      to_html(choices, options),
+      rbrace()
+    ]
     |> wrap_tag(:div, class: :selectordinal)
   end
 
   def to_html(%{} = choices, options) do
     Enum.map(choices, fn
       {choice, value} when is_integer(choice) ->
-        [selector("=" <> to_string(choice)), literal(?\s), lbrace(),
-          to_html(value, options), rbrace()]
+        [
+          selector("=" <> to_string(choice)),
+          literal(?\s),
+          lbrace(),
+          to_html(value, options),
+          rbrace()
+        ]
         |> wrap_tag(:div, class: :selection)
+
       {choice, value} ->
-        [selector(to_string(choice)), literal(?\s), lbrace(),
-          to_html(value, options), rbrace()]
+        [selector(to_string(choice)), literal(?\s), lbrace(), to_html(value, options), rbrace()]
         |> wrap_tag(:div, class: :selection)
     end)
   end
@@ -147,13 +215,27 @@ defmodule Cldr.Message.HTML do
   end
 
   def wrap_tag(content, tag, options) do
-    ["<", to_string(tag), " class='", to_string(options[:class]), "'>",
-      content, "</", to_string(tag), ">"]
+    [
+      "<",
+      to_string(tag),
+      " class='",
+      to_string(options[:class]),
+      "'>",
+      content,
+      "</",
+      to_string(tag),
+      ">"
+    ]
   end
 
   def tag(tag, content, options) do
-    "<" <> to_string(tag) <> " class='" <> to_string(options[:class]) <> "'>" <> content <>
-    "</" <> to_string(tag) <> ">"
+    "<" <>
+      to_string(tag) <>
+      " class='" <>
+      to_string(options[:class]) <>
+      "'>" <>
+      content <>
+      "</" <> to_string(tag) <> ">"
   end
 
   defp default_options do

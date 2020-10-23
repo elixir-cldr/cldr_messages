@@ -154,15 +154,6 @@ defmodule Cldr.Message.Parser.Combinator do
     |> ignore(argument("plural"))
     |> concat(plural_style())
     |> concat(right_brace())
-    |> reduce(:plural_select)
-  end
-
-  def plural_select([arg, offset, selects]) do
-    {:plural, arg, offset, selects}
-  end
-
-  def plural_select([arg, selects]) do
-    {:plural, arg, {:offset, 0}, selects}
   end
 
   # selectArg = '{' argNameOrNumber ',' "select" ',' selectStyle '}'
@@ -267,6 +258,7 @@ defmodule Cldr.Message.Parser.Combinator do
   def plural_arguments do
     one_plural_argument()
     |> repeat
+    |> reduce(:resolve_plural_arguments)
   end
 
   def one_plural_argument do
@@ -275,6 +267,10 @@ defmodule Cldr.Message.Parser.Combinator do
       offset_value() |> reduce(:offset),
       plural_type_value() |> reduce(:plural_type)
     ])
+  end
+
+  def resolve_plural_arguments(args) do
+    Keyword.new(args)
   end
 
   # offsetValue = "offset:" number

@@ -169,7 +169,9 @@ defmodule Cldr_Messages_Test do
   end
 
   test "canonical message formatting" do
-    message1 = "It's my cat's {year, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} birthday!"
+    message1 =
+      "It's my cat's {year, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} birthday!"
+
     message2 = "It's my cat's {year, selectordinal,
         one {#st}
         two {#nd}
@@ -181,7 +183,9 @@ defmodule Cldr_Messages_Test do
   end
 
   test "jaro distance" do
-    message1 = "It's my cat's {year, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} birthday!"
+    message1 =
+      "It's my cat's {year, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} birthday!"
+
     message2 = "It's my cat's {year, selectordinal,
         one {#st}
         two {#nd}
