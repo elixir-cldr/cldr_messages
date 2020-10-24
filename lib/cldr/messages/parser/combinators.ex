@@ -154,6 +154,11 @@ defmodule Cldr.Message.Parser.Combinator do
     |> ignore(argument("plural"))
     |> concat(plural_style())
     |> concat(right_brace())
+    |> reduce(:plural_select)
+  end
+
+  def plural_select([arg, plural_args, selects]) do
+    {:plural, arg, plural_args, selects}
   end
 
   # selectArg = '{' argNameOrNumber ',' "select" ',' selectStyle '}'
@@ -185,8 +190,8 @@ defmodule Cldr.Message.Parser.Combinator do
     |> reduce(:select_ordinal)
   end
 
-  def select_ordinal([arg, selects]) do
-    {:select_ordinal, arg, selects}
+  def select_ordinal([arg, plural_args, selects]) do
+    {:select_ordinal, arg, plural_args, selects}
   end
 
   def argument(type) do
@@ -289,6 +294,11 @@ defmodule Cldr.Message.Parser.Combinator do
     |> string("type:")
     |> ignore(optional(whitespace()))
     |> choice([string("cardinal"), string("ordinal"), string("short")])
+    |> reduce(:capitalize_type)
+  end
+
+  def capitalize_type(args) do
+    IO.inspect args
   end
 
   # selector = explicitValue | keyword

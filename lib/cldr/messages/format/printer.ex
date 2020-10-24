@@ -86,22 +86,22 @@ defmodule Cldr.Message.Print do
     [?{, var, ", ", Kernel.to_string(format), ", ", Kernel.to_string(style), ?}]
   end
 
-  def to_string({:plural, arg, {:offset, 0}, choices}, %{pretty: true, level: 0} = options) do
+  def to_string({:plural, arg, [], choices}, %{pretty: true, level: 0} = options) do
     [_, arg, _] = to_string(arg, options)
     [?{, arg, ", ", "plural", ",", to_string(choices, increment_level(options)), ?}]
   end
 
-  def to_string({:plural, arg, {:offset, 0}, choices}, %{pretty: true, level: level} = options) do
+  def to_string({:plural, arg, [], choices}, %{pretty: true, level: level} = options) do
     [_, arg, _] = to_string(arg, options)
     [?\n, pad(level), ?{, arg, "plural", ",", to_string(choices, increment_level(options)), ?}]
   end
 
-  def to_string({:plural, arg, {:offset, 0}, choices}, options) do
+  def to_string({:plural, arg, [], choices}, options) do
     [_, arg, _] = to_string(arg, options)
     [?{, arg, ", ", "plural", ", ", to_string(choices, options), ?}]
   end
 
-  def to_string({:plural, arg, {:offset, offset}, choices}, %{pretty: true, level: 0} = options) do
+  def to_string({:plural, arg, plural_args, choices}, %{pretty: true, level: 0} = options) do
     [_, arg, _] = to_string(arg, options)
 
     [
@@ -110,15 +110,14 @@ defmodule Cldr.Message.Print do
       ", ",
       "plural",
       ", ",
-      "offset: ",
-      Kernel.to_string(offset),
+      format_plural_args(plural_args),
       to_string(choices, increment_level(options)),
       ?}
     ]
   end
 
   def to_string(
-        {:plural, arg, {:offset, offset}, choices},
+        {:plural, arg, plural_args, choices},
         %{pretty: true, level: level} = options
       ) do
     [_, arg, _] = to_string(arg, options)
@@ -131,14 +130,13 @@ defmodule Cldr.Message.Print do
       ", ",
       "plural",
       ", ",
-      "offset: ",
-      Kernel.to_string(offset),
+      format_plural_args(plural_args),
       to_string(choices, increment_level(options)),
       ?}
     ]
   end
 
-  def to_string({:plural, arg, {:offset, offset}, choices}, options) do
+  def to_string({:plural, arg, plural_args, choices}, options) do
     [_, arg, _] = to_string(arg, options)
 
     [
@@ -147,8 +145,7 @@ defmodule Cldr.Message.Print do
       ", ",
       "plural",
       ", ",
-      "offset: ",
-      Kernel.to_string(offset),
+      format_plural_args(plural_args),
       ?\s,
       to_string(choices, options),
       ?}
@@ -181,12 +178,12 @@ defmodule Cldr.Message.Print do
     [?{, arg, ", ", "select", ", ", to_string(choices, options), ?}]
   end
 
-  def to_string({:select_ordinal, arg, choices}, %{pretty: true, level: 0} = options) do
+  def to_string({:select_ordinal, arg, [], choices}, %{pretty: true, level: 0} = options) do
     [_, arg, _] = to_string(arg, options)
     [?{, arg, ", ", "selectordinal", ?,, to_string(choices, increment_level(options)), ?}]
   end
 
-  def to_string({:select_ordinal, arg, choices}, %{pretty: true, level: level} = options) do
+  def to_string({:select_ordinal, arg, [], choices}, %{pretty: true, level: level} = options) do
     [_, arg, _] = to_string(arg, options)
 
     [
@@ -202,7 +199,7 @@ defmodule Cldr.Message.Print do
     ]
   end
 
-  def to_string({:select_ordinal, arg, choices}, options) do
+  def to_string({:select_ordinal, arg, [], choices}, options) do
     [_, arg, _] = to_string(arg, options)
     [?{, arg, ", ", "selectordinal", ", ", to_string(choices, options), ?}]
   end
@@ -246,6 +243,13 @@ defmodule Cldr.Message.Print do
     end)
     |> Enum.intersperse(?\s)
   end
+
+  defp format_plural_args(args) do
+    Enum.map(args, &format_plural_arg/1)
+  end
+
+  defp format_plural_arg({:offset, offset}), do: ["offset: ", Kernel.to_string(offset)]
+  defp format_plural_arg({:type, type}), do: ["type: ", type]
 
   defp default_options do
     [pretty: false, level: 0, nested: false]
