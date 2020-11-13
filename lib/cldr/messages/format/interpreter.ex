@@ -67,7 +67,14 @@ defmodule Cldr.Message.Interpreter do
     [Cldr.Number.to_string!(number, options)]
   end
 
-  def format_list({number, :number, :currency}, _args, options) do
+  def format_list({number, :number, :currency}, args, options) do
+    options =
+      if currency = Keyword.get(args, :currency) do
+        Keyword.put(options, :currency, currency)
+      else
+        options
+      end
+
     options = Keyword.put(options, :format, :currency)
     [Cldr.Number.to_string!(number, options)]
   end

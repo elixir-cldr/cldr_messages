@@ -241,4 +241,20 @@ defmodule Cldr_Messages_Test do
       end
     end
   end
+
+  test "default currency is used for the given locale" do
+    template = "Your order total is {amount, number, currency}."
+    args = [amount: 199.50]
+    options = [locale: "en"]
+
+    assert Cldr.Message.format(template, args, options) == {:ok, "Your order total is $199.50."}
+  end
+
+  test "allow overriding the default locale currency" do
+    template = "Your order total is {amount, number, currency}."
+    args = [amount: 199.50, currency: "MXN"]
+    options = [locale: "en"]
+
+    assert Cldr.Message.format(template, args, options) == {:ok, "Your order total is MX$199.50."}
+  end
 end
