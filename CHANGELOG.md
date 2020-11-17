@@ -1,3 +1,21 @@
+# Changelog for Cldr_Messages v0.9.0
+
+This is the changelog for Cldr_Messages v0.9.0 released on November 18th, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+
+### Enhancements
+
+* Supports number arguments to be either a number or a tuple of the form `{number, keyword_list_of_formatting_options}`. This provides an escape hatch for developers to influence formatting of the number beyond the textual format of the message.  For example:
+
+```elixir
+# Uses the currency for the current locale
+iex> Cldr.Message.format "this is {one, number, currency}", one: 1
+{:ok, "this is $1.00"}
+
+# Forces the :MXP currency
+iex> Cldr.Message.format "this is {one, number, currency}", one: {1, currency: :MXP}
+{:ok, "this is MXP 1.00"}
+```
+
 # Changelog for Cldr_Messages v0.8.0
 
 This is the changelog for Cldr_Messages v0.8.0 released on September 27th, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)

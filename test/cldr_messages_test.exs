@@ -245,4 +245,9 @@ defmodule Cldr_Messages_Test do
       end
     end
   end
+
+  test "number formatting with tuple format" do
+    assert Cldr.Message.format("this is {one, number, currency}", one: {1, currency: :MXP}) ==
+      {:ok, "this is MXP 1.00"}
+  end
 end
