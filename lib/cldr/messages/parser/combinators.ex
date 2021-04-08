@@ -298,7 +298,7 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   def capitalize_type(args) do
-    IO.inspect args
+    IO.inspect(args)
   end
 
   # selector = explicitValue | keyword

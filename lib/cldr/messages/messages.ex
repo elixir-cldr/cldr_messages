@@ -29,7 +29,7 @@ defmodule Cldr.Message do
       if Keyword.has_key?(options, :backend) do
         options
       else
-        Keyword.put(options, :backend, Cldr.default_backend())
+        Keyword.put(options, :backend, default_backend())
       end
 
     with {:ok, message} <- maybe_trim(message, options[:trim]),
@@ -228,6 +228,16 @@ defmodule Cldr.Message do
   @doc false
   def default_options do
     [locale: Cldr.get_locale(), trim: false]
+  end
+
+  if Code.ensure_loaded?(Cldr) and function_exported?(Cldr, :default_backend!, 0) do
+    def default_backend do
+      Cldr.default_backend!()
+    end
+  else
+    def default_backend do
+      Cldr.default_backend()
+    end
   end
 
   defp maybe_trim(message, true) do

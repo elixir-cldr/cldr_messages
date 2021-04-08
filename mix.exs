@@ -1,7 +1,7 @@
 defmodule CldrMessages.MixProject do
   use Mix.Project
 
-  @version "0.9.0"
+  @version "0.10.0"
 
   def project do
     [
@@ -22,7 +22,8 @@ defmodule CldrMessages.MixProject do
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore_warnings",
         plt_add_apps:
-          ~w(inets jason mix ex_cldr ex_cldr_numbers ex_cldr_units ex_cldr_dates_times ex_cldr_calendars ex_money)a
+          ~w(inets jason mix ex_cldr ex_cldr_numbers ex_cldr_units
+          ex_cldr_dates_times ex_cldr_calendars ex_money ratio)a
       ],
       compilers: Mix.compilers()
     ]
