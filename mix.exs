@@ -55,7 +55,7 @@ defmodule CldrMessages.MixProject do
       {:ex_cldr_units, "~> 2.0 or ~> 3.0", optional: true},
       {:ex_cldr_lists, "~> 2.3", options: true},
       {:dialyxir, "~> 1.0.0", only: [:dev], runtime: false},
-      {:ex_doc, "~> 0.20", only: [:dev, :test, :release]}
+      {:ex_doc, "~> 0.20", optional: true, runtime: false}
     ]
   end
 
