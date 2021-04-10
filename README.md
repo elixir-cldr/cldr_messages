@@ -7,7 +7,7 @@
 
 ## Introduction and Getting Started
 
-Implements the [ICU Message Format](http://userguide.icu-project.org/formatparse/messages) for Elixir.
+Implements the [ICU Message Format](https://unicode-org.github.io/icu/userguide/format_parse/messages) for Elixir.
 
 In any application that addresses audiences from different cultures, the need arises to support the presentation of user interfaces, messages, alerts and other content in the appropriate language for a user.
 
