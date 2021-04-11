@@ -91,7 +91,8 @@ defmodule CldrMessages.MixProject do
       extras: [
         "README.md",
         "LICENSE.md",
-        "CHANGELOG.md"
+        "CHANGELOG.md",
+        "MESSAGE_FORMAT.md"
       ],
       groups_for_modules: groups_for_modules(),
       skip_undefined_reference_warnings_on: ["changelog", "CHANGELOG.md", "README.md"]

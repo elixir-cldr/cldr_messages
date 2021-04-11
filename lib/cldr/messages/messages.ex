@@ -17,10 +17,33 @@ defmodule Cldr.Message do
     Cldr.Message.Backend.define_message_module(config)
   end
 
+  @doc """
+  Format a message in the [ICU Message Format](https://unicode-org.github.io/icu/userguide/format_parse/messages)
+
+  The ICU Message Format uses message `"pattern"` strings with
+  variable-element placeholders enclosed in {curly braces}. The
+  argument syntax can include formatting details, otherwise a
+  default format is used.
+
+  ## Arguments
+
+  * `args` is a list of map of arguments that
+    are used to replace placeholders in the message
+
+  * `options` is a keyword list of options
+
+  ## Options
+
+  ## Returns
+
+  ## Examples
+
+  """
+
   @spec format(String.t(), arguments(), options()) ::
           {:ok, String.t()} | {:error, {module(), String.t()}}
 
-  def format(message, args \\ [], options \\ []) when is_binary(message) do
+  def format(message, args \\ [],options \\ []) when is_binary(message) do
     options =
       default_options()
       |> Keyword.merge(options)
