@@ -5,7 +5,7 @@ defmodule Cldr.Message do
 
   """
   alias Cldr.Message.{Parser, Interpreter, Print}
-  import Kernel, except: [to_string: 1]
+  import Kernel, except: [to_string: 1, binding: 1]
   defdelegate format_list(message, args, options), to: Interpreter
 
   @type message :: binary()
@@ -248,6 +248,49 @@ defmodule Cldr.Message do
     end
   end
 
+  @doc """
+  Extract the binding names from a
+  parsed message
+
+  ## Arguments
+
+  * `message` is a CLDR message in binary or
+    parsed form
+
+  ### Returns
+
+  * A list of variable names or
+
+  * `{:error, {exception, reason}}`
+
+  ### Examples
+
+       iex> Cldr.Message.binding "This {variable} is in the message"
+       ["variable"]
+
+  """
+  def binding(message) when is_binary(message) do
+    with {:ok, parsed} <- Cldr.Message.Parser.parse(message) do
+      binding(parsed)
+    end
+  end
+
+  def binding(message) when is_list(message) do
+    Enum.reduce(message, [], fn
+      {:named_arg, arg}, acc -> [arg | acc]
+      {:pos_arg, arg}, acc -> [arg | acc]
+      {:select, {_, arg}, selectors}, acc -> [arg, binding(selectors) | acc]
+      {:plural, {_, arg}, _, selectors}, acc -> [arg, binding(selectors) | acc]
+      {:select_ordinal, {_, arg}, _, selectors}, acc -> [arg, binding(selectors) | acc]
+      _other, acc-> acc
+    end)
+    |> List.flatten
+    |> Enum.uniq
+  end
+
+  def binding(message) when is_map(message) do
+    Enum.map(message, fn {_selector, message} -> binding(message) end)
+  end
   @doc false
   def default_options do
     [locale: Cldr.get_locale(), trim: false]

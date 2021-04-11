@@ -250,4 +250,28 @@ defmodule Cldr_Messages_Test do
     assert Cldr.Message.format("this is {one, number, currency}", one: {1, currency: :MXP}) ==
              {:ok, "this is MXP 1.00"}
   end
+
+  test "Extract variable bindings" do
+    assert Cldr.Message.binding(
+      "{gender_of_host, select,
+        female {
+          {num_guests, plural, offset: 1
+            =0 {{host} does not give a party.}
+            =1 {{host} invites {guest} to her party.}
+            =2 {{host} invites {guest} and one other person to her party.}
+            other {{host} invites {guest} and # other people to her party.}}}
+        male {
+          {num_guests, plural, offset: 1
+            =0 {{host} does not give a party.}
+            =1 {{host} invites {guest} to his party.}
+            =2 {{host} invites {guest} and one other person to his party.}
+            other {{host} invites {guest} and # other people to his party.}}}
+        other {
+          {num_guests, plural, offset: 1
+            =0 {{host} does not give a party.}
+            =1 {{host} invites {guest} to their party.}
+            =2 {{host} invites {guest} and one other person to their party.}
+            other {{host} invites {guest} and # other people to their party.}}}}") ==
+    ["gender_of_host", "num_guests", "host", "guest"]
+  end
 end
