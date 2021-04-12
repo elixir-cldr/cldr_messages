@@ -34,6 +34,17 @@ defmodule Cldr.Message do
 
   ## Options
 
+  * `:backend`
+
+  * `:locale`
+
+  * `:trim`
+
+  * `:allow_positional_args`
+
+  * All other aptions are passed to the `to_string/2`
+    function of a formatting module
+
   ## Returns
 
   ## Examples
@@ -56,8 +67,8 @@ defmodule Cldr.Message do
       end
 
     with {:ok, message} <- maybe_trim(message, options[:trim]),
-         {:ok, result} <- Parser.parse(message) do
-      {:ok, format_list(result, args, options) |> :erlang.iolist_to_binary()}
+         {:ok, parsed} <- Parser.parse(message, options[:allow_positional_args]) do
+      {:ok, format_list(parsed, args, options) |> :erlang.iolist_to_binary()}
     end
   rescue
     e in [KeyError] ->

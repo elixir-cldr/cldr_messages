@@ -6,6 +6,10 @@ This is the changelog for Cldr_Messages v0.11.0 released on ______, 2021.  For o
 
 * Add `Cldr.Message.binding/1` to extract the names of variable bindings for a message
 
+* Add option `:allow_positional_args` to `Cldr.Message.format/3`. The default is `true`.
+
+* Add argument `allow_positional_args?` to `Cldr.Message.Parser.parse/2`
+
 # Changelog for Cldr_Messages v0.10.0
 
 This is the changelog for Cldr_Messages v0.10.0 released on April 8th, 2021.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)

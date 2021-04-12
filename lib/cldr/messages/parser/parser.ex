@@ -7,11 +7,14 @@ defmodule Cldr.Message.Parser do
   import NimbleParsec
   import Cldr.Message.Parser.Combinator
 
-  def parse(rule \\ :message, input) when is_atom(rule) and is_binary(input) do
-    case apply(__MODULE__, rule, [input]) |> unwrap do
-      {:ok, result} ->
-        {:ok, remove_nested_whitespace(result)}
+  @rule :message
 
+  def parse(input, allow_positional_args? \\ true) when is_binary(input) do
+    with {:ok, parsed} <- unwrap(apply(__MODULE__, @rule, [input])) do
+      parsed
+      |> remove_nested_whitespace()
+      |> maybe_allow_positional_args(allow_positional_args?)
+    else
       {:ok, _result, rest} ->
         {:error,
          {Cldr.Message.ParseError, "Couldn't parse message. Error detected at #{inspect(rest)}"}}
@@ -95,5 +98,20 @@ defmodule Cldr.Message.Parser do
 
   defp is_whitespace?("") do
     true
+  end
+
+  defp maybe_allow_positional_args(parsed, allow_positional_args?) do
+    if allow_positional_args? || is_nil(allow_positional_args?) do
+      {:ok, parsed}
+    else
+      parsed
+      |> Cldr.Message.binding()
+      |> Enum.any?(&is_integer/1)
+      |> if do
+           {:error, {Cldr.Message.PositionalArgsNotPermitted, "Positional arguments are not permitted"}}
+         else
+           {:ok, parsed}
+         end
+    end
   end
 end

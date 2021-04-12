@@ -274,4 +274,9 @@ defmodule Cldr_Messages_Test do
             other {{host} invites {guest} and # other people to their party.}}}}") ==
     ["gender_of_host", "num_guests", "host", "guest"]
   end
+
+  test "that postional arguments can be prohitbited" do
+    assert Cldr.Message.format("Can you see {0}", ["me"], allow_positional_args: false) ==
+      {:error, {Cldr.Message.PositionalArgsNotPermitted, "Positional arguments are not permitted"}}
+  end
 end
