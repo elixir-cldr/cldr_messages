@@ -4,7 +4,7 @@ This is the changelog for Cldr_Messages v0.11.0 released on ______, 2021.  For o
 
 ### Enhancements
 
-* Add `Cldr.Message.binding/1` to extract the names of variable bindings for a message
+* Add `Cldr.Message.bindings/1` to extract the names of variable bindings for a message
 
 * Add option `:allow_positional_args` to `Cldr.Message.format/3`. The default is `true`.
 
