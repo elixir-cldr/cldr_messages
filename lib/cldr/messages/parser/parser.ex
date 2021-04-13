@@ -105,7 +105,7 @@ defmodule Cldr.Message.Parser do
       {:ok, parsed}
     else
       parsed
-      |> Cldr.Message.binding()
+      |> Cldr.Message.bindings()
       |> Enum.any?(&is_integer/1)
       |> if do
            {:error, {Cldr.Message.PositionalArgsNotPermitted, "Positional arguments are not permitted"}}

@@ -276,31 +276,31 @@ defmodule Cldr.Message do
 
   ### Examples
 
-       iex> Cldr.Message.binding "This {variable} is in the message"
+       iex> Cldr.Message.bindings "This {variable} is in the message"
        ["variable"]
 
   """
-  def binding(message) when is_binary(message) do
+  def bindings(message) when is_binary(message) do
     with {:ok, parsed} <- Cldr.Message.Parser.parse(message) do
-      binding(parsed)
+      bindings(parsed)
     end
   end
 
-  def binding(message) when is_list(message) do
+  def bindings(message) when is_list(message) do
     Enum.reduce(message, [], fn
       {:named_arg, arg}, acc -> [arg | acc]
       {:pos_arg, arg}, acc -> [arg | acc]
-      {:select, {_, arg}, selectors}, acc -> [arg, binding(selectors) | acc]
-      {:plural, {_, arg}, _, selectors}, acc -> [arg, binding(selectors) | acc]
-      {:select_ordinal, {_, arg}, _, selectors}, acc -> [arg, binding(selectors) | acc]
+      {:select, {_, arg}, selectors}, acc -> [arg, bindings(selectors) | acc]
+      {:plural, {_, arg}, _, selectors}, acc -> [arg, bindings(selectors) | acc]
+      {:select_ordinal, {_, arg}, _, selectors}, acc -> [arg, bindings(selectors) | acc]
       _other, acc-> acc
     end)
     |> List.flatten
     |> Enum.uniq
   end
 
-  def binding(message) when is_map(message) do
-    Enum.map(message, fn {_selector, message} -> binding(message) end)
+  def bindings(message) when is_map(message) do
+    Enum.map(message, fn {_selector, message} -> bindings(message) end)
   end
   @doc false
   def default_options do

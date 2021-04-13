@@ -252,7 +252,7 @@ defmodule Cldr_Messages_Test do
   end
 
   test "Extract variable bindings" do
-    assert Cldr.Message.binding(
+    assert Cldr.Message.bindings(
       "{gender_of_host, select,
         female {
           {num_guests, plural, offset: 1
