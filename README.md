@@ -40,7 +40,7 @@ The ICU message format provides a mechanism (the [choice format](#Choice_format)
 Although `Gettext` supports pluralization for messages through the [Gettext.Plural module in Elixir](https://hexdocs.pm/gettext/Gettext.Plural.html) and the `Gettext` functions like `Gettext.ngettext/4`, the plural rules for a language have to be implemented for each message. Given the wide differences in how plural forms are structured in different languages this can be a material challenge.  For example:
 
 * English has two plural forms: singular and plural
-* French applies the singular rule to two values and a plural form to larger groupings
+* French applies the singular rule to two values (0 and 1) and a plural form to larger groupings
 * Japanese does not differentiate
 * Russian has 4 categories
 * Arabic has 6 categories
