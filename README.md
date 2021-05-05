@@ -20,30 +20,32 @@ Two specific shortcomings that the ICU message format addresses:
 ### Grammatical Gender
 
 Many languages inflect in gender specific way. One example in French might be:
-```
- # You are the only participant for a male and female
- Vous êtes the seul participant
- Vous êtes la seule participante
 
- # Married for a male and a female
- Marié
- Mariée
 ```
-In `Gettext` this requires individual messages and conditional code in the application in order to present the correct message to an audience.  This is compounded by the fact that some languages have more than two g[rammatical genders](https://en.wikipedia.org/wiki/Grammatical_gender) (most have been two and four but but some are attested with up to 20.
+# You are the only participant for a male and female
+Vous êtes le seul participant
+Vous êtes la seule participante
 
-The ICU message format provides a mechanism (the [choice format](#Choice_format)) that helps translator and UX designers implement a single message to easily encapsulate messages conditional on grammatical gender (or any other selector)
+# Married for a male and a female
+Marié
+Mariée
+```
+
+In `Gettext` this requires individual messages and conditional code in the application in order to present the correct message to an audience.  This is compounded by the fact that some languages have more than two [grammatical genders](https://en.wikipedia.org/wiki/Grammatical_gender) (most have two and four but some are attested with up to 20).
+
+The ICU message format provides a mechanism (the [choice format](#Choice_format)) that helps translator and UX designers implement a single message to easily encapsulate messages conditional on grammatical gender (or any other selector).
 
 ### Standardised plural rules
 
-Although `Gettext` supports pluralisation for messages through the [Gettext.Plural module in Elixir](https://hexdocs.pm/gettext/Gettext.Plural.html) and the `Gettext` functions like `Gettext.ngettext/4`, the plural rules for a language have to be implemented for each message. Give the wide differences in how plural forms are structured in different languages this can be a material challenge.  For example:
+Although `Gettext` supports pluralization for messages through the [Gettext.Plural module in Elixir](https://hexdocs.pm/gettext/Gettext.Plural.html) and the `Gettext` functions like `Gettext.ngettext/4`, the plural rules for a language have to be implemented for each message. Given the wide differences in how plural forms are structured in different languages this can be a material challenge.  For example:
 
 * English has two plural forms: singular and plural
-* French applies the singular rule to two values and a plural form to larger groupings
+* French applies the singular rule to two values (0 and 1) and a plural form to larger groupings
 * Japanese does not differentiate
 * Russian has 4 categories
 * Arabic has 6 categories
 
-Since CLDR has a strong set of pluralization rules defined for ~500 locales, each of which is supported by [ex_cldr for Elixir](https://hex.pm/ex_cldr), the ICU message format can reuse these pluralization rules in a simple and consisten fashion using the [plural format]{#Plural_Format}
+Since CLDR has a strong set of pluralization rules defined for ~500 locales, each of which is supported by [ex_cldr for Elixir](https://hex.pm/ex_cldr), the ICU message format can reuse these pluralization rules in a simple and consistent fashion using the [plural format]{#Plural_Format}.
 
 ## Message format overview
 
