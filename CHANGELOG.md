@@ -104,7 +104,7 @@ defmodule SomeModule do
 end
 ```
 
-* Add `Cldr.Mesasge.format_to_list/3` formats to an `io_list`
+* Add `Cldr.Message.format_to_list/3` formats to an `io_list`
 
 ### Bug Fixes
 
