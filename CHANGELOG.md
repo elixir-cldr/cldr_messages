@@ -1,6 +1,8 @@
-# Changelog for Cldr_Messages v0.11.0
+# Changelog
 
-This is the changelog for Cldr_Messages v0.11.0 released on ______, 2021.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+## Cldr_Messages v0.11.0
+
+This is the changelog for Cldr_Messages v0.11.0 released on May 23rd, 2021.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
 
 ### Enhancements
 
@@ -10,7 +12,7 @@ This is the changelog for Cldr_Messages v0.11.0 released on ______, 2021.  For o
 
 * Add argument `allow_positional_args?` to `Cldr.Message.Parser.parse/2`
 
-# Changelog for Cldr_Messages v0.10.0
+## Cldr_Messages v0.10.0
 
 This is the changelog for Cldr_Messages v0.10.0 released on April 8th, 2021.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
 
@@ -18,7 +20,7 @@ This is the changelog for Cldr_Messages v0.10.0 released on April 8th, 2021.  Fo
 
 * Use `Cldr.default_backend!/0` if available
 
-# Changelog for Cldr_Messages v0.9.0
+## Cldr_Messages v0.9.0
 
 This is the changelog for Cldr_Messages v0.9.0 released on November 18th, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
 
@@ -36,7 +38,7 @@ iex> Cldr.Message.format "this is {one, number, currency}", one: {1, currency: :
 {:ok, "this is MXP 1.00"}
 ```
 
-# Changelog for Cldr_Messages v0.8.0
+## Cldr_Messages v0.8.0
 
 This is the changelog for Cldr_Messages v0.8.0 released on September 27th, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
 
@@ -44,7 +46,7 @@ This is the changelog for Cldr_Messages v0.8.0 released on September 27th, 2019.
 
 * Fix `Cldr.Message.Print.to_string/2` to omit blank spaces at the end of lines when pretty printing.
 
-# Changelog for Cldr_Messages v0.7.0
+## Cldr_Messages v0.7.0
 
 This is the changelog for Cldr_Messages v0.7.0 released on September 26th, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
 
@@ -52,7 +54,7 @@ This is the changelog for Cldr_Messages v0.7.0 released on September 26th, 2019.
 
 * Allow `nimble_parsec` versions `~> 0.5 or ~> 1.0`
 
-# Changelog for Cldr_Messages v0.6.0
+## Cldr_Messages v0.6.0
 
 This is the changelog for Cldr_Messages v0.6.0 released on September 26th, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
 
@@ -62,7 +64,7 @@ This is the changelog for Cldr_Messages v0.6.0 released on September 26th, 2019.
 
 * Add documentation for some of the key functions. Much more documentation required before 1.0 release.
 
-# Changelog for Cldr_Messages v0.5.0
+## Cldr_Messages v0.5.0
 
 This is the changelog for Cldr_Messages v0.5.0 released on September 22nd, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
 
@@ -72,7 +74,7 @@ This is the changelog for Cldr_Messages v0.5.0 released on September 22nd, 2019.
 
 * Supports later versions of `ex_cldr` and friends, `ex_money` as well as Elixir 1.11 without warnings
 
-# Changelog for Cldr_Messages v0.4.0
+## Cldr_Messages v0.4.0
 
 This is the changelog for Cldr_Messages v0.4.0 released on August 29th, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
 
@@ -80,7 +82,7 @@ This is the changelog for Cldr_Messages v0.4.0 released on August 29th, 2019.  F
 
 * Conditionally compile functions that depend on optional dependencies
 
-# Changelog for Cldr_Messages v0.3.0
+## Cldr_Messages v0.3.0
 
 This is the changelog for Cldr_Messages v0.3.0 released on August 29th, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
 
@@ -108,7 +110,7 @@ end
 
 * Fix dialyzer warnings.  There are some warnings from combinators that will require `nimble_parsec` version 0.5.2 to be published before they are resolved.
 
-# Changelog for Cldr_Messages v0.2.0
+## Cldr_Messages v0.2.0
 
 This is the changelog for Cldr_Messages v0.2.0 released on August 27th, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
 
@@ -123,7 +125,7 @@ iex> Cldr.Message.to_string "You have {number} jelly beans", number: 1234
 
 * Similarly applies localized formatting for dates, times, datetimes.
 
-# Changelog for Cldr_Messages v0.1.0
+## Cldr_Messages v0.1.0
 
 This is the changelog for Cldr_Messages v0.1.0 released on August 26th, 2019.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
 

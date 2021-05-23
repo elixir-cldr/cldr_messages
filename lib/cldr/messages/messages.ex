@@ -302,6 +302,7 @@ defmodule Cldr.Message do
   def bindings(message) when is_map(message) do
     Enum.map(message, fn {_selector, message} -> bindings(message) end)
   end
+
   @doc false
   def default_options do
     [locale: Cldr.get_locale(), trim: false]

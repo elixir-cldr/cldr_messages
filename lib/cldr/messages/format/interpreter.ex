@@ -56,7 +56,7 @@ defmodule Cldr.Message.Interpreter do
     format_list({arg, type, style}, args, options)
   end
 
-  # Nuumbers where the number is a tuple with formatting
+  # Numbers where the number is a tuple with formatting
   # options
   def format_list({{number, format_options}, :number}, args, options) do
     options = Keyword.merge(options, format_options)
