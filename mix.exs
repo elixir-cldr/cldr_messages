@@ -37,14 +37,12 @@ defmodule CldrMessages.MixProject do
     """
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
       extra_applications: [:logger]
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
       {:nimble_parsec, "~> 0.5 or ~> 1.0"},
