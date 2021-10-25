@@ -52,7 +52,7 @@ defmodule CldrMessages.MixProject do
       {:ex_money, "~> 4.0 or ~> 5.0", optional: true},
       {:ex_cldr_units, "~> 2.0 or ~> 3.0", optional: true},
       {:ex_cldr_lists, "~> 2.3", options: true},
-      {:dialyxir, "~> 1.0.0", only: [:dev], runtime: false},
+      {:dialyxir, "~> 1.0", optional: true, only: [:dev], runtime: false},
       {:ex_doc, "~> 0.20", optional: true, runtime: false}
     ]
   end
