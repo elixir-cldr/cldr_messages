@@ -54,7 +54,7 @@ defmodule Cldr.Message do
   @spec format(String.t(), arguments(), options()) ::
           {:ok, String.t()} | {:error, {module(), String.t()}}
 
-  def format(message, args \\ [],options \\ []) when is_binary(message) do
+  def format(message, args \\ [], options \\ []) when is_binary(message) do
     options =
       default_options()
       |> Keyword.merge(options)
@@ -293,10 +293,10 @@ defmodule Cldr.Message do
       {:select, {_, arg}, selectors}, acc -> [arg, bindings(selectors) | acc]
       {:plural, {_, arg}, _, selectors}, acc -> [arg, bindings(selectors) | acc]
       {:select_ordinal, {_, arg}, _, selectors}, acc -> [arg, bindings(selectors) | acc]
-      _other, acc-> acc
+      _other, acc -> acc
     end)
-    |> List.flatten
-    |> Enum.uniq
+    |> List.flatten()
+    |> Enum.uniq()
   end
 
   def bindings(message) when is_map(message) do

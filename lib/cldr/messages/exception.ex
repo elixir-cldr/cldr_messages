@@ -22,4 +22,3 @@ defmodule Cldr.Message.PositionalArgsNotPermitted do
     %__MODULE__{message: message}
   end
 end
-

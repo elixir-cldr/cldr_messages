@@ -254,9 +254,7 @@ defmodule Cldr.Message.Parser.Combinator do
       map
     else
       raise Cldr.Message.ParseError,
-            "'plural', 'select' and 'selectordinal' arguments must have an 'other' clause. Found #{
-              inspect(map)
-            }"
+            "'plural', 'select' and 'selectordinal' arguments must have an 'other' clause. Found #{inspect(map)}"
     end
   end
 
