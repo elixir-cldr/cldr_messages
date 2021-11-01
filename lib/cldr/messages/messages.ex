@@ -55,6 +55,24 @@ defmodule Cldr.Message do
           {:ok, String.t()} | {:error, {module(), String.t()}}
 
   def format(message, args \\ [], options \\ []) when is_binary(message) do
+    {:ok, format!(message, args, options)}
+  rescue
+    e in [KeyError] ->
+      {:error,
+       {KeyError, "No argument binding was found for #{inspect(e.key)} in #{inspect(e.term)}"}}
+
+    e in [
+      Cldr.Message.ParseError,
+      Cldr.FormatCompileError,
+      Cldr.Message.PositionalArgsNotPermitted,
+      KeyError
+    ] ->
+      {:error, {e.__struct__, e.message}}
+  end
+
+  @spec format!(String.t(), arguments(), options()) :: String.t() | no_return
+
+  def format!(message, args \\ [], options \\ []) when is_binary(message) do
     options =
       default_options()
       |> Keyword.merge(options)
@@ -68,24 +86,19 @@ defmodule Cldr.Message do
 
     with {:ok, message} <- maybe_trim(message, options[:trim]),
          {:ok, parsed} <- Parser.parse(message, options[:allow_positional_args]) do
-      {:ok, format_list(parsed, args, options) |> :erlang.iolist_to_binary()}
+      format_list(parsed, args, options) |> :erlang.iolist_to_binary()
+    else
+      {:error, {module, message}} -> raise module, message
     end
   rescue
     e in [KeyError] ->
-      {:error,
-       {KeyError, "No argument binding was found for #{inspect(e.key)} in #{inspect(e.term)}"}}
-
-    e in [Cldr.Message.ParseError, Cldr.FormatCompileError] ->
-      {:error, {e.__struct__, e.message}}
-  end
-
-  @spec format!(String.t(), arguments(), options()) :: String.t() | no_return
-
-  def format!(message, args \\ [], options \\ []) when is_binary(message) do
-    case format(message, args, options) do
-      {:ok, message} -> :erlang.iolist_to_binary(message)
-      {:error, {exception, reason}} -> raise exception, reason
-    end
+      reraise(
+        %KeyError{
+          e
+          | message: "No argument binding was found for #{inspect(e.key)} in #{inspect(e.term)}"
+        },
+        __STACKTRACE__
+      )
   end
 
   @doc """
