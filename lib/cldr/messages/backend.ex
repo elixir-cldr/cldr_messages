@@ -66,6 +66,39 @@ defmodule Cldr.Message.Backend do
               raise exception, reason
           end
         end
+
+        case Code.ensure_compiled(Gettext.Interpolation) do
+          {:error, :unavailable} ->
+            nil
+
+          {:module, Gettext.Interpolation} ->
+            @behaviour Gettext.Interpolation
+
+            @impl Gettext.Interpolation
+            def runtime_interpolate(message, bindings) do
+              try do
+                {:ok, Cldr.Message.format!(message, bindings, backend: unquote(backend))}
+              rescue
+                e in KeyError ->
+                  # TODO: Interpolate message as far as possible
+                  {:missing_bindings, message, [e.key]}
+              end
+            end
+
+            @impl Gettext.Interpolation
+            defmacro compile_interpolate(_translation_type, message, bindings) do
+              quote do
+                try do
+                  require unquote(__MODULE__)
+                  {:ok, unquote(__MODULE__).format(unquote(message), unquote(bindings))}
+                rescue
+                  e in KeyError ->
+                    # TODO: Interpolate message as far as possible
+                    {:missing_bindings, unquote(message), [e.key]}
+                end
+              end
+            end
+        end
       end
     end
   end
@@ -84,7 +117,10 @@ defmodule Cldr.Message.Backend do
     if has_key?(arg, bindings) do
       :ok
     else
-      raise KeyError, "No argument binding was found for #{inspect(arg)} in #{inspect(bindings)}"
+      raise KeyError,
+        message: "No argument binding was found for #{inspect(arg)} in #{inspect(bindings)}",
+        key: arg,
+        term: bindings
     end
   end
 

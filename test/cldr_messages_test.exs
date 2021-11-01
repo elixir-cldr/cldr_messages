@@ -252,8 +252,7 @@ defmodule Cldr_Messages_Test do
   end
 
   test "Extract variable bindings" do
-    assert Cldr.Message.bindings(
-      "{gender_of_host, select,
+    assert Cldr.Message.bindings("{gender_of_host, select,
         female {
           {num_guests, plural, offset: 1
             =0 {{host} does not give a party.}
@@ -272,11 +271,12 @@ defmodule Cldr_Messages_Test do
             =1 {{host} invites {guest} to their party.}
             =2 {{host} invites {guest} and one other person to their party.}
             other {{host} invites {guest} and # other people to their party.}}}}") ==
-    ["gender_of_host", "num_guests", "host", "guest"]
+             ["gender_of_host", "num_guests", "host", "guest"]
   end
 
   test "that postional arguments can be prohitbited" do
     assert Cldr.Message.format("Can you see {0}", ["me"], allow_positional_args: false) ==
-      {:error, {Cldr.Message.PositionalArgsNotPermitted, "Positional arguments are not permitted"}}
+             {:error,
+              {Cldr.Message.PositionalArgsNotPermitted, "Positional arguments are not permitted"}}
   end
 end

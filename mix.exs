@@ -21,8 +21,7 @@ defmodule CldrMessages.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore_warnings",
-        plt_add_apps:
-          ~w(inets jason mix ex_cldr ex_cldr_numbers ex_cldr_units
+        plt_add_apps: ~w(inets jason mix ex_cldr ex_cldr_numbers ex_cldr_units
           ex_cldr_dates_times ex_cldr_calendars ex_money ratio)a
       ],
       compilers: Mix.compilers()
@@ -54,7 +53,10 @@ defmodule CldrMessages.MixProject do
       {:ex_cldr_lists, "~> 2.3", options: true},
       {:dialyxir, "~> 1.0", optional: true, only: [:dev], runtime: false},
       {:ex_doc, "~> 0.20", optional: true, runtime: false},
-      {:earmark, "1.4.14", optional: true, runtime: false}
+      {:earmark, "1.4.14", optional: true, runtime: false},
+      # TODO: Switch to released version
+      {:gettext, "~> 0.18",
+       github: "elixir-gettext/gettext", branch: "main", optional: true, override: true}
     ]
   end
 
