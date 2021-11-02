@@ -1,13 +1,13 @@
-defmodule CldrMessages.MixProject do
+defmodule Cldr.Messages.MixProject do
   use Mix.Project
 
-  @version "0.11.0"
+  @version "0.12.0-dev"
 
   def project do
     [
       app: :ex_cldr_messages,
       version: @version,
-      elixir: "~> 1.8",
+      elixir: "~> 1.10",
       name: "Cldr Messages",
       source_url: "https://github.com/elixir-cldr/cldr_messages",
       docs: docs(),
@@ -45,15 +45,14 @@ defmodule CldrMessages.MixProject do
   defp deps do
     [
       {:nimble_parsec, "~> 0.5 or ~> 1.0"},
-      {:ex_cldr_numbers, "~> 2.7"},
+      {:ex_cldr_numbers, "~> 2.23"},
       {:jason, "~> 1.1"},
-      {:ex_cldr_dates_times, "~> 2.2", optional: true},
-      {:ex_money, "~> 4.0 or ~> 5.0", optional: true},
-      {:ex_cldr_units, "~> 2.0 or ~> 3.0", optional: true},
-      {:ex_cldr_lists, "~> 2.3", options: true},
+      {:ex_cldr_dates_times, "~> 2.10", optional: true},
+      {:ex_money, "~> 5.7", optional: true},
+      {:ex_cldr_units, "~> 3.8", optional: true},
+      {:ex_cldr_lists, "~> 2.9", options: true},
       {:dialyxir, "~> 1.0", optional: true, only: [:dev], runtime: false},
       {:ex_doc, "~> 0.20", optional: true, runtime: false},
-      {:earmark, "1.4.14", optional: true, runtime: false},
       # TODO: Switch to released version
       {:gettext, "~> 0.18",
        github: "elixir-gettext/gettext", branch: "main", optional: true, override: true}
