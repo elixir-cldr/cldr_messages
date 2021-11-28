@@ -1,5 +1,17 @@
 # Changelog
 
+## Cldr_Messages v0.12.0
+
+This is the changelog for Cldr_Messages v0.12.0 released on ______.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+
+### Enhancements
+
+The primary focus of this release is gettext integration. The effort is kindly driven by @maennchen and the majority of the work is his.
+
+* Add `Cldr.Message.format_to_iolist/3` which formats a binary message into an iolist. This helps with incrementally binding placeholders where some may be bound at compile time and others at runtime. It also makes integration with `gettext` simpler since this function returns a list of completed bindings and a list of bindings that were not found.
+
+* Adds an implementation of `Gettext.Interpolation` to support `gettext` integration.
+
 ## Cldr_Messages v0.11.0
 
 This is the changelog for Cldr_Messages v0.11.0 released on May 23rd, 2021.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)

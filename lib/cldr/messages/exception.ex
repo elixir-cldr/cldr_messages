@@ -35,8 +35,11 @@ defmodule Cldr.Message.BindError do
     %__MODULE__{message: message}
   end
 
-  def exception({_bound, unbound}) do
-    message = "No binding was found for #{inspect unbound}"
-    %__MODULE__{message: message}
+  def exception(bindings) when is_tuple(bindings) do
+    %__MODULE__{message: message(bindings)}
+  end
+
+  def message({_bound, unbound}) do
+    "No binding was found for #{inspect unbound}"
   end
 end

@@ -1,6 +1,6 @@
 defmodule Cldr.Message.Backend do
   def define_message_module(config) do
-    module = inspect(__MODULE__)
+    module = __MODULE__
     backend = config.backend
     config = Macro.escape(config)
 
@@ -44,8 +44,8 @@ defmodule Cldr.Message.Backend do
           alias Cldr.Message.Parser
           alias Cldr.Message.Backend
 
-          message = Cldr.Message.Backend.expand_to_binary(message, __CALLER__)
-          backend = unquote(Macro.escape(config)) |> Map.get(:backend)
+          message = Backend.expand_to_binary(message, __CALLER__)
+          backend = unquote(backend)
 
           case Parser.parse(message) do
             {:ok, parsed_message} ->
@@ -67,39 +67,35 @@ defmodule Cldr.Message.Backend do
           end
         end
 
-        case Code.ensure_compiled(Gettext.Interpolation) do
-          {:error, :unavailable} ->
-            nil
+        if Cldr.Code.ensure_compiled?(Gettext.Interpolation) do
+          @behaviour Gettext.Interpolation
 
-          {:module, Gettext.Interpolation} ->
-            @behaviour Gettext.Interpolation
+          @impl Gettext.Interpolation
+          def runtime_interpolate(message, bindings) when is_binary(message) do
+            unquote(module).gettext_interpolate(message, unquote(backend), bindings)
+          end
 
-            @impl Gettext.Interpolation
-            def runtime_interpolate(message, bindings) do
-              try do
-                {:ok, Cldr.Message.format!(message, bindings, backend: unquote(backend))}
-              rescue
-                e in KeyError ->
-                  # TODO: Interpolate message as far as possible
-                  {:missing_bindings, message, [e.key]}
-              end
+          @impl Gettext.Interpolation
+          defmacro compile_interpolate(_translation_type, message, bindings) do
+            module = unquote(module)
+            backend = unquote(backend)
+
+            quote do
+              unquote(module).gettext_interpolate(unquote(message), unquote(backend), unquote(bindings))
             end
-
-            @impl Gettext.Interpolation
-            defmacro compile_interpolate(_translation_type, message, bindings) do
-              quote do
-                try do
-                  require unquote(__MODULE__)
-                  {:ok, unquote(__MODULE__).format(unquote(message), unquote(bindings))}
-                rescue
-                  e in KeyError ->
-                    # TODO: Interpolate message as far as possible
-                    {:missing_bindings, unquote(message), [e.key]}
-                end
-              end
-            end
+          end
         end
       end
+    end
+  end
+
+  def gettext_interpolate(message, backend, bindings) when is_binary(message) do
+    case Cldr.Message.format_to_iolist(message, bindings, backend: backend) do
+      {:ok, iolist, _bound, [] = _unbound} ->
+        {:ok, :erlang.iolist_to_binary(iolist)}
+
+      {:error, _iolist, _bound, unbound} ->
+        {:missing_bindings, message, unbound}
     end
   end
 

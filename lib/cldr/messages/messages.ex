@@ -20,6 +20,7 @@ defmodule Cldr.Message do
 
   @doc """
   Format a message in the [ICU Message Format](https://unicode-org.github.io/icu/userguide/format_parse/messages)
+  into a string.
 
   The ICU Message Format uses message `"pattern"` strings with
   variable-element placeholders enclosed in {curly braces}. The
@@ -28,7 +29,7 @@ defmodule Cldr.Message do
 
   ## Arguments
 
-  * `args` is a list of map of arguments that
+  * `bindings` is a list or map of arguments that
     are used to replace placeholders in the message
 
   * `options` is a keyword list of options
@@ -55,7 +56,71 @@ defmodule Cldr.Message do
   @spec format(String.t(), arguments(), options()) ::
           {:ok, String.t()} | {:error, {module(), String.t()}}
 
-  def format(message, args \\ [], options \\ []) when is_binary(message) do
+  def format(message, bindings \\ [], options \\ []) when is_binary(message) do
+    case format_to_iolist(message, bindings, options) do
+      {:ok, iolist, _bound, []} ->
+        {:ok, :erlang.iolist_to_binary(iolist)}
+
+      {:error, _iolist, bound, unbound} ->
+        {:error,
+          {Cldr.Message.BindError, Cldr.Message.BindError.message({bound, unbound})}}
+
+      {:error, {_exception, _reason}} = other_error ->
+        other_error
+    end
+  end
+
+  @spec format!(String.t(), arguments(), options()) :: String.t() | no_return
+
+  def format!(message, args \\ [], options \\ []) when is_binary(message) do
+    case format(message, args, options) do
+      {:ok, binary} ->
+        binary
+
+      {:error, {exception, reason}} ->
+        raise exception, reason
+    end
+  end
+
+  @doc """
+  Format a message in the [ICU Message Format](https://unicode-org.github.io/icu/userguide/format_parse/messages)
+  into an iolist.
+
+  The ICU Message Format uses message `"pattern"` strings with
+  variable-element placeholders enclosed in {curly braces}. The
+  argument syntax can include formatting details, otherwise a
+  default format is used.
+
+  ## Arguments
+
+  * `bindings` is a list or map of arguments that
+    are used to replace placeholders in the message
+
+  * `options` is a keyword list of options
+
+  ## Options
+
+  * `:backend`
+
+  * `:locale`
+
+  * `:trim`
+
+  * `:allow_positional_args`
+
+  * All other aptions are passed to the `to_string/2`
+    function of a formatting module
+
+  ## Returns
+
+  ## Examples
+
+  """
+
+  @spec format_to_iolist(String.t(), arguments(), options()) ::
+          {:ok, list(), list(), list()} | {:error, list(), list(), list()}
+
+  def format_to_iolist(message, bindings \\ [], options \\ []) when is_binary(message) do
     {locale, backend} = Cldr.locale_and_backend_from(options)
 
     options =
@@ -65,26 +130,12 @@ defmodule Cldr.Message do
       |> Keyword.put_new(:backend, backend)
 
     with {:ok, message} <- maybe_trim(message, options[:trim]),
-         {:ok, parsed} <- Parser.parse(message, options[:allow_positional_args]),
-         {:ok, iolist, _bound, []} <- format_list(parsed, args, options) do
-      {:ok, :erlang.iolist_to_binary(iolist)}
+         {:ok, parsed} <- Parser.parse(message, options[:allow_positional_args]) do
+      format_list(parsed, bindings, options)
     end
   rescue
-    e in [
-      Cldr.Message.ParseError,
-      Cldr.FormatCompileError,
-      Cldr.Message.PositionalArgsNotPermitted
-    ] ->
+    e in [Cldr.FormatCompileError, Cldr.Message.ParseError] ->
       {:error, {e.__struct__, e.message}}
-  end
-
-  @spec format!(String.t(), arguments(), options()) :: String.t() | no_return
-
-  def format!(message, args \\ [], options \\ []) when is_binary(message) do
-    case format(message, args, options) do
-      {:ok, binary} -> binary
-      {:error, _result, bound, unbound} -> raise Cldr.Message.BindError, message: {bound, unbound}
-    end
   end
 
   @doc """
@@ -304,7 +355,7 @@ defmodule Cldr.Message do
 
   @doc false
   def default_options do
-    [locale: Cldr.get_locale(), trim: false]
+    [trim: false, allow_positional_args: true]
   end
 
   if Code.ensure_loaded?(Cldr) and function_exported?(Cldr, :default_backend!, 0) do

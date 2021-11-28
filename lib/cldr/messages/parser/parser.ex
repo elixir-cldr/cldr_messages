@@ -100,19 +100,22 @@ defmodule Cldr.Message.Parser do
     true
   end
 
-  defp maybe_allow_positional_args(parsed, allow_positional_args?) do
-    if allow_positional_args? || is_nil(allow_positional_args?) do
-      {:ok, parsed}
-    else
+  defp maybe_allow_positional_args(parsed, allow_positional_args?)
+      when allow_positional_args? != false do
+    {:ok, parsed}
+  end
+
+  defp maybe_allow_positional_args(parsed, _allow_positional_args?) do
+    has_positional_args? =
       parsed
       |> Cldr.Message.bindings()
       |> Enum.any?(&is_integer/1)
-      |> if do
-        {:error,
-         {Cldr.Message.PositionalArgsNotPermitted, "Positional arguments are not permitted"}}
-      else
-        {:ok, parsed}
-      end
+
+    if has_positional_args? do
+      {:error,
+        {Cldr.Message.PositionalArgsNotPermitted, "Positional arguments are not permitted"}}
+    else
+      {:ok, parsed}
     end
   end
 end

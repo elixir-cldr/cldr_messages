@@ -11,7 +11,7 @@ defmodule Cldr.Messages.GettextInterpolationtest do
 
     assert capture_log(fn ->
              assert "Hello {name}!" == Use.translate_compile_time(%{})
-           end) =~ "missing Gettext bindings: [:name]"
+           end) =~ "missing Gettext bindings: [\"name\"]"
   end
 
   test "interpolates runtime translation" do
@@ -21,6 +21,6 @@ defmodule Cldr.Messages.GettextInterpolationtest do
     assert capture_log(fn ->
              assert "runtime {one, number, currency}" ==
                       gettext("runtime {one, number, currency}", %{})
-           end) =~ "missing Gettext bindings: [:one]"
+           end) =~ "missing Gettext bindings: [\"one\"]"
   end
 end

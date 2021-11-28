@@ -20,8 +20,11 @@ defmodule Cldr.Message.Interpreter do
 
   def format_list!(message, args \\ [], options \\ []) do
     case format_list(message, args, options, [], []) do
-      {iolist, _bound, []} -> iolist
-      {_iolist, bound, unbound} -> raise Cldr.Message.BindError, message: {bound, unbound}
+      {iolist, _bound, []} ->
+        iolist
+
+      {_iolist, bound, unbound} ->
+        raise Cldr.Message.BindError, bound: bound, unbound: unbound
     end
   end
 
@@ -92,13 +95,21 @@ defmodule Cldr.Message.Interpreter do
   end
 
   defp format_list({:simple_format, arg, type}, args, options, bound, unbound) do
-    {[arg], _bound, _unbound} = format_list(arg, args, options, bound, unbound)
-    format_list({arg, type}, args, options, bound, unbound)
+    case format_list(arg, args, options, bound, unbound) do
+      {[arg], _bound, [] = _unbound} ->
+        format_list({arg, type}, args, options, bound, unbound)
+      {[arg], bound, unbound} ->
+        {{:simple_format, arg, type}, bound, unbound}
+    end
   end
 
   defp format_list({:simple_format, arg, type, style}, args, options, bound, unbound) do
-    {[arg], _bound, _unbound} = format_list(arg, args, options, bound, unbound)
-    format_list({arg, type, style}, args, options, bound, unbound)
+    case format_list(arg, args, options, bound, unbound) do
+      {[arg], _bound, [] = _unbound} ->
+        format_list({arg, type, style}, args, options, bound, unbound)
+      {[arg], bound, unbound} ->
+        {{:simple_format, arg, type, style}, bound, unbound}
+    end
   end
 
   # Numbers where the number is a tuple with formatting
@@ -376,6 +387,10 @@ defmodule Cldr.Message.Interpreter do
     defp format_to_string(%DateTime{} = value) do
       Cldr.DateTime.to_string!(value)
     end
+  end
+
+  defp format_to_string(value) when is_tuple(value) do
+    value
   end
 
   defp format_to_string(value) do
