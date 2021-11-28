@@ -34,7 +34,7 @@ defmodule Cldr.Message.Backend do
         Formats an ICU message
 
         This macro parses the message at compile time in
-        order to optimize performance a runtime.
+        order to optimize performance at runtime.
 
         See `Cldr.Message.format/3` for details on the
         arguments and options
@@ -58,7 +58,7 @@ defmodule Cldr.Message.Backend do
                   |> Keyword.put_new(:locale, Cldr.get_locale(unquote(backend)))
 
                 unquote(parsed_message)
-                |> Cldr.Message.format_list(unquote(bindings), options)
+                |> Cldr.Message.format_list!(unquote(bindings), options)
                 |> :erlang.iolist_to_binary()
               end
 

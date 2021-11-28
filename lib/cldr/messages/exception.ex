@@ -22,3 +22,21 @@ defmodule Cldr.Message.PositionalArgsNotPermitted do
     %__MODULE__{message: message}
   end
 end
+
+defmodule Cldr.Message.BindError do
+  @moduledoc """
+  Exception raised when interpreting a
+  message and a binding is missing
+
+  """
+  defexception [:message]
+
+  def exception(message) when is_binary(message) do
+    %__MODULE__{message: message}
+  end
+
+  def exception({_bound, unbound}) do
+    message = "No binding was found for #{inspect unbound}"
+    %__MODULE__{message: message}
+  end
+end

@@ -7,6 +7,7 @@ defmodule Cldr.Message do
   alias Cldr.Message.{Parser, Interpreter, Print}
   import Kernel, except: [to_string: 1, binding: 1]
   defdelegate format_list(message, args, options), to: Interpreter
+  defdelegate format_list!(message, args, options), to: Interpreter
 
   @type message :: binary()
   @type arguments :: list() | map()
@@ -55,17 +56,24 @@ defmodule Cldr.Message do
           {:ok, String.t()} | {:error, {module(), String.t()}}
 
   def format(message, args \\ [], options \\ []) when is_binary(message) do
-    {:ok, format!(message, args, options)}
-  rescue
-    e in [KeyError] ->
-      {:error,
-       {KeyError, "No argument binding was found for #{inspect(e.key)} in #{inspect(e.term)}"}}
+    {locale, backend} = Cldr.locale_and_backend_from(options)
 
+    options =
+      default_options()
+      |> Keyword.merge(options)
+      |> Keyword.put_new(:locale, locale)
+      |> Keyword.put_new(:backend, backend)
+
+    with {:ok, message} <- maybe_trim(message, options[:trim]),
+         {:ok, parsed} <- Parser.parse(message, options[:allow_positional_args]),
+         {:ok, iolist, _bound, []} <- format_list(parsed, args, options) do
+      {:ok, :erlang.iolist_to_binary(iolist)}
+    end
+  rescue
     e in [
       Cldr.Message.ParseError,
       Cldr.FormatCompileError,
-      Cldr.Message.PositionalArgsNotPermitted,
-      KeyError
+      Cldr.Message.PositionalArgsNotPermitted
     ] ->
       {:error, {e.__struct__, e.message}}
   end
@@ -73,32 +81,10 @@ defmodule Cldr.Message do
   @spec format!(String.t(), arguments(), options()) :: String.t() | no_return
 
   def format!(message, args \\ [], options \\ []) when is_binary(message) do
-    options =
-      default_options()
-      |> Keyword.merge(options)
-
-    options =
-      if Keyword.has_key?(options, :backend) do
-        options
-      else
-        Keyword.put(options, :backend, default_backend())
-      end
-
-    with {:ok, message} <- maybe_trim(message, options[:trim]),
-         {:ok, parsed} <- Parser.parse(message, options[:allow_positional_args]) do
-      format_list(parsed, args, options) |> :erlang.iolist_to_binary()
-    else
-      {:error, {module, message}} -> raise module, message
+    case format(message, args, options) do
+      {:ok, binary} -> binary
+      {:error, _result, bound, unbound} -> raise Cldr.Message.BindError, message: {bound, unbound}
     end
-  rescue
-    e in [KeyError] ->
-      reraise(
-        %KeyError{
-          e
-          | message: "No argument binding was found for #{inspect(e.key)} in #{inspect(e.term)}"
-        },
-        __STACKTRACE__
-      )
   end
 
   @doc """

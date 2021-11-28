@@ -31,7 +31,7 @@ defmodule Cldr.Messages.MixProject do
   defp description do
     """
     Localized and internationalized message formatting using the
-    ICU message format integrated with  the ex_cldr family supporting
+    ICU message format integrated with the ex_cldr family supporting
     over 500 locales
     """
   end
@@ -50,7 +50,7 @@ defmodule Cldr.Messages.MixProject do
       {:ex_cldr_dates_times, "~> 2.10", optional: true},
       {:ex_money, "~> 5.7", optional: true},
       {:ex_cldr_units, "~> 3.8", optional: true},
-      {:ex_cldr_lists, "~> 2.9", options: true},
+      {:ex_cldr_lists, "~> 2.9", optional: true},
       {:dialyxir, "~> 1.0", optional: true, only: [:dev], runtime: false},
       {:ex_doc, "~> 0.20", optional: true, runtime: false},
       # TODO: Switch to released version
