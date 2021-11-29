@@ -44,7 +44,7 @@ defmodule Cldr.Message.Backend do
           alias Cldr.Message.Parser
           alias Cldr.Message.Backend
 
-          message = Backend.expand_to_binary(message, __CALLER__)
+          message = Backend.expand_to_binary!(message, __CALLER__)
           backend = unquote(backend)
 
           case Parser.parse(message) do
@@ -72,25 +72,45 @@ defmodule Cldr.Message.Backend do
 
           @impl Gettext.Interpolation
           def runtime_interpolate(message, bindings) when is_binary(message) do
-            unquote(module).gettext_interpolate(message, unquote(backend), bindings)
+						options = [backend: unquote(backend), locale: Cldr.get_locale(unquote(backend))]
+            unquote(module).gettext_interpolate(message, bindings, options)
           end
 
           @impl Gettext.Interpolation
           defmacro compile_interpolate(_translation_type, message, bindings) do
+	          alias Cldr.Message.Parser
+	          alias Cldr.Message.Backend
+
             module = unquote(module)
             backend = unquote(backend)
+	          message = Backend.expand_to_binary!(message, __CALLER__)
 
-            quote do
-              unquote(module).gettext_interpolate(unquote(message), unquote(backend), unquote(bindings))
-            end
+	          case Parser.parse(message) do
+	            {:ok, parsed_message} ->
+	              Backend.validate_bindings!(parsed_message, bindings)
+
+	              quote do
+	                options = [backend: unquote(backend), locale: Cldr.get_locale(unquote(backend))]
+	                unquote(module).gettext_interpolate(unquote(parsed_message), unquote(bindings), options)
+	              end
+
+	            {:error, {exception, reason}} ->
+	              raise exception, reason
+	          end
           end
+
+					@impl Gettext.Interpolation
+					def gettext_message_format do
+						"icu-format"
+					end
         end
       end
     end
   end
 
-  def gettext_interpolate(message, backend, bindings) when is_binary(message) do
-    case Cldr.Message.format_to_iolist(message, bindings, backend: backend) do
+	@doc false
+  def gettext_interpolate(message, bindings, options) when is_binary(message) do
+    case Cldr.Message.format_to_iolist(message, bindings, options) do
       {:ok, iolist, _bound, [] = _unbound} ->
         {:ok, :erlang.iolist_to_binary(iolist)}
 
@@ -99,6 +119,18 @@ defmodule Cldr.Message.Backend do
     end
   end
 
+	@doc false
+	def gettext_interpolate(parsed, bindings, options) when is_list(parsed) do
+		case Cldr.Message.format_list(parsed, bindings, options) do
+			{:ok, iolist, _bound, [] = _unbound} ->
+				{:ok, :erlang.iolist_to_binary(iolist)}
+
+      {:error, _iolist, _bound, unbound} ->
+        {:missing_bindings, parsed, unbound}
+		end
+	end
+
+	@doc false
   def validate_bindings!(message, bindings) do
     prewalk(message, fn
       {:named_arg, arg} -> validate_binding!(arg, bindings)
@@ -164,8 +196,8 @@ defmodule Cldr.Message.Backend do
   Expands the given `message` in the given `env`, raising if it doesn't expand to
   a binary.
   """
-  @spec expand_to_binary(binary, Macro.Env.t()) :: binary | no_return
-  def expand_to_binary(term, env) do
+  @spec expand_to_binary!(binary, Macro.Env.t()) :: binary | no_return
+  def expand_to_binary!(term, env) do
     raiser = fn term ->
       raise ArgumentError, """
       Cldr.Message macros expect translation keys to expand to strings at compile-time, but the

@@ -10,7 +10,7 @@ defmodule Cldr.Messages.GettextInterpolationtest do
     assert "Hello World!" == Use.translate_compile_time(name: "World")
 
     assert capture_log(fn ->
-             assert "Hello {name}!" == Use.translate_compile_time(%{})
+             Use.translate_compile_time(%{})
            end) =~ "missing Gettext bindings: [\"name\"]"
   end
 

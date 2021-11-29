@@ -10,7 +10,7 @@ defmodule Cldr.Message do
   defdelegate format_list!(message, args, options), to: Interpreter
 
   @type message :: binary()
-  @type arguments :: list() | map()
+  @type bindings :: list() | map()
   @type options :: Keyword.t()
 
   @doc false
@@ -53,7 +53,7 @@ defmodule Cldr.Message do
 
   """
 
-  @spec format(String.t(), arguments(), options()) ::
+  @spec format(String.t(), bindings(), options()) ::
           {:ok, String.t()} | {:error, {module(), String.t()}}
 
   def format(message, bindings \\ [], options \\ []) when is_binary(message) do
@@ -70,7 +70,7 @@ defmodule Cldr.Message do
     end
   end
 
-  @spec format!(String.t(), arguments(), options()) :: String.t() | no_return
+  @spec format!(String.t(), bindings(), options()) :: String.t() | no_return
 
   def format!(message, args \\ [], options \\ []) when is_binary(message) do
     case format(message, args, options) do
@@ -117,7 +117,7 @@ defmodule Cldr.Message do
 
   """
 
-  @spec format_to_iolist(String.t(), arguments(), options()) ::
+  @spec format_to_iolist(String.t(), bindings(), options()) ::
           {:ok, list(), list(), list()} | {:error, list(), list(), list()}
 
   def format_to_iolist(message, bindings \\ [], options \\ []) when is_binary(message) do
