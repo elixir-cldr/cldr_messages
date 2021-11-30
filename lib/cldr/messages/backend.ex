@@ -75,7 +75,7 @@ defmodule Cldr.Message.Backend do
 
           @impl Gettext.Interpolation
           def runtime_interpolate(message, bindings) when is_binary(message) do
-            # IO.inspect message, label: "Run-time"
+            IO.inspect message, label: "Run-time"
 						options = [backend: unquote(backend), locale: Cldr.get_locale(unquote(backend))]
             unquote(module).gettext_interpolate(message, bindings, options)
           end
@@ -88,7 +88,7 @@ defmodule Cldr.Message.Backend do
             module = unquote(module)
             backend = unquote(backend)
 	          message = Backend.expand_to_binary!(message, __CALLER__)
-            # IO.inspect message, label: "Compile-time"
+            IO.inspect message, label: "Compile-time"
 
 	          case Parser.parse(message) do
 	            {:ok, parsed_message} ->
