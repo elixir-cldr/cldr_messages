@@ -7,6 +7,9 @@ defmodule Cldr.Message.Backend do
     quote location: :keep, bind_quoted: [module: module, backend: backend, config: config] do
       defmodule Message do
         @moduledoc false
+
+        @icu_format "icu-format"
+
         if Cldr.Config.include_module_docs?(config.generate_docs) do
           @moduledoc """
           Supports the CLDR Message format
@@ -72,6 +75,7 @@ defmodule Cldr.Message.Backend do
 
           @impl Gettext.Interpolation
           def runtime_interpolate(message, bindings) when is_binary(message) do
+            # IO.inspect message, label: "Run-time"
 						options = [backend: unquote(backend), locale: Cldr.get_locale(unquote(backend))]
             unquote(module).gettext_interpolate(message, bindings, options)
           end
@@ -84,15 +88,13 @@ defmodule Cldr.Message.Backend do
             module = unquote(module)
             backend = unquote(backend)
 	          message = Backend.expand_to_binary!(message, __CALLER__)
+            # IO.inspect message, label: "Compile-time"
 
 	          case Parser.parse(message) do
 	            {:ok, parsed_message} ->
 	              Backend.validate_bindings!(parsed_message, bindings)
-
-	              quote do
-	                options = [backend: unquote(backend), locale: Cldr.get_locale(unquote(backend))]
-	                unquote(module).gettext_interpolate(unquote(parsed_message), unquote(bindings), options)
-	              end
+                static_bindings = Backend.static_bindings(bindings)
+                Backend.quoted_message(parsed_message, module, backend, bindings, static_bindings)
 
 	            {:error, {exception, reason}} ->
 	              raise exception, reason
@@ -101,12 +103,29 @@ defmodule Cldr.Message.Backend do
 
 					@impl Gettext.Interpolation
 					def gettext_message_format do
-						"icu-format"
+						@icu_format
 					end
         end
       end
     end
   end
+
+  # The bindings are not all static so we compute them at runtime
+  def quoted_message(parsed_message, module, backend, bindings, nil) do
+    quote do
+      options = [backend: unquote(backend), locale: Cldr.get_locale(unquote(backend))]
+      unquote(module).gettext_interpolate(unquote(parsed_message), unquote(bindings), options)
+    end
+  end
+
+  # The bindings are all static and we can interpolate at compile time
+  def quoted_message(parsed_message, module, backend, _bindings, static_bindings) do
+    options = [backend: backend, locale: Cldr.get_locale(backend)]
+    module.gettext_interpolate(parsed_message, static_bindings, options)
+  end
+
+  # Interpolate the message which may be in binary form or
+  # parsed form.
 
 	@doc false
   def gettext_interpolate(message, bindings, options) when is_binary(message) do
@@ -129,6 +148,33 @@ defmodule Cldr.Message.Backend do
         {:missing_bindings, parsed, unbound}
 		end
 	end
+
+  # Return a keyword list of static bindings, if they
+  # are all static. Otherwise return nil.
+
+  @doc false
+  def static_bindings(bindings) when is_list(bindings) do
+    Enum.reduce_while bindings, [], fn binding, acc ->
+      case binding do
+        {_key, value} = term when is_number(value) ->
+          {:cont, [term | acc]}
+        {_key, value} = term when is_binary(value) ->
+          {:cont, [term | acc]}
+        {key, {:<<>>, _, pieces}} ->
+          if Enum.all?(pieces, &is_binary/1) do
+            [{:cont, {key, Enum.join(pieces)}} | acc]
+          else
+            {:halt, nil}
+          end
+        _other ->
+          {:halt, nil}
+      end
+    end
+  end
+
+  def static_bindings(_other) do
+    nil
+  end
 
 	@doc false
   def validate_bindings!(message, bindings) do
@@ -167,6 +213,8 @@ defmodule Cldr.Message.Backend do
     true
   end
 
+  # Walks the parsed message structure and executes
+  # a given function
   defp prewalk([], _fun) do
     []
   end
