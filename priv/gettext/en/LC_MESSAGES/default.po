@@ -15,3 +15,8 @@ msgstr ""
 #: mix/my_app_getttext.ex:8
 msgid "Hello {name}!"
 msgstr "Hello {name}!"
+
+#, elixir-format
+#: mix/my_app_getttext.ex:12
+msgid "Goodbye {name}!"
+msgstr "Goodbye {name}!"
