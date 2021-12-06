@@ -3,7 +3,6 @@ defmodule Cldr.Message.Parser.Combinator do
 
   import NimbleParsec
 
-  @spec message :: NimbleParsec.t()
   def message do
     optional(message_text())
     |> repeat(argument() |> concat(message_text()))
@@ -11,14 +10,12 @@ defmodule Cldr.Message.Parser.Combinator do
     # |> label("a CLDR message")
   end
 
-  @spec message_text :: NimbleParsec.t()
   def message_text do
     literal()
     |> repeat()
     |> optional()
   end
 
-  @spec plural_message :: NimbleParsec.t()
   def plural_message do
     optional(plural_message_text())
     |> repeat(argument() |> concat(plural_message_text()))
@@ -26,13 +23,11 @@ defmodule Cldr.Message.Parser.Combinator do
     # |> label("a CLDR plural message")
   end
 
-  @spec plural_message_text :: NimbleParsec.t()
   def plural_message_text do
     choice([plural_literal(), arg_value()])
     |> repeat()
   end
 
-  @spec literal :: NimbleParsec.t()
   def literal do
     choice([
       reduce(string("'{"), :escaped_char),
@@ -42,7 +37,6 @@ defmodule Cldr.Message.Parser.Combinator do
     |> reduce(:literal)
   end
 
-  @spec plural_literal :: NimbleParsec.t()
   def plural_literal do
     choice([
       reduce(string("'{"), :escaped_char),
@@ -58,7 +52,6 @@ defmodule Cldr.Message.Parser.Combinator do
     {:literal, List.to_string(args)}
   end
 
-  @spec arg_value :: NimbleParsec.t()
   def arg_value do
     utf8_char([?#])
     |> reduce(:value)
@@ -73,24 +66,20 @@ defmodule Cldr.Message.Parser.Combinator do
   def escaped_char(["'#"]), do: "#"
   def escaped_char(["''"]), do: "'"
 
-  @spec whitespace :: NimbleParsec.t()
   def whitespace do
     repeat(ascii_char([?\s, ?\t, ?\n]))
   end
 
-  @spec left_brace :: NimbleParsec.t()
   def left_brace do
     ignore(optional(whitespace()))
     |> ignore(utf8_char([?{]))
   end
 
-  @spec right_brace :: NimbleParsec.t()
   def right_brace do
     ignore(optional(whitespace()))
     |> ignore(utf8_char([?}]))
   end
 
-  @spec comma :: NimbleParsec.t()
   def comma do
     ignore(optional(whitespace()))
     |> ignore(utf8_char([?,]))
@@ -98,7 +87,6 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   # argument = noneArg | simpleArg | complexArg
-  @spec argument :: NimbleParsec.t()
   def argument do
     choice([
       none_argument(),
@@ -108,7 +96,6 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   # noneArg = '{' argNameOrNumber '}'
-  @spec none_argument :: NimbleParsec.t()
   def none_argument do
     left_brace()
     |> concat(arg_name_or_number())
@@ -116,7 +103,6 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   # simpleArg = '{' argNameOrNumber ',' argType [',' argStyle] '}'
-  @spec simple_format :: NimbleParsec.t()
   def simple_format do
     left_brace()
     |> concat(arg_name_or_number())
@@ -136,7 +122,6 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   # complexArg = choiceArg | pluralArg | selectArg | selectordinalArg
-  @spec complex_argument :: NimbleParsec.t()
   def complex_argument do
     choice([
       plural_argument(),
@@ -146,7 +131,6 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   # pluralArg = '{' argNameOrNumber ',' "plural" ',' pluralStyle '}'
-  @spec plural_argument :: NimbleParsec.t()
   def plural_argument do
     left_brace()
     |> concat(arg_name_or_number())
@@ -162,7 +146,6 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   # selectArg = '{' argNameOrNumber ',' "select" ',' selectStyle '}'
-  @spec select_argument :: NimbleParsec.t()
   def select_argument do
     left_brace()
     |> concat(arg_name_or_number())
@@ -179,7 +162,6 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   # selectordinalArg = '{' argNameOrNumber ',' "selectordinal" ',' pluralStyle '}'
-  @spec select_ordinal_argument :: NimbleParsec.t()
   def select_ordinal_argument do
     left_brace()
     |> concat(arg_name_or_number())
@@ -201,7 +183,6 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   # selectStyle = (selector '{' message '}')+
-  @spec select_style :: NimbleParsec.t()
   def select_style do
     times(
       wrap(
@@ -216,7 +197,6 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   # pluralStyle = [offsetValue] (selector '{' message '}')+
-  @spec plural_style :: NimbleParsec.t()
   def plural_style do
     optional(plural_arguments())
     |> optional(comma())
@@ -234,7 +214,6 @@ defmodule Cldr.Message.Parser.Combinator do
     )
   end
 
-  @spec parse(atom()) :: NimbleParsec.t()
   defp parse(parser) do
     parsec(parser)
   end
@@ -277,7 +256,6 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   # offsetValue = "offset:" number
-  @spec offset_value :: NimbleParsec.t()
   def offset_value do
     ignore(optional(whitespace()))
     |> string("offset:")
@@ -286,7 +264,6 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   # pluralType = "type:" [ordinal, cardinal, short]
-  @spec plural_type_value :: NimbleParsec.t()
   def plural_type_value do
     ignore(optional(whitespace()))
     |> string("type:")
@@ -300,7 +277,6 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   # selector = explicitValue | keyword
-  @spec plural_selector :: NimbleParsec.t()
   def plural_selector do
     ignore(optional(whitespace()))
     |> choice([explicit_value(), keyword()])
@@ -308,7 +284,6 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   # selector = arg_name
-  @spec choice_selector :: NimbleParsec.t()
   def choice_selector do
     ignore(optional(whitespace()))
     |> concat(selector())
@@ -316,14 +291,12 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   # explicitValue = '=' number  // adjacent, no white space in between
-  @spec explicit_value :: NimbleParsec.t()
   def explicit_value do
     ignore(string("="))
     |> integer(min: 1)
   end
 
   # keyword =zero | one | two | few | many | other
-  @spec keyword :: NimbleParsec.t()
   def keyword do
     choice([
       string("zero"),
@@ -340,14 +313,12 @@ defmodule Cldr.Message.Parser.Combinator do
     String.to_existing_atom(arg)
   end
 
-  @spec arg_name_or_number :: NimbleParsec.t()
   def arg_name_or_number do
     ignore(optional(whitespace()))
     |> choice([arg_number(), arg_name()])
     |> ignore(optional(whitespace()))
   end
 
-  @spec arg_number :: NimbleParsec.t()
   def arg_number do
     integer(min: 1)
     |> reduce(:pos_arg)
@@ -357,13 +328,11 @@ defmodule Cldr.Message.Parser.Combinator do
     {:pos_arg, arg}
   end
 
-  @spec arg_name :: NimbleParsec.t()
   def arg_name do
     utf8_string([?a..?z, ?A..?Z, ?0..?9, ?_], min: 1)
     |> reduce(:named_arg)
   end
 
-  @spec selector :: NimbleParsec.t()
   def selector do
     optional(utf8_char([?:]))
     |> utf8_string([{:not, ?\s}, {:not, ?\n}, {:not, ?\t}, {:not, ?{}], min: 1)
@@ -379,7 +348,6 @@ defmodule Cldr.Message.Parser.Combinator do
 
   # argType = "number" | "date" | "time" | "spellout" | "ordinal" | "duration"
   # Adding "unit", "list" and "money" to the standard
-  @spec arg_type :: NimbleParsec.t()
   def arg_type do
     ignore(optional(whitespace()))
     |> choice([
@@ -398,7 +366,6 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   # argStyle = "short" | "medium" | "long" | "full" | "integer" | "currency" | "percent" | argStyleText | "::" argSkeletonText
-  @spec arg_style :: NimbleParsec.t()
   def arg_style do
     ignore(optional(whitespace()))
     |> choice([
@@ -427,7 +394,6 @@ defmodule Cldr.Message.Parser.Combinator do
     |> ignore(optional(whitespace()))
   end
 
-  @spec arg_format :: NimbleParsec.t()
   def arg_format do
     choice([atom_arg(), string_arg()])
   end

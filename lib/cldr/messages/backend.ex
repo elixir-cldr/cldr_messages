@@ -102,7 +102,7 @@ defmodule Cldr.Message.Backend do
           end
 
 					@impl Gettext.Interpolation
-					def gettext_message_format do
+					def message_format do
 						@icu_format
 					end
         end

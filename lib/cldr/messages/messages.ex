@@ -11,6 +11,7 @@ defmodule Cldr.Message do
 
   @type message :: binary()
   @type bindings :: list() | map()
+	@type arguments :: bindings()
   @type options :: Keyword.t()
 
   @doc false
