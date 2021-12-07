@@ -23,4 +23,12 @@ defmodule Cldr.Messages.GettextInterpolationtest do
                       gettext("runtime {one, number, currency}", %{})
            end) =~ "missing Gettext bindings: [\"one\"]"
   end
+
+	test "interpolation with sigil_m" do
+		import Cldr.Message.Sigil
+
+    assert gettext(~m"runtime {one, number, currency}", %{one: {1, currency: :MXP}}) ==
+           gettext(~m"runtime {one,   number,   currency}", %{one: {1, currency: :MXP}})
+
+	end
 end
