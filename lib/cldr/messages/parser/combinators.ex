@@ -6,21 +6,18 @@ defmodule Cldr.Message.Parser.Combinator do
   def message do
     optional(message_text())
     |> repeat(argument() |> concat(message_text()))
-
-    # |> label("a CLDR message")
+		|> label("a CLDR message")
   end
 
   def message_text do
     literal()
     |> repeat()
-    |> optional()
   end
 
   def plural_message do
     optional(plural_message_text())
     |> repeat(argument() |> concat(plural_message_text()))
-
-    # |> label("a CLDR plural message")
+		|> label("a CLDR plural message")
   end
 
   def plural_message_text do
@@ -30,8 +27,7 @@ defmodule Cldr.Message.Parser.Combinator do
 
   def literal do
     choice([
-      reduce(string("'{"), :escaped_char),
-      reduce(string("'}"), :escaped_char),
+      escaped_char(),
       utf8_string([{:not, ?{}, {:not, ?}}], min: 1)
     ])
     |> reduce(:literal)
@@ -39,10 +35,7 @@ defmodule Cldr.Message.Parser.Combinator do
 
   def plural_literal do
     choice([
-      reduce(string("'{"), :escaped_char),
-      reduce(string("'}"), :escaped_char),
-      reduce(string("'#"), :escaped_char),
-      reduce(string("''"), :escaped_char),
+      escaped_char(),
       utf8_string([{:not, ?{}, {:not, ?}}, {:not, ?#}], min: 1)
     ])
     |> reduce(:literal)
@@ -61,10 +54,14 @@ defmodule Cldr.Message.Parser.Combinator do
     :value
   end
 
-  def escaped_char(["'{"]), do: "{"
-  def escaped_char(["'}"]), do: "}"
-  def escaped_char(["'#"]), do: "#"
-  def escaped_char(["''"]), do: "'"
+	def escaped_char do
+	  choice([
+	    string("'{") |> replace("{"),
+	    string("'}") |> replace("}"),
+	    string("'#") |> replace("#"),
+	    string("''") |> replace("'")
+		])
+	end
 
   def whitespace do
     repeat(ascii_char([?\s, ?\t, ?\n]))
@@ -406,7 +403,7 @@ defmodule Cldr.Message.Parser.Combinator do
 
   def string_arg do
     choice([
-      string("'}") |> reduce(:escaped_char),
+      escaped_char(),
       utf8_char([{:not, ?}}, {:not, ?\n}])
     ])
     |> repeat

@@ -7,6 +7,10 @@ defmodule Cldr.Message.Parser do
   import NimbleParsec
   import Cldr.Message.Parser.Combinator
 
+	# To ensure these atoms are instantiated in the VM before
+	# parsing
+	_plural_types = Cldr.Number.PluralRule.known_plural_types
+
   @rule :message
 
   def parse(input, allow_positional_args? \\ true) when is_binary(input) do
