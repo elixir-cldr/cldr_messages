@@ -1,6 +1,6 @@
 defmodule Cldr.Message.Sigil do
 	@moduledoc """
-	Implements sigil `~m` and sigil `~M` to canonicalize an
+	Implements sigil `~M` to canonicalize an
 	ICU message.
 
 	ICU messages allow for whitespace to be used to
@@ -17,7 +17,7 @@ defmodule Cldr.Message.Sigil do
 	`mix gettext.extract` however this may not be the desired
 	behaviour either.
 
-	The sigils `~m` and `~M` therefore introduces a way for the developer
+	The sigil `~M` therefore introduces a way for the developer
 	to ensure the message is in a canonical format during
 	compilation and therefore both error check the message format
 	and ensure the message is in a canonical form irrespective
@@ -54,22 +54,23 @@ defmodule Cldr.Message.Sigil do
 		end
 	end
 
-  @doc ~S"""
-	Handles the sigil `~m` for ICU message strings.
-
-	It returns a canonically formatted string as if it
-	was a double quoted string, unescaping characters
-	and replacing interpolations.
-
-	## Examples
-
-	    iex> ~m(An ICU message)
-	    "An ICU message"
-
-	    iex> ~m(An ICU messag#{:e})
-	    "An ICU message"
-
-	"""
+	#   @doc ~S"""
+	# Handles the sigil `~m` for ICU message strings.
+	#
+	# It returns a canonically formatted string as if it
+	# was a double quoted string, unescaping characters
+	# and replacing interpolations.
+	#
+	# ## Examples
+	#
+	#     iex> ~m(An ICU message)
+	#     "An ICU message"
+	#
+	#     iex> ~m(An ICU messag#{:e})
+	#     "An ICU message"
+	#
+	# """
+	@doc false
 	defmacro sigil_m({:<<>>, _meta, [message]}, modifiers) when is_binary(message) do
 		options = Cldr.Message.Sigil.options(modifiers)
 		message = Macro.unescape_string(message)
