@@ -54,7 +54,12 @@ defmodule Cldr.Message.Sigil do
 		end
 	end
 
-	#   @doc ~S"""
+	# sigil_m is marked private since it implies constructing messages
+	# at compile time which would be an unusual use case and quite
+	# possibly an anti-pattern. Real world usage will dictate if
+	# its useful.
+
+	# @doc ~S"""
 	# Handles the sigil `~m` for ICU message strings.
 	#
 	# It returns a canonically formatted string as if it
@@ -70,6 +75,7 @@ defmodule Cldr.Message.Sigil do
 	#     "An ICU message"
 	#
 	# """
+
 	@doc false
 	defmacro sigil_m({:<<>>, _meta, [message]}, modifiers) when is_binary(message) do
 		options = Cldr.Message.Sigil.options(modifiers)
