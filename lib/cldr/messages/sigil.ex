@@ -33,6 +33,16 @@ defmodule Cldr.Message.Sigil do
 	for the escaping of the closing sigil character
 	itself.
 
+	A canonically formatted string is pretty-printed by
+	default returning a potentially multi-line
+	string.  This is intended to produce a result which is
+	easier to comprehend for translators.
+
+	The modifier `u` can be applied to return
+	a non-pretty-printed string.
+
+	## Modifi
+
 	## Examples
 
 	    iex> ~m(An ICU message)
@@ -97,12 +107,12 @@ defmodule Cldr.Message.Sigil do
 	end
 
 	@doc false
-	def options([pretty]) when pretty in [?p, ?P] do
-		[pretty: true]
+	def options([pretty]) when pretty in [?u, ?U] do
+		[pretty: false]
 	end
 
 	def options(_modifiers) do
-		[]
+		[pretty: true]
 	end
 
 	@doc false
