@@ -11,13 +11,70 @@ defmodule Cldr.Message do
 
   @type message :: binary()
   @type bindings :: list() | map()
-	@type arguments :: bindings()
+  @type arguments :: bindings()
   @type options :: Keyword.t()
 
   @doc false
   def cldr_backend_provider(config) do
     Cldr.Message.Backend.define_message_module(config)
   end
+
+  @doc """
+  Returns the translation of the given ICU-formatted
+  message string.
+
+  Any placeholders are replaced with the value of variables
+  already in scope at the time of compilation.
+
+  ## Arguments
+
+  * `message` is an ICU format message string
+
+  ## Returns
+
+  * A translated string
+
+  """
+  defmacro t(message) when is_binary(message) do
+    caller = __CALLER__.module
+    canonical_message = Cldr.Message.canonical_message!(message, pretty: true)
+
+    bindings = Enum.map(bindings(message), fn binding ->
+      {String.to_atom(binding), {String.to_atom(binding), [if_undefined: :apply], caller}}
+    end)
+
+    quote do
+      gettext(unquote(canonical_message), unquote(bindings))
+    end
+  end
+
+  @doc """
+  Returns the translation of the given ICU-formatted
+  message string.
+
+  Any placeholders are replaced with the value of variables
+  already in scope at the time of compilation.
+
+  ## Arguments
+
+  * `message` is an ICU format message string
+
+  * `bindings` is a keyword list or map of bindings used
+    to replace placeholders in the message.
+
+  ## Returns
+
+  * A translated string
+
+  """
+  defmacro t(message, bindings) when is_binary(message) do
+    canonical_message = Cldr.Message.canonical_message!(message, pretty: true)
+    # _gettext__(:default_domain)\
+    quote do
+      gettext(unquote(canonical_message), unquote(bindings))
+    end
+  end
+
 
   @doc """
   Format a message in the [ICU Message Format](https://unicode-org.github.io/icu/userguide/format_parse/messages)
@@ -253,7 +310,7 @@ defmodule Cldr.Message do
   ## Returns
 
   * `{ok, canonical_message}` where `canonical_message`
-    is a binary or
+    is a string or
 
   * `{:error, {exception, reason}}`
 
@@ -295,8 +352,7 @@ defmodule Cldr.Message do
 
   ## Returns
 
-  * `canonical_message` where `canonical_message`
-    is a binary or
+  * `canonical_message` as a string or
 
   * raises an exception
 
@@ -311,17 +367,16 @@ defmodule Cldr.Message do
   end
 
   @doc """
-  Extract the binding names from a
-  parsed message
+  Extract the binding names from an ICU message.
 
   ## Arguments
 
   * `message` is a CLDR message in binary or
-    parsed form
+    parsed form.
 
   ### Returns
 
-  * A list of variable names or
+  * A list of binding names as strings or
 
   * `{:error, {exception, reason}}`
 
@@ -360,10 +415,12 @@ defmodule Cldr.Message do
   end
 
   if Code.ensure_loaded?(Cldr) and function_exported?(Cldr, :default_backend!, 0) do
+    @doc false
     def default_backend do
       Cldr.default_backend!()
     end
   else
+    @doc false
     def default_backend do
       Cldr.default_backend()
     end
