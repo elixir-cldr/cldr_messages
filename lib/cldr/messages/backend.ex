@@ -8,8 +8,6 @@ defmodule Cldr.Message.Backend do
       defmodule Message do
         @moduledoc false
 
-        @icu_format "icu-format"
-
         if Cldr.Config.include_module_docs?(config.generate_docs) do
           @moduledoc """
           Supports the CLDR Message format
@@ -69,59 +67,22 @@ defmodule Cldr.Message.Backend do
               raise exception, reason
           end
         end
-
-        if Cldr.Code.ensure_compiled?(Gettext.Interpolation) do
-          @behaviour Gettext.Interpolation
-
-          @impl Gettext.Interpolation
-          def runtime_interpolate(message, bindings) when is_binary(message) do
-            Cldr.maybe_log("Run time: #{inspect message}")
-						options = [backend: unquote(backend), locale: Cldr.get_locale(unquote(backend))]
-            unquote(module).gettext_interpolate(message, bindings, options)
-          end
-
-          @impl Gettext.Interpolation
-          defmacro compile_interpolate(_translation_type, message, bindings) do
-	          alias Cldr.Message.Parser
-	          alias Cldr.Message.Backend
-
-            module = unquote(module)
-            backend = unquote(backend)
-	          message = Backend.expand_to_binary!(message, __CALLER__)
-            Cldr.maybe_log("Compile time: #{inspect message}")
-
-	          case Parser.parse(message) do
-	            {:ok, parsed_message} ->
-	              Backend.validate_bindings!(parsed_message, bindings)
-                static_bindings = Backend.static_bindings(bindings)
-                Backend.quoted_message(parsed_message, module, backend, bindings, static_bindings)
-
-	            {:error, {exception, reason}} ->
-	              raise exception, reason
-	          end
-          end
-
-					@impl Gettext.Interpolation
-					def message_format do
-						@icu_format
-					end
-        end
       end
     end
   end
 
   # The bindings are not all static so we compute them at runtime
-  def quoted_message(parsed_message, module, backend, bindings, nil) do
+  def quoted_message(parsed_message, backend, bindings, nil) do
     quote do
       options = [backend: unquote(backend), locale: Cldr.get_locale(unquote(backend))]
-      unquote(module).gettext_interpolate(unquote(parsed_message), unquote(bindings), options)
+      Cldr.Message.Backend.gettext_interpolate(unquote(parsed_message), unquote(bindings), options)
     end
   end
 
   # The bindings are all static and we can interpolate at compile time
-  def quoted_message(parsed_message, module, backend, _bindings, static_bindings) do
+  def quoted_message(parsed_message, backend, _bindings, static_bindings) do
     options = [backend: backend, locale: Cldr.get_locale(backend)]
-    module.gettext_interpolate(parsed_message, static_bindings, options)
+    Cldr.Message.Backend.gettext_interpolate(parsed_message, static_bindings, options)
   end
 
   # Interpolate the message which may be in binary form or
