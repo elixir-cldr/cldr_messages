@@ -1,6 +1,5 @@
 defmodule MyApp.Gettext.Interpolation do
 	use Cldr.Gettext.Interpolation, cldr_backend: MyApp.Cldr
-
 end
 
 defmodule MyApp.Gettext do

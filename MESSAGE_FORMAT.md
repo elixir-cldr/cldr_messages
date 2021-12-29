@@ -1,4 +1,4 @@
-# Message Format Specification
+# ICU Message Specification
 
 Messages are user-visible strings, often with variable elements like names,
 numbers and dates. Message strings are typically translated into the different
@@ -15,7 +15,7 @@ fragments.
 This document is an edited version of the [official ICU documentation](https://unicode-org.github.io/icu/userguide/format_parse/messages/) edited
 to reflect the implementation in [ex_cldr_messages](https://hex.pm/packages/ex_cldr_messages).
 
-## Message Format Overview
+## Format Overview
 
 The ICU Message Format uses message `"pattern"` strings with
 variable-element placeholders enclosed in {curly braces}. The

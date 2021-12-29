@@ -23,8 +23,8 @@ defmodule Cldr.Message.Interpreter do
       {iolist, _bound, []} ->
         iolist
 
-      {_iolist, bound, unbound} ->
-        raise Cldr.Message.BindError, bound: bound, unbound: unbound
+      {_iolist, _bound, unbound} ->
+        raise Cldr.Message.BindError, "No binding was found for #{inspect unbound}"
     end
   end
 
@@ -301,17 +301,20 @@ defmodule Cldr.Message.Interpreter do
     end
   end
 
-  if Code.ensure_loaded?(Cldr.Date) do
+  if Code.ensure_loaded?(Cldr.List) do
+    # The apply/3 call here is because dialyzer inexplicably complains
+    # if its a remote call
+
     defp format_list({list, :list}, _args, options, bound, unbound) do
-      {Cldr.List.to_string!(list, options), bound, unbound}
+      {apply(Cldr.List, :to_string!, [list, options]), bound, unbound}
     end
 
     defp format_list({list, :list, :and}, _args, options, bound, unbound) do
-      {Cldr.List.to_string!(list, options), bound, unbound}
+      {apply(Cldr.List, :to_string!, [list, options]), bound, unbound}
     end
 
     list_format_function =
-      if Code.ensure_loaded?(Cldr.List) && function_exported?(Cldr.List, :known_list_formats, 0) do
+      if function_exported?(Cldr.List, :known_list_formats, 0) do
         :known_list_formats
       else
         :known_list_styles
@@ -322,14 +325,14 @@ defmodule Cldr.Message.Interpreter do
     defp format_list({list, :list, format}, _args, options, bound, unbound)
         when format in @list_formats do
       options = Keyword.put(options, :format, format)
-      {Cldr.List.to_string!(list, options), bound, unbound}
+      {apply(Cldr.List, :to_string!, [list, options]), bound, unbound}
     end
 
     defp format_list({number, :list, format}, _args, options, bound, unbound)
         when is_atom(format) do
       format_options = configured_message_format(format, options[:backend])
       options = Keyword.merge(options, format_options)
-      {Cldr.List.to_string!(number, options), bound, unbound}
+      {apply(Cldr.List, :to_string!, [number, options]), bound, unbound}
     end
   else
     defp format_list({_list, :list, _format}, _args, _options, bound, unbound) do
@@ -420,7 +423,7 @@ defmodule Cldr.Message.Interpreter do
     Map.fetch!(map, "other")
   end
 
-  @spec to_maybe_integer([number | Decimal.t() | String.t()]) ::
+  @spec to_maybe_integer({:ok, [number | Decimal.t() | String.t()], [any()], []}) ::
           number() | String.t() | atom()
 
   defp to_maybe_integer({:ok, [arg], _bound, _unbound}) when is_integer(arg) do

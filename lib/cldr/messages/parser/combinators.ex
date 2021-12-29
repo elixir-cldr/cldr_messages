@@ -21,12 +21,12 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   def plural_message_text do
-    choice([plural_literal(), arg_value()])
+    choice(empty(), [plural_literal(), arg_value()])
     |> repeat()
   end
 
   def literal do
-    choice([
+    choice(empty(), [
       escaped_char(),
       utf8_string([{:not, ?{}, {:not, ?}}], min: 1)
     ])
@@ -34,7 +34,7 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   def plural_literal do
-    choice([
+    choice(empty(), [
       escaped_char(),
       utf8_string([{:not, ?{}, {:not, ?}}, {:not, ?#}], min: 1)
     ])
@@ -64,7 +64,7 @@ defmodule Cldr.Message.Parser.Combinator do
 	end
 
   def whitespace do
-    repeat(ascii_char([?\s, ?\t, ?\n]))
+    repeat(empty(), ascii_char([?\s, ?\t, ?\n]))
   end
 
   def left_brace do
@@ -85,7 +85,7 @@ defmodule Cldr.Message.Parser.Combinator do
 
   # argument = noneArg | simpleArg | complexArg
   def argument do
-    choice([
+    choice(empty(), [
       none_argument(),
       simple_format(),
       complex_argument()
@@ -120,7 +120,7 @@ defmodule Cldr.Message.Parser.Combinator do
 
   # complexArg = choiceArg | pluralArg | selectArg | selectordinalArg
   def complex_argument do
-    choice([
+    choice(empty(), [
       plural_argument(),
       select_argument(),
       select_ordinal_argument()
@@ -295,7 +295,7 @@ defmodule Cldr.Message.Parser.Combinator do
 
   # keyword =zero | one | two | few | many | other
   def keyword do
-    choice([
+    choice(empty(), [
       string("zero"),
       string("one"),
       string("two"),
@@ -402,7 +402,7 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   def string_arg do
-    choice([
+    choice(empty(), [
       escaped_char(),
       utf8_char([{:not, ?}}, {:not, ?\n}])
     ])

@@ -94,20 +94,33 @@ defmodule Cldr.Message do
 
   ## Options
 
-  * `:backend`
+  * `backend` is any `Cldr` backend. That is, any module that
+    contains `use Cldr`
 
-  * `:locale`
+  * `:locale` is any valid locale name returned by `Cldr.known_locale_names/0`
+    or a `t:Cldr.LanguageTag` struct.  The default is `Cldr.get_locale/0`
 
-  * `:trim`
+  * `:trim` determines if the message is trimmed
+    of whitespace before formatting. The default is
+    `false`.
 
-  * `:allow_positional_args`
+  * `:allow_positional_args` determines if position arguments
+    are permitted. Positional arguments are in the format
+    `{0}` in the message. The default is `true`.
 
   * All other aptions are passed to the `to_string/2`
     function of a formatting module
 
   ## Returns
 
+  * `{:ok, formatted_mesasge}` or
+
+  * `{:error, {module, reason}}
+
   ## Examples
+
+      iex> Cldr.Message.format "{greeting} to you!", greeting: "Good morning"
+      {:ok, "Good morning to you!"}
 
   """
 
@@ -119,12 +132,12 @@ defmodule Cldr.Message do
       {:ok, iolist, _bound, []} ->
         {:ok, :erlang.iolist_to_binary(iolist)}
 
-      {:error, _iolist, bound, unbound} ->
+      {:error, _iolist, _bound, unbound} ->
         {:error,
-          {Cldr.Message.BindError, Cldr.Message.BindError.message({bound, unbound})}}
+          {Cldr.Message.BindError, "No binding was found for #{inspect unbound}"}}
 
-      {:error, {_exception, _reason}} = other_error ->
-        other_error
+      other ->
+        other
     end
   end
 
@@ -158,20 +171,33 @@ defmodule Cldr.Message do
 
   ## Options
 
-  * `:backend`
+  * `backend` is any `Cldr` backend. That is, any module that
+    contains `use Cldr`
 
-  * `:locale`
+  * `:locale` is any valid locale name returned by `Cldr.known_locale_names/0`
+    or a `t:Cldr.LanguageTag` struct.  The default is `Cldr.get_locale/0`
 
-  * `:trim`
+  * `:trim` determines if the message is trimmed
+    of whitespace before formatting. The default is
+    `false`.
 
-  * `:allow_positional_args`
+  * `:allow_positional_args` determines if position arguments
+    are permitted. Positional arguments are in the format
+    `{0}` in the message. The default is `true`.
 
   * All other aptions are passed to the `to_string/2`
     function of a formatting module
 
   ## Returns
 
+  * `{:ok, formatted_mesasge}` or
+
+  * `{:error, {module, reason}}
+
   ## Examples
+
+      iex> Cldr.Message.format_to_iolist "{greeting} to you!", greeting: "Good morning"
+      {:ok, ["Good morning", " to you!"], ["greeting"], []}
 
   """
 
@@ -230,6 +256,9 @@ defmodule Cldr.Message do
 
   ## Examples
 
+      iex> Cldr.Message.jaro_distance "{greetings} to you!", "{greeting} to you!"
+      {:ok, 0.9824561403508771}
+
   """
   def jaro_distance(message1, message2, options \\ []) do
     with {:ok, message1} <- maybe_trim(message1, options[:trim]),
@@ -276,6 +305,9 @@ defmodule Cldr.Message do
 
   ## Examples
 
+      iex> Cldr.Message.jaro_distance! "{greetings} to you!", "{greeting} to you!"
+      0.9824561403508771
+
   """
   def jaro_distance!(message1, message2, options \\ []) do
     case jaro_distance(message1, message2, options) do
@@ -315,6 +347,9 @@ defmodule Cldr.Message do
   * `{:error, {exception, reason}}`
 
   ## Examples
+
+      iex> Cldr.Message.canonical_message "{greeting } to you!"
+      {:ok, "{greeting} to you!"}
 
   """
   def canonical_message(message, options \\ []) do
@@ -357,6 +392,9 @@ defmodule Cldr.Message do
   * raises an exception
 
   ## Examples
+
+      iex> Cldr.Message.canonical_message! "{greeting } to you!"
+      "{greeting} to you!"
 
   """
   def canonical_message!(message, options \\ []) do

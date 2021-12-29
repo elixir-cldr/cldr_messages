@@ -31,15 +31,8 @@ defmodule Cldr.Message.BindError do
   """
   defexception [:message]
 
-  def exception(message) when is_binary(message) do
+  def exception(message) do
     %__MODULE__{message: message}
   end
 
-  def exception(bindings) when is_tuple(bindings) do
-    %__MODULE__{message: message(bindings)}
-  end
-
-  def message({_bound, unbound}) do
-    "No binding was found for #{inspect unbound}"
-  end
 end

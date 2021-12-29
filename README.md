@@ -5,7 +5,19 @@
 [![Hex.pm](https://img.shields.io/hexpm/dw/ex_cldr_messages.svg?)](https://hex.pm/packages/ex_cldr_messages)
 [![Hex.pm](https://img.shields.io/hexpm/l/ex_cldr_messages.svg)](https://hex.pm/packages/ex_cldr_messages)
 
-## Introduction and Getting Started
+## Installation
+
+```elixir
+def deps do
+  [
+    {:ex_cldr_messages, "~> 0.12.0"}
+  ]
+end
+```
+
+Documentation is at [https://hexdocs.pm/cldr_messages](https://hexdocs.pm/cldr_messages).
+
+## Introduction
 
 Implements the [ICU Message Format](https://unicode-org.github.io/icu/userguide/format_parse/messages) for Elixir.
 
@@ -47,46 +59,62 @@ Although `Gettext` supports pluralization for messages through the [Gettext.Plur
 
 Since CLDR has a strong set of pluralization rules defined for ~500 locales, each of which is supported by [ex_cldr for Elixir](https://hex.pm/ex_cldr), the ICU message format can reuse these pluralization rules in a simple and consistent fashion using the [plural format]{#Plural_Format}.
 
+## Getting Started
+
+In common with other [ex_cldr](https://hex.pm/packages/ex_cldr)-based libraries, a `Cldr.Message` provider module needs to be configured as part of a [CLDR backend](https://hexdocs.pm/ex_cldr/readme.html#backend-module-configuration) module definitiom. For example:
+```elixir
+# Note the configuration of the Cldr.Message provider module
+# The provider Cldr.Number is required, all the others are optional
+# but if configured provide easy formatting of dates, times, lists and units
+defmodule MyApp.Cldr do
+  use Cldr,
+    locales: ["en", "fr", "ja", "he", "th", "ar"],
+    default_locale: "en",
+    providers: [Cldr.Number, Cldr.DateTime, Cldr.Unit, Cldr.List, Cldr.Calendar, Cldr.Message]
+end
+```
+
 ## Message format overview
 
 ICU message formats are Elixir strings with embedded formatting directives inserted between `{}`. Some examples:
 
 ```elixir
- # Insert the binding `name` into the string
- "My name is {name}"
+# Insert the binding `name` into the string
+"My name is {name}"
 
- # Insert a date, formatting in a localized `short` format plus a localized plural form
- # for the binding `num_photos`
- "On {taken_date, date, short} {name} took {num_photos, plural,
-   =0 {no photos.}
-   =1 {one photo.}
-   other {# photos.}}"
+# Insert a date, formatting in a localized `short` format plus a localized plural form
+# for the binding `num_photos`
+"On {taken_date, date, short} {name} took {num_photos, plural,
+  =0 {no photos.}
+  =1 {one photo.}
+  other {# photos.}}"
 
- # Insert localized messages based upon the gender of the audience with
- # appropriate localized plural forms
- "{gender_of_host, select,
-   female {
-     {num_guests, plural, offset: 1
-       =0 {{host} does not give a party.}
-       =1 {{host} invites {guest} to her party.}
-       =2 {{host} invites {guest} and one other person to her party.}
-       other {{host} invites {guest} and # other people to her party.}}}
-   male {
-     {num_guests, plural, offset: 1
-       =0 {{host} does not give a party.}
-       =1 {{host} invites {guest} to his party.}
-       =2 {{host} invites {guest} and one other person to his party.}
-       other {{host} invites {guest} and # other people to his party.}}}
-   other {
-     {num_guests, plural, offset: 1
-       =0 {{host} does not give a party.}
-       =1 {{host} invites {guest} to their party.}
-       =2 {{host} invites {guest} and one other person to their party.}
-       other {{host} invites {guest} and # other people to their party.}}}
- }"
+# Insert localized messages based upon the gender of the audience with
+# appropriate localized plural forms
+"{gender_of_host, select,
+  female {
+    {num_guests, plural, offset: 1
+      =0 {{host} does not give a party.}
+      =1 {{host} invites {guest} to her party.}
+      =2 {{host} invites {guest} and one other person to her party.}
+      other {{host} invites {guest} and # other people to her party.}}}
+  male {
+    {num_guests, plural, offset: 1
+      =0 {{host} does not give a party.}
+      =1 {{host} invites {guest} to his party.}
+      =2 {{host} invites {guest} and one other person to his party.}
+      other {{host} invites {guest} and # other people to his party.}}}
+  other {
+    {num_guests, plural, offset: 1
+      =0 {{host} does not give a party.}
+      =1 {{host} invites {guest} to their party.}
+      =2 {{host} invites {guest} and one other person to their party.}
+      other {{host} invites {guest} and # other people to their party.}}}
+}"
 ```
+Further information on ICU message formats is [here](message_format.html).
 
-## Message formatting
+## Message formatting API
 
 Using the above messages as examples:
 
@@ -114,14 +142,43 @@ defmodule SomeModule do
 end
 ```
 
-## Installation
+## Gettext integration
 
+As of [Gettext 0.19](https://hex.pm/packages/gettext/0.19.0), `Gettext` supports user-defined [interpolation modules](https://hexdocs.pm/gettext/Gettext.html#module-backend-configuration). This makes it easy to combine the power of ICU message formats with the broad `gettext` ecosystem and the inbuilt support for `gettext` in [Phoenix](https://hex.pm/packages/phoenix).  The documentation for [Gettext](https://hexdocs.pm/gettext/Gettext.html#content) should be followed with considerations in mind:
+
+1. A Gettext backend module should use the `:interpolation` option defined referring to the `ex_cldr_messages` backend you have defined.
+2. The message format is in the ICU message format (instead of the Gettext format).
+
+### Defining a Gettext Interpolation Module
+
+Any [ex_cldr](https://hex.pm/packages/ex_cldr) [backend module](https://hexdocs.pm/ex_cldr/readme.html#backend-module-configuration) that has a `Cldr.Message` provider configured can be used as an interpolation module. Here is an example:
 ```elixir
-def deps do
-  [
-    {:ex_cldr_messages, "~> 0.10.0"}
-  ]
+# CLDR backend module
+defmodule MyApp.Cldr do
+  use Cldr,
+    locales: ["en", "fr", "ja", "he", "th", "ar"],
+    default_locale: "en",
+    providers: [Cldr.Number, Cldr.DateTime, Cldr.Unit, Cldr.List, Cldr.Calendar, Cldr.Message],
+    gettext: MyApp.Gettext,
+    message_formats: %{
+      USD: [format: :long]
+    }
 end
-```
 
-Documentation is at [https://hexdocs.pm/cldr_messages](https://hexdocs.pm/cldr_messages).
+# Define an interpolation module for ICU messages
+defmodule MyApp.Gettext.Interpolation do
+  use Cldr.Gettext.Interpolation, cldr_backend: MyApp.Cldr
+
+end
+
+# Define a gettext module with ICU message interpolation
+defmodule MyApp.Gettext do
+  use Gettext, otp_app: :ex_cldr_messages, interpolation: MyApp.Gettext.Interpolation
+end
+
+```
+Now you can proceed to use `Gettext` in the normal manner.
+
+## Integration with ex_i18n
+
+TBA
