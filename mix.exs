@@ -53,9 +53,7 @@ defmodule Cldr.Messages.MixProject do
       {:ex_cldr_lists, "~> 2.9", optional: true},
       {:dialyxir, "~> 1.0", optional: true, only: [:dev], runtime: false},
       {:ex_doc, "~> 0.20", optional: true, runtime: false},
-      # TODO: Switch to released version
-      {:gettext, "~> 0.18",
-       github: "elixir-gettext/gettext", branch: "main", optional: true, override: true}
+      {:gettext, "~> 0.19", optional: true}
     ]
   end
 
