@@ -26,6 +26,10 @@ defmodule Cldr.Message do
   Any placeholders are replaced with the value of variables
   already in scope at the time of compilation.
 
+  `t/1` is a wrapper around the `gettext/2` macro
+  which should therefore be imported from a `Gettext`
+  backend prior to calling `t/1`.
+
   ## Arguments
 
   * `message` is an ICU format message string.
@@ -52,8 +56,9 @@ defmodule Cldr.Message do
   Returns the translation of the given ICU-formatted
   message string.
 
-  Any placeholders are replaced with the value of variables
-  already in scope at the time of compilation.
+  `t/2` is a wrapper around the `gettext/2` macro
+  which should therefore be imported from a `Gettext`
+  backend prior to calling `t/2`.
 
   ## Arguments
 
@@ -69,7 +74,7 @@ defmodule Cldr.Message do
   """
   defmacro t(message, bindings) when is_binary(message) do
     canonical_message = Cldr.Message.canonical_message!(message, pretty: true)
-    # _gettext__(:default_domain)\
+
     quote do
       gettext(unquote(canonical_message), unquote(bindings))
     end
