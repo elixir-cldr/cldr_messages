@@ -24,7 +24,7 @@ defmodule Cldr.Messages.MixProject do
         plt_add_apps: ~w(inets jason mix ex_cldr ex_cldr_numbers ex_cldr_units
           ex_cldr_dates_times ex_cldr_calendars ex_money ratio gettext)a
       ],
-      compilers: Mix.compilers()
+      compilers: [:gettext] ++ Mix.compilers()
     ]
   end
 
