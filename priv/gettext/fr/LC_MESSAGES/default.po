@@ -13,10 +13,10 @@ msgstr ""
 
 #, ex-autogen, icu-format
 #: mix/my_app_gettext_use.ex:8
-msgid "Bonjour {name}!"
-msgstr ""
+msgid "Goodbye {name}!"
+msgstr "Au revoir {name}!"
 
 #, ex-autogen, icu-format
 #: mix/my_app_gettext_use.ex:11
-msgid "Au revoir {name}!"
-msgstr ""
+msgid "Hello {name}!"
+msgstr "Bonjour {name}!"
