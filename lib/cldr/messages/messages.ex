@@ -28,11 +28,11 @@ defmodule Cldr.Message do
 
   ## Arguments
 
-  * `message` is an ICU format message string
+  * `message` is an ICU format message string.
 
   ## Returns
 
-  * A translated string
+  * A translated string.
 
   """
   defmacro t(message) when is_binary(message) do
@@ -57,14 +57,14 @@ defmodule Cldr.Message do
 
   ## Arguments
 
-  * `message` is an ICU format message string
+  * `message` is an ICU format message string.
 
   * `bindings` is a keyword list or map of bindings used
     to replace placeholders in the message.
 
   ## Returns
 
-  * A translated string
+  * A translated string.
 
   """
   defmacro t(message, bindings) when is_binary(message) do
@@ -88,17 +88,17 @@ defmodule Cldr.Message do
   ## Arguments
 
   * `bindings` is a list or map of arguments that
-    are used to replace placeholders in the message
+    are used to replace placeholders in the message.
 
-  * `options` is a keyword list of options
+  * `options` is a keyword list of options.
 
   ## Options
 
   * `backend` is any `Cldr` backend. That is, any module that
-    contains `use Cldr`
+    contains `use Cldr`.
 
   * `:locale` is any valid locale name returned by `Cldr.known_locale_names/0`
-    or a `t:Cldr.LanguageTag` struct.  The default is `Cldr.get_locale/0`
+    or a `t:Cldr.LanguageTag` struct.  The default is `Cldr.get_locale/0`.
 
   * `:trim` determines if the message is trimmed
     of whitespace before formatting. The default is
@@ -109,7 +109,7 @@ defmodule Cldr.Message do
     `{0}` in the message. The default is `true`.
 
   * All other aptions are passed to the `to_string/2`
-    function of a formatting module
+    function of a formatting module.
 
   ## Returns
 
@@ -165,17 +165,17 @@ defmodule Cldr.Message do
   ## Arguments
 
   * `bindings` is a list or map of arguments that
-    are used to replace placeholders in the message
+    are used to replace placeholders in the message.
 
-  * `options` is a keyword list of options
+  * `options` is a keyword list of options.
 
   ## Options
 
   * `backend` is any `Cldr` backend. That is, any module that
-    contains `use Cldr`
+    contains `use Cldr`.
 
   * `:locale` is any valid locale name returned by `Cldr.known_locale_names/0`
-    or a `t:Cldr.LanguageTag` struct.  The default is `Cldr.get_locale/0`
+    or a `t:Cldr.LanguageTag` struct.  The default is `Cldr.get_locale/0`.
 
   * `:trim` determines if the message is trimmed
     of whitespace before formatting. The default is
@@ -186,7 +186,7 @@ defmodule Cldr.Message do
     `{0}` in the message. The default is `true`.
 
   * All other aptions are passed to the `to_string/2`
-    function of a formatting module
+    function of a formatting module.
 
   ## Returns
 
@@ -202,7 +202,7 @@ defmodule Cldr.Message do
   """
 
   @spec format_to_iolist(String.t(), bindings(), options()) ::
-          {:ok, list(), list(), list()} | {:error, list(), list(), list()}
+          {:ok, list(), list(), list()} | {:error, list(), list(), list()} | {:error, {module(), binary()}}
 
   def format_to_iolist(message, bindings \\ [], options \\ []) when is_binary(message) do
     {locale, backend} = Cldr.locale_and_backend_from(options)
@@ -232,12 +232,12 @@ defmodule Cldr.Message do
 
   ## Arguments
 
-  * `message1` is a CLDR message in binary form
+  * `message1` is a CLDR message in binary form.
 
-  * `message2` is a CLDR message in binary form
+  * `message2` is a CLDR message in binary form.
 
   * `options` is a keyword list of options. The
-    default is `[]`
+    default is `[]`.
 
   ## Options
 
@@ -281,12 +281,12 @@ defmodule Cldr.Message do
 
   ## Arguments
 
-  * `message1` is a CLDR message in binary form
+  * `message1` is a CLDR message in binary form.
 
-  * `message2` is a CLDR message in binary form
+  * `message2` is a CLDR message in binary form.
 
   * `options` is a keyword list of options. The
-    default is `[]`
+    default is `[]`.
 
   ## Options
 
@@ -324,10 +324,10 @@ defmodule Cldr.Message do
 
   ## Arguments
 
-  * `message` is a CLDR message in binary form
+  * `message` is a CLDR message in binary form.
 
   * `options` is a keyword list of options. The
-    default is `[]`
+    default is `[]`.
 
   ## Options
 
@@ -370,10 +370,10 @@ defmodule Cldr.Message do
 
   ## Arguments
 
-  * `message` is a CLDR message in binary form
+  * `message` is a CLDR message in binary form.
 
   * `options` is a keyword list of options. The
-    default is `[]`
+    default is `[]`.
 
   ## Options
 

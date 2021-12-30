@@ -306,11 +306,11 @@ defmodule Cldr.Message.Interpreter do
     # if its a remote call
 
     defp format_list({list, :list}, _args, options, bound, unbound) do
-      {apply(Cldr.List, :to_string!, [list, options]), bound, unbound}
+      {Cldr.List.to_string!(list, options), bound, unbound}
     end
 
     defp format_list({list, :list, :and}, _args, options, bound, unbound) do
-      {apply(Cldr.List, :to_string!, [list, options]), bound, unbound}
+      {Cldr.List.to_string!(list, options), bound, unbound}
     end
 
     list_format_function =
@@ -325,14 +325,14 @@ defmodule Cldr.Message.Interpreter do
     defp format_list({list, :list, format}, _args, options, bound, unbound)
         when format in @list_formats do
       options = Keyword.put(options, :format, format)
-      {apply(Cldr.List, :to_string!, [list, options]), bound, unbound}
+      {Cldr.List.to_string!(list, options), bound, unbound}
     end
 
     defp format_list({number, :list, format}, _args, options, bound, unbound)
         when is_atom(format) do
       format_options = configured_message_format(format, options[:backend])
       options = Keyword.merge(options, format_options)
-      {apply(Cldr.List, :to_string!, [number, options]), bound, unbound}
+      {Cldr.List.to_string!(number, options), bound, unbound}
     end
   else
     defp format_list({_list, :list, _format}, _args, _options, bound, unbound) do
