@@ -45,7 +45,7 @@ Mariée
 
 In `Gettext` this requires individual messages and conditional code in the application in order to present the correct message to an audience.  This is compounded by the fact that some languages have more than two [grammatical genders](https://en.wikipedia.org/wiki/Grammatical_gender) (most have two and four but some are attested with up to 20).
 
-The ICU message format provides a mechanism (the [choice format](#Choice_format)) that helps translator and UX designers implement a single message to easily encapsulate messages conditional on grammatical gender (or any other selector).
+The ICU message format provides a mechanism (the [select format](https://support.crowdin.com/icu-message-syntax/#select) that helps translator and UX designers implement a single message to easily encapsulate messages conditional on grammatical gender (or any other selector).
 
 ### Standardised plural rules
 
@@ -57,7 +57,7 @@ Although `Gettext` supports pluralization for messages through the [Gettext.Plur
 * Russian has 4 categories
 * Arabic has 6 categories
 
-Since CLDR has a strong set of pluralization rules defined for ~500 locales, each of which is supported by [ex_cldr for Elixir](https://hex.pm/ex_cldr), the ICU message format can reuse these pluralization rules in a simple and consistent fashion using the [plural format]{#Plural_Format}.
+Since CLDR has a strong set of pluralization rules defined for ~500 locales, each of which is supported by [ex_cldr](https://hex.pm/packages/ex_cldr), the ICU message format can reuse these pluralization rules in a simple and consistent fashion using the [plural format](https://support.crowdin.com/icu-message-syntax/#plural).
 
 ## Getting Started
 
