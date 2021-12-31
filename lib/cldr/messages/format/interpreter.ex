@@ -24,7 +24,7 @@ defmodule Cldr.Message.Interpreter do
         iolist
 
       {_iolist, _bound, unbound} ->
-        raise Cldr.Message.BindError, "No binding was found for #{inspect unbound}"
+        raise Cldr.Message.BindError, "No binding was found for #{inspect(unbound)}"
     end
   end
 
@@ -36,6 +36,7 @@ defmodule Cldr.Message.Interpreter do
     case format_list(head, args, options, bound, unbound) do
       {result, bound, unbound} when is_tuple(result) ->
         {[result], bound, unbound}
+
       {result, bound, unbound} ->
         {[format_to_string(result)], bound, unbound}
     end
@@ -47,7 +48,8 @@ defmodule Cldr.Message.Interpreter do
     {[format_to_string(result_hd) | result_tl], bound_tl, unbound_tl}
   end
 
-  defp format_list({:literal, literal}, _args, _options, bound, unbound) when is_binary(literal) do
+  defp format_list({:literal, literal}, _args, _options, bound, unbound)
+       when is_binary(literal) do
     {literal, bound, unbound}
   end
 
@@ -55,16 +57,18 @@ defmodule Cldr.Message.Interpreter do
     with {:ok, atom} <- atomize(arg),
          {:ok, value} <- Map.fetch(args, atom) do
       {[value], [arg | bound], unbound}
-    else _any ->
-      {[{:pos_arg, arg}], bound, [arg | unbound]}
+    else
+      _any ->
+        {[{:pos_arg, arg}], bound, [arg | unbound]}
     end
   end
 
   defp format_list({:pos_arg, arg}, args, _options, bound, unbound) when is_list(args) do
     with {:ok, value} <- fetch_pos_arg(args, arg) do
       {[value], [arg | bound], unbound}
-    else _any ->
-      {[{:pos_arg, arg}], bound, [arg | unbound]}
+    else
+      _any ->
+        {[{:pos_arg, arg}], bound, [arg | unbound]}
     end
   end
 
@@ -72,8 +76,9 @@ defmodule Cldr.Message.Interpreter do
     with {:ok, atom} <- atomize(arg),
          {:ok, value} <- Map.fetch(args, atom) do
       {[value], [arg | bound], unbound}
-    else _any ->
-      {[{:named_arg, arg}], bound, [arg | unbound]}
+    else
+      _any ->
+        {[{:named_arg, arg}], bound, [arg | unbound]}
     end
   end
 
@@ -81,16 +86,18 @@ defmodule Cldr.Message.Interpreter do
     with {:ok, atom} <- atomize(arg),
          {:ok, value} <- Keyword.fetch(args, atom) do
       {[value], [arg | bound], unbound}
-    else _any ->
-      {[{:named_arg, arg}], bound, [arg | unbound]}
+    else
+      _any ->
+        {[{:named_arg, arg}], bound, [arg | unbound]}
     end
   end
 
   defp format_list(:value, _args, options, bound, unbound) do
     with {:ok, value} <- Keyword.fetch(options, :arg) do
       {[value], [:arg | bound], unbound}
-    else _any ->
-      {[{:value, :arg}], bound, [:arg | unbound]}
+    else
+      _any ->
+        {[{:value, :arg}], bound, [:arg | unbound]}
     end
   end
 
@@ -98,6 +105,7 @@ defmodule Cldr.Message.Interpreter do
     case format_list(arg, args, options, bound, unbound) do
       {[arg], _bound, [] = _unbound} ->
         format_list({arg, type}, args, options, bound, unbound)
+
       {[arg], bound, unbound} ->
         {{:simple_format, arg, type}, bound, unbound}
     end
@@ -107,6 +115,7 @@ defmodule Cldr.Message.Interpreter do
     case format_list(arg, args, options, bound, unbound) do
       {[arg], _bound, [] = _unbound} ->
         format_list({arg, type, style}, args, options, bound, unbound)
+
       {[arg], bound, unbound} ->
         {{:simple_format, arg, type, style}, bound, unbound}
     end
@@ -155,12 +164,14 @@ defmodule Cldr.Message.Interpreter do
     {Cldr.Number.to_string!(number, options), bound, unbound}
   end
 
-  defp format_list({number, :number, format}, _args, options, bound, unbound) when is_binary(format) do
+  defp format_list({number, :number, format}, _args, options, bound, unbound)
+       when is_binary(format) do
     options = Keyword.put(options, :format, format)
     {Cldr.Number.to_string!(number, options), bound, unbound}
   end
 
-  defp format_list({number, :number, format}, _args, options, bound, unbound) when is_atom(format) do
+  defp format_list({number, :number, format}, _args, options, bound, unbound)
+       when is_atom(format) do
     format_options = configured_message_format(format, options[:backend])
     options = Keyword.merge(options, format_options)
     {Cldr.Number.to_string!(number, options), bound, unbound}
@@ -191,18 +202,20 @@ defmodule Cldr.Message.Interpreter do
       {Cldr.Date.to_string!(date, options), bound, unbound}
     end
 
-    defp format_list({date, :date, format}, _args, options, bound, unbound) when is_binary(format) do
+    defp format_list({date, :date, format}, _args, options, bound, unbound)
+         when is_binary(format) do
       options = Keyword.put(options, :format, format)
       {Cldr.Date.to_string!(date, options), bound, unbound}
     end
 
     defp format_list({date, :date, format}, _args, options, bound, unbound)
-        when format in [:short, :medium, :long, :full] do
+         when format in [:short, :medium, :long, :full] do
       options = Keyword.put(options, :format, format)
       {Cldr.Date.to_string!(date, options), bound, unbound}
     end
 
-    defp format_list({number, :date, format}, _args, options, bound, unbound) when is_atom(format) do
+    defp format_list({number, :date, format}, _args, options, bound, unbound)
+         when is_atom(format) do
       format_options = configured_message_format(format, options[:backend])
       options = Keyword.merge(options, format_options)
       {Cldr.Date.to_string!(number, options), bound, unbound}
@@ -212,19 +225,20 @@ defmodule Cldr.Message.Interpreter do
       {Cldr.Time.to_string!(time, options), bound, unbound}
     end
 
-    defp format_list({time, :time, format}, _args, options, bound, unbound) when is_binary(format) do
+    defp format_list({time, :time, format}, _args, options, bound, unbound)
+         when is_binary(format) do
       options = Keyword.put(options, :format, format)
       {Cldr.Time.to_string!(time, options), bound, unbound}
     end
 
     defp format_list({time, :time, format}, _args, options, bound, unbound)
-        when format in [:short, :medium, :long, :full] do
+         when format in [:short, :medium, :long, :full] do
       options = Keyword.put(options, :format, format)
       {Cldr.Time.to_string!(time, options), bound, unbound}
     end
 
     defp format_list({number, :time, format}, _args, options, bound, unbound)
-        when is_atom(format) do
+         when is_atom(format) do
       format_options = configured_message_format(format, options[:backend])
       options = Keyword.merge(options, format_options)
       {Cldr.Time.to_string!(number, options), bound, unbound}
@@ -235,39 +249,39 @@ defmodule Cldr.Message.Interpreter do
     end
 
     defp format_list({datetime, :datetime, format}, _args, options, bound, unbound)
-        when is_binary(format) do
+         when is_binary(format) do
       options = Keyword.put(options, :format, format)
       {Cldr.DateTime.to_string!(datetime, options), bound, unbound}
     end
 
     defp format_list({datetime, :datetime, format}, _args, options, bound, unbound)
-        when format in [:short, :medium, :long, :full] do
+         when format in [:short, :medium, :long, :full] do
       options = Keyword.put(options, :format, format)
       {Cldr.DateTime.to_string!(datetime, options), bound, unbound}
     end
 
     defp format_list({number, :datetime, format}, _args, options, bound, unbound)
-        when is_atom(format) do
+         when is_atom(format) do
       format_options = configured_message_format(format, options[:backend])
       options = Keyword.merge(options, format_options)
       {Cldr.DateTime.to_string!(number, options), bound, unbound}
     end
   else
     defp format_list({_number, type, _format}, _args, _options, bound, unbound)
-        when type in [:date, :time, :datetime] do
+         when type in [:date, :time, :datetime] do
       raise Cldr.Message.ParseError, datetime_configuration_error()
     end
   end
 
   if Code.ensure_loaded?(Money) do
     defp format_list({money, :money, format}, _args, options, bound, unbound)
-        when format in [:short, :long] do
+         when format in [:short, :long] do
       options = Keyword.put(options, :format, format)
       {Money.to_string!(money, options), bound, unbound}
     end
 
     defp format_list({number, :money, format}, _args, options, bound, unbound)
-        when is_atom(format) do
+         when is_atom(format) do
       format_options = configured_message_format(format, options[:backend])
       options = Keyword.merge(options, format_options)
       {Money.to_string!(number, options), bound, unbound}
@@ -284,13 +298,13 @@ defmodule Cldr.Message.Interpreter do
     end
 
     defp format_list({unit, :unit, format}, _args, options, bound, unbound)
-        when format in [:long, :short, :narrow] do
+         when format in [:long, :short, :narrow] do
       options = Keyword.put(options, :format, format)
       {Cldr.Unit.to_string!(unit, options), bound, unbound}
     end
 
     defp format_list({number, :unit, format}, _args, options, bound, unbound)
-        when is_atom(format) do
+         when is_atom(format) do
       format_options = configured_message_format(format, options[:backend])
       options = Keyword.merge(options, format_options)
       {Cldr.Unit.to_string!(number, options), bound, unbound}
@@ -323,13 +337,13 @@ defmodule Cldr.Message.Interpreter do
     @list_formats apply(Cldr.List, list_format_function, [])
 
     defp format_list({list, :list, format}, _args, options, bound, unbound)
-        when format in @list_formats do
+         when format in @list_formats do
       options = Keyword.put(options, :format, format)
       {Cldr.List.to_string!(list, options), bound, unbound}
     end
 
     defp format_list({number, :list, format}, _args, options, bound, unbound)
-        when is_atom(format) do
+         when is_atom(format) do
       format_options = configured_message_format(format, options[:backend])
       options = Keyword.merge(options, format_options)
       {Cldr.List.to_string!(number, options), bound, unbound}
@@ -341,7 +355,7 @@ defmodule Cldr.Message.Interpreter do
   end
 
   defp format_list({:select, arg, selections}, args, options, bound, unbound)
-      when is_map(selections) do
+       when is_map(selections) do
     arg =
       arg
       |> format_list(args, options)
@@ -352,7 +366,7 @@ defmodule Cldr.Message.Interpreter do
   end
 
   defp format_list({:plural, arg, plural_args, plurals}, args, options, bound, unbound)
-      when is_map(plurals) do
+       when is_map(plurals) do
     offset = Keyword.get(plural_args, :offset, 0)
     plural_type = Keyword.get(plural_args, :plural_type, "Cardinal")
 
@@ -444,8 +458,9 @@ defmodule Cldr.Message.Interpreter do
 
   defp atomize(string) when is_binary(string) do
     {:ok, String.to_existing_atom(string)}
-  rescue ArgumentError ->
-    {:error, string}
+  rescue
+    ArgumentError ->
+      {:error, string}
   end
 
   defp atomize(integer) when is_integer(integer) do

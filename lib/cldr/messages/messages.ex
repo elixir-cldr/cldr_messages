@@ -43,9 +43,10 @@ defmodule Cldr.Message do
     caller = __CALLER__.module
     canonical_message = Cldr.Message.canonical_message!(message, pretty: true)
 
-    bindings = Enum.map(bindings(message), fn binding ->
-      {String.to_atom(binding), {String.to_atom(binding), [if_undefined: :apply], caller}}
-    end)
+    bindings =
+      Enum.map(bindings(message), fn binding ->
+        {String.to_atom(binding), {String.to_atom(binding), [if_undefined: :apply], caller}}
+      end)
 
     quote do
       gettext(unquote(canonical_message), unquote(bindings))
@@ -79,7 +80,6 @@ defmodule Cldr.Message do
       gettext(unquote(canonical_message), unquote(bindings))
     end
   end
-
 
   @doc """
   Format a message in the [ICU Message Format](https://unicode-org.github.io/icu/userguide/format_parse/messages)
@@ -138,8 +138,7 @@ defmodule Cldr.Message do
         {:ok, :erlang.iolist_to_binary(iolist)}
 
       {:error, _iolist, _bound, unbound} ->
-        {:error,
-          {Cldr.Message.BindError, "No binding was found for #{inspect unbound}"}}
+        {:error, {Cldr.Message.BindError, "No binding was found for #{inspect(unbound)}"}}
 
       other ->
         other
@@ -207,7 +206,9 @@ defmodule Cldr.Message do
   """
 
   @spec format_to_iolist(String.t(), bindings(), options()) ::
-          {:ok, list(), list(), list()} | {:error, list(), list(), list()} | {:error, {module(), binary()}}
+          {:ok, list(), list(), list()}
+          | {:error, list(), list(), list()}
+          | {:error, {module(), binary()}}
 
   def format_to_iolist(message, bindings \\ [], options \\ []) when is_binary(message) do
     {locale, backend} = Cldr.locale_and_backend_from(options)

@@ -34,5 +34,4 @@ defmodule Cldr.Message.BindError do
   def exception(message) do
     %__MODULE__{message: message}
   end
-
 end

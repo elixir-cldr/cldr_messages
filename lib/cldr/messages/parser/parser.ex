@@ -113,7 +113,7 @@ defmodule Cldr.Message.Parser do
   end
 
   defp maybe_allow_positional_args(parsed, allow_positional_args?)
-      when allow_positional_args? != false do
+       when allow_positional_args? != false do
     {:ok, parsed}
   end
 
@@ -125,7 +125,7 @@ defmodule Cldr.Message.Parser do
 
     if has_positional_args? do
       {:error,
-        {Cldr.Message.PositionalArgsNotPermitted, "Positional arguments are not permitted"}}
+       {Cldr.Message.PositionalArgsNotPermitted, "Positional arguments are not permitted"}}
     else
       {:ok, parsed}
     end

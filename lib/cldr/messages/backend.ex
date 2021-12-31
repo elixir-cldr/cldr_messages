@@ -75,7 +75,12 @@ defmodule Cldr.Message.Backend do
   def quoted_message(parsed_message, backend, bindings, nil) do
     quote do
       options = [backend: unquote(backend), locale: Cldr.get_locale(unquote(backend))]
-      Cldr.Message.Backend.gettext_interpolate(unquote(parsed_message), unquote(bindings), options)
+
+      Cldr.Message.Backend.gettext_interpolate(
+        unquote(parsed_message),
+        unquote(bindings),
+        options
+      )
     end
   end
 
@@ -88,7 +93,7 @@ defmodule Cldr.Message.Backend do
   # Interpolate the message which may be in binary form or
   # parsed form.
 
-	@doc false
+  @doc false
   def gettext_interpolate(message, bindings, options) when is_binary(message) do
     case Cldr.Message.format_to_iolist(message, bindings, options) do
       {:ok, iolist, _bound, [] = _unbound} ->
@@ -99,45 +104,48 @@ defmodule Cldr.Message.Backend do
     end
   end
 
-	@doc false
-	def gettext_interpolate(parsed, bindings, options) when is_list(parsed) do
-		case Cldr.Message.format_list(parsed, bindings, options) do
-			{:ok, iolist, _bound, [] = _unbound} ->
-				{:ok, :erlang.iolist_to_binary(iolist)}
+  @doc false
+  def gettext_interpolate(parsed, bindings, options) when is_list(parsed) do
+    case Cldr.Message.format_list(parsed, bindings, options) do
+      {:ok, iolist, _bound, [] = _unbound} ->
+        {:ok, :erlang.iolist_to_binary(iolist)}
 
       {:error, _iolist, _bound, unbound} ->
         {:missing_bindings, parsed, unbound}
-		end
-	end
+    end
+  end
 
   # Return a keyword list of static bindings, if they
   # are all static. Otherwise return nil.
 
   @doc false
   def static_bindings(bindings) when is_list(bindings) do
-    Enum.reduce_while bindings, [], fn binding, acc ->
+    Enum.reduce_while(bindings, [], fn binding, acc ->
       case binding do
         {_key, value} = term when is_number(value) ->
           {:cont, [term | acc]}
+
         {_key, value} = term when is_binary(value) ->
           {:cont, [term | acc]}
+
         {key, {:<<>>, _, pieces}} ->
           if Enum.all?(pieces, &is_binary/1) do
             [{:cont, {key, Enum.join(pieces)}} | acc]
           else
             {:halt, nil}
           end
+
         _other ->
           {:halt, nil}
       end
-    end
+    end)
   end
 
   def static_bindings(_other) do
     nil
   end
 
-	@doc false
+  @doc false
   def validate_bindings!(message, bindings) do
     prewalk(message, fn
       {:named_arg, arg} -> validate_binding!(arg, bindings)

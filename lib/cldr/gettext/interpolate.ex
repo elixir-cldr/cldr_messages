@@ -9,8 +9,8 @@ defmodule Cldr.Gettext.Interpolation do
 
       @impl Gettext.Interpolation
       def runtime_interpolate(message, bindings) when is_binary(message) do
-        Cldr.maybe_log("Run time: #{inspect message}")
-  			options = [backend: unquote(backend), locale: Cldr.get_locale(unquote(backend))]
+        Cldr.maybe_log("Run time: #{inspect(message)}")
+        options = [backend: unquote(backend), locale: Cldr.get_locale(unquote(backend))]
         Cldr.Message.Backend.gettext_interpolate(message, bindings, options)
       end
 
@@ -22,7 +22,7 @@ defmodule Cldr.Gettext.Interpolation do
         backend = unquote(backend)
         message = Backend.expand_to_binary!(message, __CALLER__)
 
-        Cldr.maybe_log("Compile time: #{inspect message}")
+        Cldr.maybe_log("Compile time: #{inspect(message)}")
 
         case Cldr.Message.Parser.parse(message) do
           {:ok, parsed_message} ->
@@ -35,10 +35,10 @@ defmodule Cldr.Gettext.Interpolation do
         end
       end
 
-  		@impl Gettext.Interpolation
-  		def message_format do
-  			@icu_format
-  		end
+      @impl Gettext.Interpolation
+      def message_format do
+        @icu_format
+      end
     end
   end
 end

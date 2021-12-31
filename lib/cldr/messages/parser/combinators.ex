@@ -6,7 +6,7 @@ defmodule Cldr.Message.Parser.Combinator do
   def message do
     optional(message_text())
     |> repeat(argument() |> concat(message_text()))
-		|> label("a CLDR message")
+    |> label("a CLDR message")
   end
 
   def message_text do
@@ -17,7 +17,7 @@ defmodule Cldr.Message.Parser.Combinator do
   def plural_message do
     optional(plural_message_text())
     |> repeat(argument() |> concat(plural_message_text()))
-		|> label("a CLDR plural message")
+    |> label("a CLDR plural message")
   end
 
   def plural_message_text do
@@ -54,14 +54,14 @@ defmodule Cldr.Message.Parser.Combinator do
     :value
   end
 
-	def escaped_char do
-	  choice([
-	    string("'{") |> replace("{"),
-	    string("'}") |> replace("}"),
-	    string("'#") |> replace("#"),
-	    string("''") |> replace("'")
-		])
-	end
+  def escaped_char do
+    choice([
+      string("'{") |> replace("{"),
+      string("'}") |> replace("}"),
+      string("'#") |> replace("#"),
+      string("''") |> replace("'")
+    ])
+  end
 
   def whitespace do
     repeat(empty(), ascii_char([?\s, ?\t, ?\n]))
