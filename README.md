@@ -33,7 +33,7 @@ Two specific shortcomings that the ICU message format addresses:
 
 Many languages inflect in gender specific way. One example in French might be:
 
-```
+```elixir
 # You are the only participant for a male and female
 Vous êtes le seul participant
 Vous êtes la seule participante
