@@ -2,7 +2,7 @@
 
 ## Cldr_Messages v0.12.0
 
-This is the changelog for Cldr_Messages v0.12.0 released on December 30th, 2021.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+This is the changelog for Cldr_Messages v0.12.0 released on January 1st, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
 
 ### Enhancements
 

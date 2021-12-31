@@ -177,8 +177,5 @@ defmodule MyApp.Gettext do
 end
 
 ```
-Now you can proceed to use `Gettext` in the normal manner.
+Now you can proceed to use `Gettext` in the normal manner, most typically with the `gettext/3` macro.
 
-## Integration with ex_i18n
-
-TBA
