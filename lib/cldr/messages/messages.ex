@@ -120,7 +120,7 @@ defmodule Cldr.Message do
 
   * `{:ok, formatted_mesasge}` or
 
-  * `{:error, {module, reason}}
+  * `{:error, {module, reason}}`
 
   ## Examples
 
@@ -197,7 +197,7 @@ defmodule Cldr.Message do
 
   * `{:ok, formatted_mesasge}` or
 
-  * `{:error, {module, reason}}
+  * `{:error, {module, reason}}`
 
   ## Examples
 
