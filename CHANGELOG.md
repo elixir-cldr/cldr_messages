@@ -1,5 +1,26 @@
 # Changelog
 
+## Cldr_Messages v0.13.0
+
+This is the changelog for Cldr_Messages v0.13.0 released on January 2nd, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+
+### Bug Fixes
+
+* Don't add `:gettext` to `Mix.compilers/0` because it gets inherited into client applications and we want `Gettext` to remain optional. Thanks to @trarbr for the report.
+
+* Fix typos. Thanks as always to @kianmeng
+
+## Enhancements
+
+* Add an Elixir formatter plugin for `sigil_M`. For example:
+```elixir
+[
+  inputs: ["mix.exs", "{config,lib,test,mix}/**/*.{ex,exs}"],
+  locals_without_parens: [docp: 1, defparsec: 2, defparsec: 3],
+  plugins: [Cldr.Formatter.Plugin]
+]
+```
+
 ## Cldr_Messages v0.12.0
 
 This is the changelog for Cldr_Messages v0.12.0 released on January 1st, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)

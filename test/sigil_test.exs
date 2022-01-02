@@ -16,7 +16,7 @@ defmodule Cldr.Message.Sigil.Test do
     {2, select,
       female {allées}
       other {allés}}}} à {3}" ==
-             "{0} {1, plural,\n  one {est\n\n    \n    {2, select, \n      female {allée}\n      other {allé}}}\n  other {sont\n\n    \n    {2, select, \n      female {allées}\n      other {allés}}}} à {3}"
+        "{0} {1, plural,\n  one {est\n\n    \n    {2, select, \n      female {allée}\n      other {allé}}}\n  other {sont\n\n    \n    {2, select, \n      female {allées}\n      other {allés}}}} à {3}"
   end
 
   test "sigil_m" do

@@ -267,7 +267,7 @@ defmodule Cldr.Message.Interpreter do
       {Cldr.DateTime.to_string!(number, options), bound, unbound}
     end
   else
-    defp format_list({_number, type, _format}, _args, _options, bound, unbound)
+    defp format_list({_number, type, _format}, _args, _options, _bound, _unbound)
          when type in [:date, :time, :datetime] do
       raise Cldr.Message.ParseError, datetime_configuration_error()
     end
@@ -287,7 +287,7 @@ defmodule Cldr.Message.Interpreter do
       {Money.to_string!(number, options), bound, unbound}
     end
   else
-    defp format_list({_number, :money, _format}, _args, _options, bound, unbound) do
+    defp format_list({_number, :money, _format}, _args, _options, _bound, _unbound) do
       raise Cldr.Message.ParseError, money_configuration_error()
     end
   end
@@ -310,7 +310,7 @@ defmodule Cldr.Message.Interpreter do
       {Cldr.Unit.to_string!(number, options), bound, unbound}
     end
   else
-    defp format_list({_unit, :unit, _format}, _args, _options, bound, unbound) do
+    defp format_list({_unit, :unit, _format}, _args, _options, _bound, _unbound) do
       raise Cldr.Message.ParseError, unit_configuration_error()
     end
   end
@@ -349,7 +349,7 @@ defmodule Cldr.Message.Interpreter do
       {Cldr.List.to_string!(number, options), bound, unbound}
     end
   else
-    defp format_list({_list, :list, _format}, _args, _options, bound, unbound) do
+    defp format_list({_list, :list, _format}, _args, _options, _bound, _unbound) do
       raise Cldr.Message.ParseError, list_configuration_error()
     end
   end

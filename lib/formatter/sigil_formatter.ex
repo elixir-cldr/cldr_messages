@@ -20,7 +20,7 @@ defmodule Cldr.Formatter.Plugin do
 
   @impl true
   def features(_opts) do
-    [sigils: [:M, :m]]
+    [sigils: [:M]]
   end
 
   @impl true

@@ -1,7 +1,7 @@
 defmodule Cldr.Messages.MixProject do
   use Mix.Project
 
-  @version "0.12.0"
+  @version "0.13.0"
 
   def project do
     [
@@ -24,7 +24,7 @@ defmodule Cldr.Messages.MixProject do
         plt_add_apps: ~w(inets jason mix ex_cldr ex_cldr_numbers ex_cldr_units
           ex_cldr_dates_times ex_cldr_calendars ex_cldr_lists ex_money ratio gettext)a
       ],
-      compilers: [:gettext] ++ Mix.compilers()
+      compilers: Mix.compilers()
     ]
   end
 
