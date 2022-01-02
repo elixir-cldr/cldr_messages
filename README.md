@@ -23,7 +23,7 @@ Implements the [ICU Message Format](https://unicode-org.github.io/icu/userguide/
 
 In any application that addresses audiences from different cultures, the need arises to support the presentation of user interfaces, messages, alerts and other content in the appropriate language for a user.
 
-For [nearly 30 years](https://www.gnu.org/software/gettext/manual/gettext.html#gettext) the go-to solution for this requirement in many computer langauges is [gettext](https://www.gnu.org/software/gettext). There is a full-featured [implementation for Elixir](https://hex.pm/packages/gettext) that is installed by default with [Phoenix](https://hex.pm/packages/phoenix) with over 10,000,000 downloads.
+For [nearly 30 years](https://www.gnu.org/software/gettext/manual/gettext.html#gettext) the go-to solution for this requirement in many computer languages is [gettext](https://www.gnu.org/software/gettext). There is a full-featured [implementation for Elixir](https://hex.pm/packages/gettext) that is installed by default with [Phoenix](https://hex.pm/packages/phoenix) with over 10,000,000 downloads.
 
 Given the maturity and widespread adoption of `Gettext`, why implement another format? Leveraging the content from the [Unicode CLDR](https://cldr.unicode.com) project we can address some of the shortcomings of `Gettext`. A good description of motivations and differences can be found in [this presentation](https://docs.google.com/presentation/d/1ZyN8-0VXmod5hbHveq-M1AeQ61Ga3BmVuahZjbmbBxo/pub?start=false&loop=false&delayms=3000&slide=id.g1bc43a82_2_14) by Mark Davis from Google in 2012.
 
