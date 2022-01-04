@@ -15,7 +15,7 @@ def deps do
 end
 ```
 
-Documentation is at [https://hexdocs.pm/cldr_messages](https://hexdocs.pm/cldr_messages).
+Documentation is at [https://hexdocs.pm/cldr_messages](https://hexdocs.pm/ex_cldr_messages).
 
 ## Introduction
 
