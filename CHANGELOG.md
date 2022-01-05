@@ -12,7 +12,7 @@ This is the changelog for Cldr_Messages v0.13.0 released on January 2nd, 2022.  
 
 ## Enhancements
 
-* Add an Elixir formatter plugin for `sigil_M`. For example:
+* Add an Elixir formatter plugin for `sigil_M`. For example in your `.formatter.exs` file:
 ```elixir
 [
   inputs: ["mix.exs", "{config,lib,test,mix}/**/*.{ex,exs}"],
