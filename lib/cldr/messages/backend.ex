@@ -155,7 +155,7 @@ defmodule Cldr.Message.Backend do
   end
 
   defp validate_binding!(arg, bindings) do
-    arg = String.to_existing_atom(arg)
+    arg = String.to_atom(arg)
 
     if has_key?(arg, bindings) do
       :ok
