@@ -5,6 +5,7 @@ defmodule Cldr.Messages.GettextInterpolationtest do
 
   import ExUnit.CaptureLog
   import MyApp.Gettext
+  import Cldr.Message.TestHelpers
 
   test "interpolates compile time translation" do
     assert "Hello World!" == Use.translate_compile_time(name: "World")
@@ -29,5 +30,13 @@ defmodule Cldr.Messages.GettextInterpolationtest do
 
     assert gettext(~m"runtime {one, number, currency}", %{one: {1, currency: :MXP}}) ==
              gettext(~m"runtime {one,   number,   currency}", %{one: {1, currency: :MXP}})
+  end
+
+  test "number formatting in gettext finds the CLDR backend" do
+    require MyApp.Gettext
+
+    with_no_default_backend fn ->
+      assert MyApp.Gettext.gettext("Message {number}", number: 7) == "Message 7"
+    end
   end
 end

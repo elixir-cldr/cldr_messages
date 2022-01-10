@@ -38,14 +38,14 @@ defmodule Cldr.Message.Interpreter do
         {[result], bound, unbound}
 
       {result, bound, unbound} ->
-        {[format_to_string(result)], bound, unbound}
+        {[format_to_string(result, options)], bound, unbound}
     end
   end
 
   defp format_list([head | rest], args, options, bound, unbound) do
     {result_hd, bound_hd, unbound_hd} = format_list(head, args, options, bound, unbound)
     {result_tl, bound_tl, unbound_tl} = format_list(rest, args, options, bound_hd, unbound_hd)
-    {[format_to_string(result_hd) | result_tl], bound_tl, unbound_tl}
+    {[format_to_string(result_hd, options) | result_tl], bound_tl, unbound_tl}
   end
 
   defp format_list({:literal, literal}, _args, _options, bound, unbound)
@@ -380,37 +380,37 @@ defmodule Cldr.Message.Interpreter do
     format_plural(arg, plural_type, offset, plurals, args, options, bound, unbound)
   end
 
-  defp format_to_string([value]) do
-    format_to_string(value)
+  defp format_to_string([value], options) do
+    format_to_string(value, options)
   end
 
-  defp format_to_string(value) when is_number(value) do
-    Cldr.Number.to_string!(value)
+  defp format_to_string(value, options) when is_number(value) do
+    Cldr.Number.to_string!(value, options)
   end
 
-  defp format_to_string(%Decimal{} = value) do
-    Cldr.Number.to_string!(value)
+  defp format_to_string(%Decimal{} = value, options) do
+    Cldr.Number.to_string!(value, options)
   end
 
   if Code.ensure_loaded?(Cldr.DateTime) do
-    defp format_to_string(%Date{} = value) do
-      Cldr.Date.to_string!(value)
+    defp format_to_string(%Date{} = value, options) do
+      Cldr.Date.to_string!(value, options)
     end
 
-    defp format_to_string(%Time{} = value) do
-      Cldr.Time.to_string!(value)
+    defp format_to_string(%Time{} = value, options) do
+      Cldr.Time.to_string!(value, options)
     end
 
-    defp format_to_string(%DateTime{} = value) do
-      Cldr.DateTime.to_string!(value)
+    defp format_to_string(%DateTime{} = value, options) do
+      Cldr.DateTime.to_string!(value, options)
     end
   end
 
-  defp format_to_string(value) when is_tuple(value) do
+  defp format_to_string(value, _options) when is_tuple(value) do
     value
   end
 
-  defp format_to_string(value) do
+  defp format_to_string(value, _options) do
     Kernel.to_string(value)
   end
 
