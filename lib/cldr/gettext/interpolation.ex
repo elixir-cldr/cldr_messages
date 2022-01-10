@@ -41,7 +41,8 @@ defmodule Cldr.Gettext.Interpolation do
   end
 
   ```
-  Now you can proceed to use `Gettext` in the normal manner, most typically with the `gettext/3` macro.
+  Now you can proceed to use `Gettext` in the normal manner, most
+  typically with the `gettext/3` macro.
 
   """
   defmacro __using__(opts \\ []) do
