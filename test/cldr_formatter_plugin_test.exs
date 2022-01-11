@@ -1,21 +1,23 @@
-defmodule Cldr.Formatter.PluginTest do
-  @moduledoc false
+if function_exported?(Mix.Tasks.Format, :formatter_for_file, 1) do
+  defmodule Cldr.Formatter.PluginTest do
+    @moduledoc false
 
-  use ExUnit.Case
+    use ExUnit.Case
 
-  for input_filename <-
-        Path.wildcard(Application.app_dir(:ex_cldr_messages, "priv/test/formatter/input/*.exs")) do
-    name = Path.basename(input_filename, ".exs")
+    for input_filename <-
+          Path.wildcard(Application.app_dir(:ex_cldr_messages, "test/support/formatter/input/*.exs")) do
+      name = Path.basename(input_filename, ".exs")
 
-    expected_filename =
-      Application.app_dir(:ex_cldr_messages, "priv/test/formatter/expected/#{name}.exs")
+      expected_filename =
+        Application.app_dir(:ex_cldr_messages, "test/support/formatter/expected/#{name}.exs")
 
-    input = File.read!(input_filename)
-    expected = File.read!(expected_filename)
+      input = File.read!(input_filename)
+      expected = File.read!(expected_filename)
 
-    test name do
-      {formatter, _opts} = Mix.Tasks.Format.formatter_for_file(unquote(input_filename))
-      assert formatter.(unquote(input)) == unquote(expected)
+      test name do
+        {formatter, _opts} = Mix.Tasks.Format.formatter_for_file(unquote(input_filename))
+        assert formatter.(unquote(input)) == unquote(expected)
+      end
     end
   end
 end
