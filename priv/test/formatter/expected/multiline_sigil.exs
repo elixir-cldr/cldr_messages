@@ -1,0 +1,3 @@
+gettext(~M"""
+keeps multiline
+""")
