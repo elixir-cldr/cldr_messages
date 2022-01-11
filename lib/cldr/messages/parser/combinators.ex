@@ -366,26 +366,35 @@ defmodule Cldr.Message.Parser.Combinator do
   def arg_style do
     ignore(optional(whitespace()))
     |> choice([
+      # For numbers
       string("integer") |> reduce(:to_atom),
       string("currency") |> reduce(:to_atom),
       string("percent") |> reduce(:to_atom),
       string("permille") |> reduce(:to_atom),
+      string("verbose") |> reduce(:to_atom),
+      string("year") |> reduce(:to_atom),
+      string("ordinal") |> reduce(:to_atom),
+
+      # For units, dates, times, ...
       string("short") |> reduce(:to_atom),
       string("medium") |> reduce(:to_atom),
       string("long") |> reduce(:to_atom),
       string("full") |> reduce(:to_atom),
-      string("verbose") |> reduce(:to_atom),
-      string("year") |> reduce(:to_atom),
-      string("ordinal") |> reduce(:to_atom),
+
+      # For lists
       string("or_narrow") |> reduce(:to_atom),
       string("or_short") |> reduce(:to_atom),
       string("or") |> reduce(:to_atom),
       string("standard_narrow") |> reduce(:to_atom),
       string("standard_short") |> reduce(:to_atom),
       string("standard") |> reduce(:to_atom),
+
+      # For units
       string("unit_narrow") |> reduce(:to_atom),
       string("unit_short") |> reduce(:to_atom),
       string("unit") |> reduce(:to_atom),
+
+      # Everything else
       arg_format()
     ])
     |> ignore(optional(whitespace()))
@@ -398,11 +407,12 @@ defmodule Cldr.Message.Parser.Combinator do
   def atom_arg do
     ignore(ascii_char([?:]))
     |> repeat(ascii_char([?a..?z, ?A..?Z, ?0..?9, ?_]))
-    |> reduce({List, :to_existing_atom, []})
+    |> reduce({List, :to_atom, []})
   end
 
   def string_arg do
-    choice(empty(), [
+    ignore(optional(string("::")))
+    |> choice([
       escaped_char(),
       utf8_char([{:not, ?}}, {:not, ?\n}])
     ])
@@ -411,6 +421,6 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   def to_atom([string]) do
-    String.to_existing_atom(string)
+    String.to_atom(string)
   end
 end
