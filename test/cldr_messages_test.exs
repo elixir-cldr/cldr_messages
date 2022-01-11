@@ -279,4 +279,12 @@ defmodule Cldr_Messages_Test do
              {:error,
               {Cldr.Message.PositionalArgsNotPermitted, "Positional arguments are not permitted"}}
   end
+
+  test "ordinal formatting" do
+    assert Cldr.Message.format("{ordering,number,:spellout_ordinal} jab date", ordering: 1) ==
+             {:ok, "first jab date"}
+
+    assert Cldr.Message.format("{ordering,number,ordinal} jab date", ordering: 1) ==
+            {:ok, "1st jab date"}
+  end
 end

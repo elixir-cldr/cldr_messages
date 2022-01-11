@@ -35,8 +35,8 @@ defmodule Cldr.Messages.GettextInterpolationtest do
   test "number formatting in gettext finds the CLDR backend" do
     require MyApp.Gettext
 
-    with_no_default_backend fn ->
+    with_no_default_backend(fn ->
       assert MyApp.Gettext.gettext("Message {number}", number: 7) == "Message 7"
-    end
+    end)
   end
 end

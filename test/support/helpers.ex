@@ -9,5 +9,4 @@ defmodule Cldr.Message.TestHelpers do
       Application.put_env(:ex_cldr, :default_backend, current_default)
     end
   end
-
 end

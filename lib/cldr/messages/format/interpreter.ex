@@ -172,8 +172,14 @@ defmodule Cldr.Message.Interpreter do
 
   defp format_list({number, :number, format}, _args, options, bound, unbound)
        when is_atom(format) do
-    format_options = configured_message_format(format, options[:backend])
-    options = Keyword.merge(options, format_options)
+    format_options =
+      configured_message_format(format, options[:backend])
+
+    options =
+      options
+      |> Keyword.merge(format_options)
+      |> Keyword.put_new(:format, format)
+
     {Cldr.Number.to_string!(number, options), bound, unbound}
   end
 
@@ -509,6 +515,6 @@ defmodule Cldr.Message.Interpreter do
 
   @doc false
   def configured_message_format(format, backend) do
-    Module.concat(backend, Message).message_format(format)
+    Module.concat(backend, :Message).configured_message_format(format) || []
   end
 end
