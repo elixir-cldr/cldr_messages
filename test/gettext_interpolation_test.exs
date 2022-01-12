@@ -39,4 +39,14 @@ defmodule Cldr.Messages.GettextInterpolationtest do
       assert MyApp.Gettext.gettext("Message {number}", number: 7) == "Message 7"
     end)
   end
+
+  test "Compile time interpolation for translation" do
+    Gettext.put_locale MyApp.Gettext, "fr"
+    Cldr.put_locale MyApp.Cldr, "fr"
+
+    assert MyApp.Gettext.Use.translate_complex() == "Il est votre 2e jab"
+
+    Gettext.put_locale MyApp.Gettext, "en"
+    Cldr.put_locale MyApp.Cldr, "en"
+  end
 end

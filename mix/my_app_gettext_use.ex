@@ -9,4 +9,7 @@ defmodule MyApp.Gettext.Use do
 
   # To test dynamic bindings that cannot be interpolated at compile time
   def translate_compile_time(bindings), do: gettext("Hello {name}!", bindings)
+
+  # Test complex bindings
+  def translate_complex(), do: gettext("This is your {count, number, ordinal} jab", count: 2)
 end

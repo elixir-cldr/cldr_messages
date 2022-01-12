@@ -71,25 +71,6 @@ defmodule Cldr.Message.Backend do
     end
   end
 
-  # The bindings are not all static so we compute them at runtime
-  def quoted_message(parsed_message, backend, bindings, nil) do
-    quote do
-      options = [backend: unquote(backend), locale: Cldr.get_locale(unquote(backend))]
-
-      Cldr.Message.Backend.gettext_interpolate(
-        unquote(parsed_message),
-        unquote(bindings),
-        options
-      )
-    end
-  end
-
-  # The bindings are all static and we can interpolate at compile time
-  def quoted_message(parsed_message, backend, _bindings, static_bindings) do
-    options = [backend: backend, locale: Cldr.get_locale(backend)]
-    Cldr.Message.Backend.gettext_interpolate(parsed_message, static_bindings, options)
-  end
-
   # Interpolate the message which may be in binary form or
   # parsed form.
 

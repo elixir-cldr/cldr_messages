@@ -69,9 +69,10 @@ defmodule Cldr.Gettext.Interpolation do
 
         case Cldr.Message.Parser.parse(message) do
           {:ok, parsed_message} ->
-            Backend.validate_bindings!(parsed_message, bindings)
-            static_bindings = Backend.static_bindings(bindings)
-            Backend.quoted_message(parsed_message, backend, bindings, static_bindings)
+            quote do
+              options = [backend: unquote(backend), locale: Cldr.get_locale(unquote(backend))]
+              Cldr.Message.Backend.gettext_interpolate(unquote(Macro.escape(parsed_message)), unquote(bindings), options)
+            end
 
           {:error, {exception, reason}} ->
             raise exception, reason
