@@ -1,5 +1,17 @@
 # Changelog
 
+## Cldr_Messages v0.14.0
+
+This is the changelog for Cldr_Messages v0.14.0 released on ______, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+
+### Bug Fixes
+
+* Fix `Cldr.Message.Interpolate.compile_interpolate/3` to ensure that the parsed message is escaped AST. Closes #11.
+
+* Fix passing RBNF format names as number format styles.
+
+* Fix converting strings to atoms at compile time. Previously these uses `String.to_existing_atom/1` however the compilation graph sometimes means that the expected atoms are not available. Therefore `String.to_atom/1` is now called. As a result, it is very important to note that allowing arbitrary message formats into the system could open an attack vector to exhaust the atom table.
+
 ## Cldr_Messages v0.13.0
 
 This is the changelog for Cldr_Messages v0.13.0 released on January 2nd, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
