@@ -1,8 +1,16 @@
 # Changelog
 
-## Cldr_Messages v0.14.0
+## Cldr_Messages v0.13.2
 
-This is the changelog for Cldr_Messages v0.14.0 released on ______, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+This is the changelog for Cldr_Messages v0.13.2 released on January 14th, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+
+### Bug Fixes
+
+* Fixes formatting when there is no `:message_formats` configured on a backend. Closes #11, again.
+
+## Cldr_Messages v0.13.1
+
+This is the changelog for Cldr_Messages v0.13.1 released on January 13th, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
 
 ### Bug Fixes
 

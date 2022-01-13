@@ -515,6 +515,7 @@ defmodule Cldr.Message.Interpreter do
 
   @doc false
   def configured_message_format(format, backend) do
-    Module.concat(backend, :Message).configured_message_format(format) || []
+    Module.concat(backend, :Message).configured_message_format(format)
   end
+
 end

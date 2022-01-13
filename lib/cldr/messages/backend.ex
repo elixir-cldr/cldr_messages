@@ -19,8 +19,15 @@ defmodule Cldr.Message.Backend do
         Returns a map of configured custom message formats
 
         """
-        def configured_message_formats do
-          unquote(Macro.escape(config.message_formats))
+        # TODO remove when we release ex_cldr 2.26
+        if config.message_formats == [] do
+          def configured_message_formats do
+            %{}
+          end
+        else
+          def configured_message_formats do
+            unquote(Macro.escape(config.message_formats))
+          end
         end
 
         @doc """
@@ -28,7 +35,8 @@ defmodule Cldr.Message.Backend do
 
         """
         def configured_message_format(format) when is_atom(format) do
-          Map.get(configured_message_formats(), format)
+          configured_message_formats()
+          |> Map.get(format, [])
         end
 
         @doc """

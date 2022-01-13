@@ -4,10 +4,11 @@ defmodule Cldr.Messages.GettextInterpolationtest do
   alias MyApp.Gettext.Use
 
   import ExUnit.CaptureLog
-  import MyApp.Gettext
   import Cldr.Message.TestHelpers
 
   test "interpolates compile time translation" do
+    import MyApp.Gettext
+
     assert "Hello World!" == Use.translate_compile_time(name: "World")
 
     assert capture_log(fn ->
@@ -16,6 +17,20 @@ defmodule Cldr.Messages.GettextInterpolationtest do
   end
 
   test "interpolates runtime translation" do
+    import MyApp.Gettext
+
+    assert "runtime MXP 1.00" ==
+             gettext("runtime {one, number, currency}", %{one: {1, currency: :MXP}})
+
+    assert capture_log(fn ->
+             assert "runtime {one, number, currency}" ==
+                      gettext("runtime {one, number, currency}", %{})
+           end) =~ "missing Gettext bindings: [\"one\"]"
+  end
+
+  test "interpolates runtime translation with backend that has no message formats configured" do
+    import MyApp2.Gettext
+
     assert "runtime MXP 1.00" ==
              gettext("runtime {one, number, currency}", %{one: {1, currency: :MXP}})
 
@@ -26,6 +41,7 @@ defmodule Cldr.Messages.GettextInterpolationtest do
   end
 
   test "interpolation with sigil_m" do
+    import MyApp.Gettext
     import Cldr.Message.Sigil
 
     assert gettext(~m"runtime {one, number, currency}", %{one: {1, currency: :MXP}}) ==
