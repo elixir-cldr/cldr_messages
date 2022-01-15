@@ -65,4 +65,17 @@ defmodule Cldr.Messages.GettextInterpolationtest do
     Gettext.put_locale MyApp.Gettext, "en"
     Cldr.put_locale MyApp.Cldr, "en"
   end
+
+  test "datetime interpolation" do
+    require MyApp.Gettext
+
+    with_no_default_backend(fn ->
+      assert MyApp.Gettext.gettext("Created at {created_at}", created_at: ~D[2022-01-22]) ==
+        "Created at Jan 22, 2022"
+      assert MyApp.Gettext.gettext("Created at {created_at}", created_at: ~U[2022-01-22T09:43:56.0Z]) ==
+        "Created at Jan 22, 2022, 9:43:56 AM"
+      assert MyApp.Gettext.gettext("Created at {created_at}", created_at: ~T[09:43:56]) ==
+        "Created at 9:43:56 AM"
+    end)
+  end
 end
