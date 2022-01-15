@@ -78,4 +78,14 @@ defmodule Cldr.Messages.GettextInterpolationtest do
         "Created at 9:43:56 AM"
     end)
   end
+
+  test "unit interpolation" do
+    require MyApp.Gettext
+    import MyApp.Gettext
+
+    with_no_default_backend(fn ->
+      assert gettext("It weighs {weight}", weight: Cldr.Unit.new!("kilogram", 23)) == "It weighs 23 kilograms"
+      assert gettext("It weighs {weight, unit}", weight: Cldr.Unit.new!("kilogram", 23)) == "It weighs 23 kilograms"
+    end)
+  end
 end
