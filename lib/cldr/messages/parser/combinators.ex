@@ -64,7 +64,7 @@ defmodule Cldr.Message.Parser.Combinator do
   end
 
   def whitespace do
-    repeat(empty(), ascii_char([?\s, ?\t, ?\n]))
+    repeat(ascii_char([?\s, ?\t, ?\n]))
   end
 
   def left_brace do

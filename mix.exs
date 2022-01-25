@@ -44,13 +44,24 @@ defmodule Cldr.Messages.MixProject do
 
   defp deps do
     [
-      {:nimble_parsec, "~> 0.5 or ~> 1.0"},
-      {:ex_cldr_numbers, "~> 2.23"},
+      # {:nimble_parsec, "~> 0.5 or ~> 1.0"},
+      {:nimble_parsec, path: "../nimble_parsec", override: true},
+
+      # {:ex_cldr_numbers, "~> 2.23"},
+      {:ex_cldr_numbers, path: "../cldr_numbers", override: true},
+
+      {:ex_cldr_dates_times, path: "../cldr_dates_times"},
+      {:ex_cldr_units, path: "../cldr_units"},
+      {:ex_cldr_lists, path: "../cldr_lists"},
+      {:ex_cldr_currencies, path: "../cldr_currencies", override: true},
+      {:ex_money, path: "../money"},
+
+      # {:ex_cldr_dates_times, "~> 2.10", optional: true},
+      # {:ex_money, "~> 5.7", optional: true},
+      # {:ex_cldr_units, "~> 3.8", optional: true},
+      # {:ex_cldr_lists, "~> 2.9", optional: true},
+
       {:jason, "~> 1.1"},
-      {:ex_cldr_dates_times, "~> 2.10", optional: true},
-      {:ex_money, "~> 5.7", optional: true},
-      {:ex_cldr_units, "~> 3.8", optional: true},
-      {:ex_cldr_lists, "~> 2.9", optional: true},
       {:dialyxir, "~> 1.0", optional: true, only: [:dev], runtime: false},
       {:ex_doc, "~> 0.20", optional: true, runtime: false},
       {:gettext, "~> 0.19", optional: true}
