@@ -10,7 +10,7 @@
 ```elixir
 def deps do
   [
-    {:ex_cldr_messages, "~> 0.13.0"}
+    {:ex_cldr_messages, "~> 0.14.0"}
   ]
 end
 ```
