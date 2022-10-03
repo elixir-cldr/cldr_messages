@@ -1,5 +1,13 @@
 # Changelog
 
+## Cldr_Messages v0.14.0
+
+This is the changelog for Cldr_Messages v0.14.0 released on February 22nd, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+
+### Enhancements
+
+* Updates to [ex_cldr version 2.26.0](https://hex.pm/packages/ex_cldr/2.26.0) which uses atoms for locale names and rbnf locale names. This is consistent with out elements of `t:Cldr.LanguageTag` where atoms are used where the cardinality of the data is fixed and relatively small and strings where the data is free format.
+
 ## Cldr_Messages v0.13.2
 
 This is the changelog for Cldr_Messages v0.13.2 released on January 14th, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
