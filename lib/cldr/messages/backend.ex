@@ -88,8 +88,9 @@ defmodule Cldr.Message.Backend do
       {:ok, iolist, _bound, [] = _unbound} ->
         {:ok, :erlang.iolist_to_binary(iolist)}
 
-      {:error, _iolist, _bound, unbound} ->
-        {:missing_bindings, message, unbound}
+      {:error, iolist, _bound, unbound} ->
+        {:missing_bindings, iolist |> prepare_print_literals() |> Cldr.Message.Print.to_string(),
+         unbound}
     end
   end
 
@@ -99,10 +100,17 @@ defmodule Cldr.Message.Backend do
       {:ok, iolist, _bound, [] = _unbound} ->
         {:ok, :erlang.iolist_to_binary(iolist)}
 
-      {:error, _iolist, _bound, unbound} ->
-        {:missing_bindings, parsed, unbound}
+      {:error, iolist, _bound, unbound} ->
+        {:missing_bindings, iolist |> prepare_print_literals() |> Cldr.Message.Print.to_string(),
+         unbound}
     end
   end
+
+  defp prepare_print_literals(iolist), do: Enum.map(iolist, &prepare_print_literal/1)
+
+  defp prepare_print_literal(part)
+  defp prepare_print_literal(literal) when is_binary(literal), do: {:literal, literal}
+  defp prepare_print_literal(other), do: other
 
   # Return a keyword list of static bindings, if they
   # are all static. Otherwise return nil.

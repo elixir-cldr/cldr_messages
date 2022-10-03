@@ -23,8 +23,8 @@ defmodule Cldr.Messages.GettextInterpolationtest do
              gettext("runtime {one, number, currency}", %{one: {1, currency: :MXP}})
 
     assert capture_log(fn ->
-             assert "runtime {one, number, currency}" ==
-                      gettext("runtime {one, number, currency}", %{})
+             assert "runtime {one, number, currency} two" ==
+                      gettext("runtime {one, number, currency} {two}", %{two: "two"})
            end) =~ "missing Gettext bindings: [\"one\"]"
   end
 
@@ -46,6 +46,11 @@ defmodule Cldr.Messages.GettextInterpolationtest do
 
     assert gettext(~m"runtime {one, number, currency}", %{one: {1, currency: :MXP}}) ==
              gettext(~m"runtime {one,   number,   currency}", %{one: {1, currency: :MXP}})
+
+    assert capture_log(fn ->
+             assert "runtime {one, number, currency} two" ==
+                      gettext(~m"runtime {one, number, currency} {two}", %{two: "two"})
+           end) =~ "missing Gettext bindings: [\"one\"]"
   end
 
   test "number formatting in gettext finds the CLDR backend" do
