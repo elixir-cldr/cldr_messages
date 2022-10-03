@@ -1,5 +1,13 @@
 # Changelog
 
+## Cldr_Messages v0.14.1
+
+This is the changelog for Cldr_Messages v0.14.1 released on October 4th, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+
+### Bug Fixes
+
+* Returns a partially formatted message if bindings are missing. The message will be interpolated as far as possibly making the error message more meaningful for end user consumption. Thanks to @maennchen for the PR.  Closes #14.
+
 ## Cldr_Messages v0.14.0
 
 This is the changelog for Cldr_Messages v0.14.0 released on February 22nd, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
