@@ -44,8 +44,7 @@ defmodule Cldr.Messages.MixProject do
 
   defp deps do
     [
-      {:ex_cldr_numbers, "~> 2.25"},
-      {:ex_cldr_dates_times, "~> 2.11", optional: true},
+      {:ex_cldr_dates_times, "~> 2.13", optional: true},
       {:ex_money, "~> 5.9", optional: true},
       {:ex_cldr_units, "~> 3.12", optional: true},
       {:ex_cldr_lists, "~> 2.10", optional: true},
