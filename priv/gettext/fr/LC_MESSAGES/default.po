@@ -9,7 +9,7 @@
 msgid ""
 msgstr ""
 "Language: fr\n"
-"Plural-Forms: nplurals=2\n"
+
 
 #, ex-autogen, icu-format
 #: mix/my_app_gettext_use.ex:8
