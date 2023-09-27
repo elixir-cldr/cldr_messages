@@ -440,6 +440,7 @@ defmodule Cldr.Message do
     Enum.reduce(message, [], fn
       {:named_arg, arg}, acc -> [arg | acc]
       {:pos_arg, arg}, acc -> [arg | acc]
+      {:simple_format, {_, arg}, _, _}, acc -> [arg | acc]
       {:select, {_, arg}, selectors}, acc -> [arg, bindings(selectors) | acc]
       {:plural, {_, arg}, _, selectors}, acc -> [arg, bindings(selectors) | acc]
       {:select_ordinal, {_, arg}, _, selectors}, acc -> [arg, bindings(selectors) | acc]

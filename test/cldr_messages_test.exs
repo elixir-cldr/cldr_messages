@@ -274,7 +274,12 @@ defmodule Cldr_Messages_Test do
              ["gender_of_host", "num_guests", "host", "guest"]
   end
 
-  test "that postional arguments can be prohitbited" do
+  test "Extract variable bindings from simple_format messages" do
+    assert Cldr.Message.bindings("Watched {percentage_watched, number, percent} of {video_name}") ==
+             ["video_name", "percentage_watched"]
+  end
+
+  test "that positional arguments can be prohibited" do
     assert Cldr.Message.format("Can you see {0}", ["me"], allow_positional_args: false) ==
              {:error,
               {Cldr.Message.PositionalArgsNotPermitted, "Positional arguments are not permitted"}}
