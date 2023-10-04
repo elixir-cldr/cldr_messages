@@ -21,7 +21,7 @@ defmodule Cldr.Messages.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore_warnings",
-        plt_add_apps: ~w(inets jason mix ex_cldr ex_cldr_numbers ex_cldr_units
+        plt_add_apps: ~w(inets jason mix cldr_utils decimal ex_cldr ex_cldr_numbers ex_cldr_units
           ex_cldr_dates_times ex_cldr_calendars ex_cldr_lists ex_money gettext)a
       ],
       compilers: Mix.compilers()
