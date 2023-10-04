@@ -1,6 +1,6 @@
 # Cldr Messages
 
-![Build Status](http://sweatbox.noexpectations.com.au:8080/buildStatus/icon?job=cldr_messages)
+![Build status](https://github.com/elixir-cldr/cldr_messages/actions/workflows/ci.yml/badge.svg)
 [![Hex.pm](https://img.shields.io/hexpm/v/ex_cldr_messages.svg)](https://hex.pm/packages/ex_cldr_messages)
 [![Hex.pm](https://img.shields.io/hexpm/dw/ex_cldr_messages.svg?)](https://hex.pm/packages/ex_cldr_messages)
 [![Hex.pm](https://img.shields.io/hexpm/l/ex_cldr_messages.svg)](https://hex.pm/packages/ex_cldr_messages)
@@ -10,7 +10,7 @@
 ```elixir
 def deps do
   [
-    {:ex_cldr_messages, "~> 0.14.0"}
+    {:ex_cldr_messages, "~> 1.0"}
   ]
 end
 ```
