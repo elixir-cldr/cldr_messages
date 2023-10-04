@@ -49,7 +49,7 @@ defmodule Cldr.Messages.MixProject do
       {:ex_cldr_units, "~> 3.12", optional: true},
       {:ex_cldr_lists, "~> 2.10", optional: true},
 
-      {:nimble_parsec, "~> 0.5 or ~> 1.0"},
+      {:nimble_parsec, "~> 1.0"},
       {:jason, "~> 1.1"},
       {:dialyxir, "~> 1.0", optional: true, only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.20", optional: true, runtime: false},
