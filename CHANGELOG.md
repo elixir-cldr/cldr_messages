@@ -1,5 +1,17 @@
 # Changelog
 
+## Cldr_Messages v0.14.2
+
+This is the changelog for Cldr_Messages v0.14.2 released on October 5th, 2023.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+
+### Bug Fixes
+
+* Fix `Cldr.Message.Print.to_strin/2` to force a deterministic order of `choice`s.
+
+* Fix extracting variable bindings from `simple_format`. Thanks to @AlexisChavez97 for the report and the PR.  Closes #16.
+
+* Bump Elixir minimum required version to 1.11 to match the rest of `ex_cldr`.
+
 ## Cldr_Messages v0.14.1
 
 This is the changelog for Cldr_Messages v0.14.1 released on October 4th, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)

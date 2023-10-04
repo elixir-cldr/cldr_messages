@@ -207,7 +207,9 @@ defmodule Cldr.Message.Print do
   def to_string(%{} = choices, %{pretty: true, level: level} = options) do
     next_level_options = %{options | level: level + 1, nested: true}
 
-    Enum.map(choices, fn
+    choices
+    |> Enum.sort(&choice_sorter/2)
+    |> Enum.map(fn
       {choice, value} when is_integer(choice) ->
         [
           ?\n,
@@ -234,7 +236,9 @@ defmodule Cldr.Message.Print do
   end
 
   def to_string(%{} = choices, options) do
-    Enum.map(choices, fn
+    choices
+    |> Enum.sort(&choice_sorter/2)
+    |> Enum.map(fn
       {choice, value} when is_integer(choice) ->
         [?=, Kernel.to_string(choice), ?\s, ?{, to_string(value, options), ?}]
 
@@ -258,6 +262,22 @@ defmodule Cldr.Message.Print do
   def increment_level(%{level: level} = options, inc \\ 1) do
     %{options | level: level + inc}
   end
+
+  # Use Erlang term ordering to put integers before atoms
+  def choice_sorter({:one, _}, {b, _}) when is_atom(b), do: true
+  def choice_sorter({a, _}, {:one, _}) when is_atom(a), do: false
+
+  def choice_sorter({a, _}, {:few, _}) when a in [:one, :two], do: true
+  def choice_sorter({:few, _}, {b, _}) when b in [:one, :two], do: false
+
+  def choice_sorter({a, _}, {:many, _}) when a in [:one, :two, :few], do: true
+  def choice_sorter({:many, _}, {b, _}) when b in [:one, :two, :few], do: false
+
+  # :other sorts last
+  def choice_sorter({:other, _}, {_b, _}), do: false
+
+  # All others use term ordering
+  def choice_sorter({a, _}, {b, _}), do: a <= b
 
   def pad(0), do: ""
   def pad(1), do: "  "
