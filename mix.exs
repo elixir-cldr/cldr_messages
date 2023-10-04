@@ -1,7 +1,7 @@
 defmodule Cldr.Messages.MixProject do
   use Mix.Project
 
-  @version "0.14.2"
+  @version "1.0.0"
 
   def project do
     [
