@@ -1,5 +1,13 @@
 # Changelog
 
+## Cldr_Messages v1.0.1
+
+This is the changelog for Cldr_Messages v1.0.1 released on October 21st, 2023.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+
+### Bug Fixes
+
+* Fix parsing and printing of escaped strings. The implementation follows the [ICU Message format documentation](https://unicode-org.github.io/icu/userguide/format_parse/messages/#quotingescaping). Closes #17.
+
 ## Cldr_Messages v1.0.0
 
 This is the changelog for Cldr_Messages v1.0.0 released on October 5th, 2023.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)

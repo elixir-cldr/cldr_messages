@@ -6,26 +6,26 @@ defmodule Cldr.Message.Print do
 
   There are two purposes for this:
 
-  1. To define a canonical string form of a message that can be used as a translation key
-  2. To pretty print it for use in translation workbenches
+  1. To define a canonical string form of a message that can be used as a translation key.
+  2. To pretty print it for use in translation workbenches.
 
   ## Arguments
 
   * `message` is a message AST returned by
-    `Cldr.Message.Parser.parse/1`
+    `Cldr.Message.Parser.parse/1`.
 
   * `options` is a keyword list of options. The
-    default is `[]`
+    default is `[]`.
 
   ## Options
 
-  * `:pretty` determines if the message if
+  * `:pretty` determines if the message is to be
     formatted with indentation to aid readability.
     The default is `false`.
 
   ## Returns
 
-  * The message AST formatted as a string
+  * The message AST formatted as a string.
 
   ## Examples
 
@@ -77,7 +77,8 @@ defmodule Cldr.Message.Print do
     [?{, Kernel.to_string(arg), ", ", format, ", ", style, ?}]
   end
 
-  def to_string({:literal, literal}, _options), do: literal
+  def to_string({:literal, literal}, _options),
+    do: literal |> String.replace("'", "''") |> escape_literal()
 
   def to_string(:value, _options), do: "#"
 
@@ -247,6 +248,10 @@ defmodule Cldr.Message.Print do
     end)
     |> Enum.intersperse(?\s)
   end
+
+  def escape_literal("{" <> literal), do: "'{" <> literal <> "'"
+  def escape_literal("#" <> literal), do: "'#" <> literal <> "'"
+  def escape_literal(literal), do: literal
 
   defp format_plural_args(args) do
     Enum.map(args, &format_plural_arg/1)

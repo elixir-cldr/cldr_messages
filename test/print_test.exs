@@ -44,4 +44,28 @@ defmodule Cldr.Message.PrintTest do
     assert parsed2 == parsed
     assert parsed3 == parsed
   end
+
+  test "to_string when there is syntax literals" do
+    message = "'{foo}'"
+
+    {:ok, parsed} =
+      message
+      |> String.trim()
+      |> Cldr.Message.Parser.parse()
+
+    {:ok, parsed2} =
+      parsed
+      |> Cldr.Message.Print.to_string()
+      |> Cldr.Message.Parser.parse()
+
+    assert parsed2 == parsed
+
+    {:ok, parsed3} =
+      parsed
+      |> Cldr.Message.Print.to_string(pretty: true)
+      |> Cldr.Message.Parser.parse()
+
+    assert parsed2 == parsed
+    assert parsed3 == parsed
+  end
 end

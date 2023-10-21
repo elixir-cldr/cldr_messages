@@ -27,15 +27,17 @@ defmodule Cldr.Message.Parser.Combinator do
 
   def literal do
     choice(empty(), [
-      escaped_char(),
-      utf8_string([{:not, ?{}, {:not, ?}}], min: 1)
+      escaped_string(),
+      escaped_single_quote(),
+      utf8_char([{:not, ?{}, {:not, ?}}])
     ])
+    |> times(min: 1)
     |> reduce(:literal)
   end
 
   def plural_literal do
     choice(empty(), [
-      escaped_char(),
+      escaped_string(),
       utf8_string([{:not, ?{}, {:not, ?}}, {:not, ?#}], min: 1)
     ])
     |> reduce(:literal)
@@ -54,12 +56,30 @@ defmodule Cldr.Message.Parser.Combinator do
     :value
   end
 
-  def escaped_char do
+  def escaped_string do
     choice([
-      string("'{") |> replace("{"),
-      string("'}") |> replace("}"),
-      string("'#") |> replace("#"),
-      string("''") |> replace("'")
+      escaped_single_quote(),
+      ignore(ascii_char([?']))
+      |> concat(syntax_char())
+      |> times(non_closing_quote(), min: 1)
+      |> ignore(ascii_char([?']))
+    ])
+    |> times(min: 1)
+  end
+
+  def escaped_single_quote do
+    string("''")
+    |> replace("'")
+  end
+
+  def syntax_char do
+    ascii_char([?#, ?{, ?}])
+  end
+
+  def non_closing_quote do
+    choice([
+      string("''") |> replace("'"),
+      utf8_char([{:not, ?'}])
     ])
   end
 
@@ -413,7 +433,7 @@ defmodule Cldr.Message.Parser.Combinator do
   def string_arg do
     ignore(optional(string("::")))
     |> choice([
-      escaped_char(),
+      escaped_string(),
       utf8_char([{:not, ?}}, {:not, ?\n}])
     ])
     |> repeat

@@ -279,17 +279,23 @@ defmodule Cldr_Messages_Test do
              ["video_name", "percentage_watched"]
   end
 
-  test "that positional arguments can be prohibited" do
+  test "That positional arguments can be prohibited" do
     assert Cldr.Message.format("Can you see {0}", ["me"], allow_positional_args: false) ==
              {:error,
               {Cldr.Message.PositionalArgsNotPermitted, "Positional arguments are not permitted"}}
   end
 
-  test "ordinal formatting" do
+  test "Ordinal formatting" do
     assert Cldr.Message.format("{ordering,number,:spellout_ordinal} jab date", ordering: 1) ==
              {:ok, "first jab date"}
 
     assert Cldr.Message.format("{ordering,number,ordinal} jab date", ordering: 1) ==
             {:ok, "1st jab date"}
+  end
+
+  test "Binding syntax escaping is correct" do
+    assert Cldr.Message.format("''", []) == {:ok, "'"}
+    assert Cldr.Message.format("'{foo}'", []) == {:ok, "{foo}"}
+    assert Cldr.Message.format("This '{isn''t}' obvious") == {:ok, "This {isn't} obvious"}
   end
 end
