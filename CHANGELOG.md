@@ -1,5 +1,13 @@
 # Changelog
 
+## Cldr_Messages v1.0.2
+
+This is the changelog for Cldr_Messages v1.0.2 released on December 20th, 2023.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+
+### Bug Fixes
+
+* Restore `ex_cldr_numbers` as a required dependency. Thanks to @flurin for the report. Closes #18.
+
 ## Cldr_Messages v1.0.1
 
 This is the changelog for Cldr_Messages v1.0.1 released on October 21st, 2023.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
