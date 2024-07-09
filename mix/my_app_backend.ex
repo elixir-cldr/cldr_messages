@@ -11,3 +11,4 @@ defmodule MyApp.Cldr do
       USD: [format: :long]
     }
 end
+
