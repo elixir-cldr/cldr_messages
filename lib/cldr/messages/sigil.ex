@@ -48,6 +48,9 @@ defmodule Cldr.Message.Sigil do
       iex> ~M(An ICU message)
       "An ICU message"
 
+  However, if you want to re-use the sigil character itself on
+  the string, you need to escape it.
+
   """
   defmacro sigil_M({:<<>>, _meta, [message]}, modifiers) when is_binary(message) do
     options = Cldr.Message.Sigil.options(modifiers)

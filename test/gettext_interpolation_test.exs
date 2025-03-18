@@ -7,7 +7,7 @@ defmodule Cldr.Messages.GettextInterpolationtest do
   import Cldr.Message.TestHelpers
 
   test "interpolates compile time translation" do
-    import MyApp.Gettext
+    use Gettext, backend: MyApp.Gettext
 
     assert "Hello World!" == Use.translate_compile_time(name: "World")
 
@@ -17,7 +17,7 @@ defmodule Cldr.Messages.GettextInterpolationtest do
   end
 
   test "interpolates runtime translation" do
-    import MyApp.Gettext
+    use Gettext, backend: MyApp.Gettext
 
     assert "runtime MXP 1.00" ==
              gettext("runtime {one, number, currency}", %{one: {1, currency: :MXP}})
@@ -29,7 +29,7 @@ defmodule Cldr.Messages.GettextInterpolationtest do
   end
 
   test "interpolates runtime translation with backend that has no message formats configured" do
-    import MyApp2.Gettext
+    use Gettext, backend: MyApp.Gettext
 
     assert "runtime MXP 1.00" ==
              gettext("runtime {one, number, currency}", %{one: {1, currency: :MXP}})
@@ -41,7 +41,7 @@ defmodule Cldr.Messages.GettextInterpolationtest do
   end
 
   test "interpolation with sigil_m" do
-    import MyApp.Gettext
+    use Gettext, backend: MyApp.Gettext
     import Cldr.Message.Sigil
 
     assert gettext(~m"runtime {one, number, currency}", %{one: {1, currency: :MXP}}) ==
@@ -54,10 +54,10 @@ defmodule Cldr.Messages.GettextInterpolationtest do
   end
 
   test "number formatting in gettext finds the CLDR backend" do
-    require MyApp.Gettext
+    use Gettext, backend: MyApp.Gettext
 
     with_no_default_backend(fn ->
-      assert MyApp.Gettext.gettext("Message {number}", number: 7) == "Message 7"
+      assert gettext("Message {number}", number: 7) == "Message 7"
     end)
   end
 
@@ -72,21 +72,21 @@ defmodule Cldr.Messages.GettextInterpolationtest do
   end
 
   test "datetime interpolation" do
-    require MyApp.Gettext
+    use Gettext, backend: MyApp.Gettext
 
     with_no_default_backend(fn ->
-      assert MyApp.Gettext.gettext("Created at {created_at}", created_at: ~D[2022-01-22]) ==
+      assert gettext("Created at {created_at}", created_at: ~D[2022-01-22]) ==
         "Created at Jan 22, 2022"
-      assert MyApp.Gettext.gettext("Created at {created_at}", created_at: ~U[2022-01-22T09:43:56.0Z]) ==
+      assert gettext("Created at {created_at}", created_at: ~U[2022-01-22T09:43:56.0Z]) ==
         "Created at Jan 22, 2022, 9:43:56 AM"
-      assert MyApp.Gettext.gettext("Created at {created_at}", created_at: ~T[09:43:56]) ==
+      assert gettext("Created at {created_at}", created_at: ~T[09:43:56]) ==
         "Created at 9:43:56 AM"
     end)
   end
 
   test "unit interpolation" do
-    require MyApp.Gettext
-    import MyApp.Gettext
+    use Gettext, backend: MyApp.Gettext
+    Cldr.put_locale MyApp.Cldr, "en"
 
     with_no_default_backend(fn ->
       assert gettext("It weighs {weight}", weight: Cldr.Unit.new!("kilogram", 23)) == "It weighs 23 kilograms"

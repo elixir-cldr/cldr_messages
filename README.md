@@ -173,9 +173,18 @@ end
 
 # Define a gettext module with ICU message interpolation
 defmodule MyApp.Gettext do
-  use Gettext, otp_app: :ex_cldr_messages, interpolation: MyApp.Gettext.Interpolation
+  use Gettext.Backend, otp_app: :ex_cldr_messages, interpolation: MyApp.Gettext.Interpolation
 end
 
+# Use the backend in your modules
+defmodule MyApp do
+  use Gettext, backend: MyApp.Gettext
+
+  def my_module do
+    gettext("Created at {created_at}", created_at: ~D[2022-01-22])
+  end
+end
 ```
+
 Now you can proceed to use `Gettext` in the normal manner, most typically with the `gettext/3` macro.
 
