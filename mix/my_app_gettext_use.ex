@@ -1,5 +1,5 @@
 defmodule MyApp.Gettext.Use do
-  import MyApp.Gettext
+  use Gettext, backend: MyApp.Gettext
 
   def translate_compile_time(bindings \\ nil)
 

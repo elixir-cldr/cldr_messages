@@ -1,5 +1,13 @@
 # Changelog
 
+## Cldr_Messages v1.0.1
+
+This is the changelog for Cldr_Messages v1.0.1 released on March 18th, 2025.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+
+### Bug Fixes
+
+* Update documentation, code and tests to reflect the Gettext API as of verison 0.20
+
 ## Cldr_Messages v1.0.0
 
 This is the changelog for Cldr_Messages v1.0.0 released on October 5th, 2023.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)

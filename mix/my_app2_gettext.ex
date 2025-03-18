@@ -3,5 +3,5 @@ defmodule MyApp.Gettext.Interpolation2 do
 end
 
 defmodule MyApp2.Gettext do
-  use Gettext, otp_app: :ex_cldr_messages, interpolation: MyApp.Gettext.Interpolation2
+  use Gettext.Backend, otp_app: :ex_cldr_messages, interpolation: MyApp.Gettext.Interpolation2
 end
