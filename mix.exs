@@ -1,11 +1,7 @@
 defmodule Cldr.Messages.MixProject do
   use Mix.Project
 
-<<<<<<< HEAD
-  @version "1.0.2"
-=======
-  @version "1.0.1"
->>>>>>> f457629 (Update for Gettext 0.21 and later)
+  @version "1.0.3"
 
   def project do
     [
