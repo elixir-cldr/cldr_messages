@@ -1,7 +1,7 @@
 defmodule Cldr.Messages.MixProject do
   use Mix.Project
 
-  @version "1.0.3"
+  @version "1.0.4"
 
   def project do
     [
@@ -54,7 +54,7 @@ defmodule Cldr.Messages.MixProject do
       {:jason, "~> 1.1"},
       {:dialyxir, "~> 1.0", optional: true, only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.20", optional: true, runtime: false},
-      {:gettext, "~> 0.21", optional: true}
+      {:gettext, "~> 0.21 or ~> 1.0", optional: true}
     ]
   end
 

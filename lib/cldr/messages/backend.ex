@@ -4,30 +4,23 @@ defmodule Cldr.Message.Backend do
     backend = config.backend
     config = Macro.escape(config)
 
-    quote location: :keep, bind_quoted: [module: module, backend: backend, config: config] do
+    quote location: :keep, generated: true, bind_quoted: [module: module, backend: backend, config: config] do
       defmodule Message do
         @moduledoc false
 
         if Cldr.Config.include_module_docs?(config.generate_docs) do
           @moduledoc """
-          Supports the CLDR Message format
+          Supports the CLDR Message format.
 
           """
         end
 
         @doc """
-        Returns a map of configured custom message formats
+        Returns a map of configured custom message formats.
 
         """
-        # TODO remove when we release ex_cldr 2.26
-        if config.message_formats == [] do
-          def configured_message_formats do
-            %{}
-          end
-        else
-          def configured_message_formats do
-            unquote(Macro.escape(config.message_formats))
-          end
+        def configured_message_formats do
+          unquote(Macro.escape(config.message_formats))
         end
 
         @doc """
@@ -40,13 +33,13 @@ defmodule Cldr.Message.Backend do
         end
 
         @doc """
-        Formats an ICU message
+        Formats an ICU message.
 
         This macro parses the message at compile time in
         order to optimize performance at runtime.
 
         See `Cldr.Message.format/3` for details on the
-        arguments and options
+        arguments and options.
 
         """
         defmacro format(message, bindings \\ [], options \\ []) do
@@ -215,7 +208,7 @@ defmodule Cldr.Message.Backend do
     raiser = fn term ->
       raise ArgumentError, """
       Cldr.Message macros expect translation keys to expand to strings at compile-time, but the
-      given doesn't. This is what the macro received:
+      given term doesn't. This is what the macro received:
 
         #{inspect(term)}
 

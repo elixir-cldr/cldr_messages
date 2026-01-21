@@ -1,5 +1,15 @@
 # Changelog
 
+## Cldr_Messages v1.0.4
+
+This is the changelog for Cldr_Messages v1.0.4 released on January 20th, 2025.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+
+### Bug Fixes
+
+* Fix compiler warnings for Elixir 1.20.
+
+* Fix Gettext dependency configuration to allow "~> 0.26 or ~> 1.0".
+
 ## Cldr_Messages v1.0.3
 
 This is the changelog for Cldr_Messages v1.0.3 released on March 18th, 2025.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
