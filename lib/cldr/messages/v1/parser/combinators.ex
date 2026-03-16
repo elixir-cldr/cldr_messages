@@ -1,4 +1,4 @@
-defmodule Cldr.Message.Parser.Combinator do
+defmodule Cldr.Message.V1.Parser.Combinator do
   @moduledoc false
 
   import NimbleParsec

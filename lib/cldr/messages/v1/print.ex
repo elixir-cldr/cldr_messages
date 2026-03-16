@@ -1,4 +1,4 @@
-defmodule Cldr.Message.Print do
+defmodule Cldr.Message.V1.Print do
   @moduledoc false
 
   @doc """

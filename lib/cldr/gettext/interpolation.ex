@@ -61,13 +61,13 @@ defmodule Cldr.Gettext.Interpolation do
 
       @impl Gettext.Interpolation
       defmacro compile_interpolate(_translation_type, message, bindings) do
-        alias Cldr.Message.Parser
+        alias Cldr.Message.V1.Parser
         alias Cldr.Message.Backend
 
         backend = unquote(backend)
         message = Backend.expand_to_binary!(message, __CALLER__)
 
-        case Cldr.Message.Parser.parse(message) do
+        case Parser.parse(message) do
           {:ok, parsed_message} ->
             quote do
               options = [backend: unquote(backend), locale: Cldr.get_locale(unquote(backend))]

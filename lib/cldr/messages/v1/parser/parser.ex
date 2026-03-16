@@ -1,11 +1,11 @@
-defmodule Cldr.Message.Parser do
+defmodule Cldr.Message.V1.Parser do
   @moduledoc """
   Implements a parser for the [ICU Message format](http://userguide.icu-project.org/formatparse/messages)
 
   """
 
   import NimbleParsec
-  import Cldr.Message.Parser.Combinator
+  import Cldr.Message.V1.Parser.Combinator
 
   # To ensure these atoms are instantiated in the VM before
   # parsing

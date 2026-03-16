@@ -1,11 +1,9 @@
-defmodule Cldr.Message.Interpreter do
+defmodule Cldr.Message.V1.Interpreter do
   @doc """
   Formats a parsed ICU message into an iolist.
 
   """
-  alias Cldr.Message
-
-  @spec format_list(list(), Message.arguments(), Message.options()) ::
+  @spec format_list(list(), Cldr.Message.arguments(), Cldr.Message.options()) ::
           {:ok, list(), list(), list()} | {:error, list(), list(), list()}
 
   def format_list(message, args \\ [], options \\ []) do
@@ -15,7 +13,7 @@ defmodule Cldr.Message.Interpreter do
     end
   end
 
-  @spec format_list!(list(), Message.arguments(), Message.options()) ::
+  @spec format_list!(list(), Cldr.Message.arguments(), Cldr.Message.options()) ::
           list() | no_return
 
   def format_list!(message, args \\ [], options \\ []) do

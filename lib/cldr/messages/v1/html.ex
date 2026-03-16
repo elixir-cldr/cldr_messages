@@ -1,4 +1,4 @@
-defmodule Cldr.Message.HTML do
+defmodule Cldr.Message.V1.HTML do
   @moduledoc false
 
   @doc """

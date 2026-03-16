@@ -3,11 +3,35 @@ defmodule Cldr.Message do
   Implements the [ICU Message Format](http://userguide.icu-project.org/formatparse/messages)
   with functions to parse and interpolate messages.
 
+  Supports both ICU Message Format v1 and
+  [Message Format 2](https://unicode.org/reports/tr35/tr35-messageFormat.html).
+
+  Version detection is automatic: messages starting with `.` (`.input`,
+  `.local`, `.match`) or `{{` are treated as MF2; everything else is v1.
+  An explicit `:version` option (`:v1` or `:v2`) overrides detection.
   """
-  alias Cldr.Message.{Parser, Interpreter, Print}
+  alias Cldr.Message.V1
+  alias Cldr.Message.V2
+
   import Kernel, except: [to_string: 1, binding: 1]
-  defdelegate format_list(message, args, options), to: Interpreter
-  defdelegate format_list!(message, args, options), to: Interpreter
+  defdelegate format_list(message, args, options), to: V1.Interpreter
+  defdelegate format_list!(message, args, options), to: V1.Interpreter
+
+  @doc """
+  Detects whether a message string is MF2 (`:v2`) or legacy ICU (`:v1`).
+
+  MF2 messages start with `.` (declarations/matcher) or `{{` (quoted pattern).
+  """
+  @spec detect_version(String.t()) :: :v1 | :v2
+  def detect_version(message) when is_binary(message) do
+    trimmed = String.trim_leading(message)
+
+    cond do
+      String.starts_with?(trimmed, ".") -> :v2
+      String.starts_with?(trimmed, "{{") -> :v2
+      true -> :v1
+    end
+  end
 
   @type message :: binary()
   @type bindings :: list() | map()
@@ -133,7 +157,16 @@ defmodule Cldr.Message do
           {:ok, String.t()} | {:error, {module(), String.t()}}
 
   def format(message, bindings \\ [], options \\ []) when is_binary(message) do
-    case format_to_iolist(message, bindings, options) do
+    version = Keyword.get(options, :version, detect_version(message))
+
+    case version do
+      :v2 -> format_v2(message, bindings, options)
+      _ -> format_v1(message, bindings, options)
+    end
+  end
+
+  defp format_v1(message, bindings, options) do
+    case format_to_iolist_v1(message, bindings, options) do
       {:ok, iolist, _bound, []} ->
         {:ok, :erlang.iolist_to_binary(iolist)}
 
@@ -142,6 +175,29 @@ defmodule Cldr.Message do
 
       other ->
         other
+    end
+  end
+
+  defp format_v2(message, bindings, options) do
+    with {:ok, message} <- maybe_trim(message, options[:trim]),
+         {:ok, parsed} <- V2.Parser.parse(message) do
+      {locale, backend} = Cldr.locale_and_backend_from(options)
+
+      v2_options =
+        options
+        |> Keyword.put_new(:locale, locale)
+        |> Keyword.put_new(:backend, backend)
+
+      case V2.Interpreter.format_list(parsed, bindings, v2_options) do
+        {:ok, iolist, _bound, []} ->
+          {:ok, :erlang.iolist_to_binary(iolist)}
+
+        {:error, _iolist, _bound, unbound} ->
+          {:error, {Cldr.Message.BindError, "No binding was found for #{inspect(unbound)}"}}
+
+        other ->
+          other
+      end
     end
   end
 
@@ -211,6 +267,10 @@ defmodule Cldr.Message do
           | {:error, {module(), binary()}}
 
   def format_to_iolist(message, bindings \\ [], options \\ []) when is_binary(message) do
+    format_to_iolist_v1(message, bindings, options)
+  end
+
+  defp format_to_iolist_v1(message, bindings, options) do
     {locale, backend} = Cldr.locale_and_backend_from(options)
 
     options =
@@ -220,7 +280,7 @@ defmodule Cldr.Message do
       |> Keyword.put_new(:backend, backend)
 
     with {:ok, message} <- maybe_trim(message, options[:trim]),
-         {:ok, parsed} <- Parser.parse(message, options[:allow_positional_args]) do
+         {:ok, parsed} <- V1.Parser.parse(message, options[:allow_positional_args]) do
       format_list(parsed, bindings, options)
     end
   rescue
@@ -269,10 +329,10 @@ defmodule Cldr.Message do
   def jaro_distance(message1, message2, options \\ []) do
     with {:ok, message1} <- maybe_trim(message1, options[:trim]),
          {:ok, message2} <- maybe_trim(message2, options[:trim]),
-         {:ok, message1_ast} <- Parser.parse(message1),
-         {:ok, message2_ast} <- Parser.parse(message2) do
-      canonical_message1 = Print.to_string(message1_ast)
-      canonical_message2 = Print.to_string(message2_ast)
+         {:ok, message1_ast} <- V1.Parser.parse(message1),
+         {:ok, message2_ast} <- V1.Parser.parse(message2) do
+      canonical_message1 = V1.Print.to_string(message1_ast)
+      canonical_message2 = V1.Print.to_string(message2_ast)
       {:ok, String.jaro_distance(canonical_message1, canonical_message2)}
     end
   end
@@ -362,8 +422,8 @@ defmodule Cldr.Message do
     options = Keyword.put_new(options, :trim, true)
 
     with {:ok, message} <- maybe_trim(message, options[:trim]),
-         {:ok, message_ast} <- Parser.parse(message) do
-      {:ok, Print.to_string(message_ast, options)}
+         {:ok, message_ast} <- V1.Parser.parse(message) do
+      {:ok, V1.Print.to_string(message_ast, options)}
     end
   end
 
@@ -431,7 +491,7 @@ defmodule Cldr.Message do
 
   """
   def bindings(message) when is_binary(message) do
-    with {:ok, parsed} <- Cldr.Message.Parser.parse(message) do
+    with {:ok, parsed} <- Cldr.Message.V1.Parser.parse(message) do
       bindings(parsed)
     end
   end

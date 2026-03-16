@@ -43,7 +43,7 @@ defmodule Cldr.Message.Backend do
 
         """
         defmacro format(message, bindings \\ [], options \\ []) do
-          alias Cldr.Message.Parser
+          alias Cldr.Message.V1.Parser
           alias Cldr.Message.Backend
 
           message = Backend.expand_to_binary!(message, __CALLER__)
@@ -82,7 +82,7 @@ defmodule Cldr.Message.Backend do
         {:ok, :erlang.iolist_to_binary(iolist)}
 
       {:error, iolist, _bound, unbound} ->
-        {:missing_bindings, iolist |> prepare_print_literals() |> Cldr.Message.Print.to_string(),
+        {:missing_bindings, iolist |> prepare_print_literals() |> Cldr.Message.V1.Print.to_string(),
          unbound}
     end
   end
@@ -94,7 +94,7 @@ defmodule Cldr.Message.Backend do
         {:ok, :erlang.iolist_to_binary(iolist)}
 
       {:error, iolist, _bound, unbound} ->
-        {:missing_bindings, iolist |> prepare_print_literals() |> Cldr.Message.Print.to_string(),
+        {:missing_bindings, iolist |> prepare_print_literals() |> Cldr.Message.V1.Print.to_string(),
          unbound}
     end
   end
