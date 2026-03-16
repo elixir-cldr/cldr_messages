@@ -32,7 +32,7 @@ This is the changelog for Cldr_Messages v1.0.1 released on October 21st, 2023.  
 
 ### Bug Fixes
 
-* Fix parsing and printing of escaped strings. The implementation follows the [ICU Message format documentation](https://unicode-org.github.io/icu/userguide/format_parse/messages/#quotingescaping). Closes #17.
+* Fix parsing and printing of escaped strings. The implementation follows the [ICU Message format documentation](https://unicode-org.github.io/icu/userguide/format_parse/messages/#quotingescaping. Closes #17.
 
 ## Cldr_Messages v1.0.0
 

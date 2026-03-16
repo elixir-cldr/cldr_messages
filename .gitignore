@@ -21,3 +21,11 @@ erl_crash.dump
 
 # asdf
 .tool-versions
+
+# mise
+mise.toml
+
+# object files
+*.o
+*.so
+

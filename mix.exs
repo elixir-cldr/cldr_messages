@@ -24,7 +24,8 @@ defmodule Cldr.Messages.MixProject do
         plt_add_apps: ~w(inets jason mix cldr_utils decimal ex_cldr ex_cldr_numbers ex_cldr_units
           ex_cldr_currencies ex_cldr_dates_times ex_cldr_calendars ex_cldr_lists ex_money gettext)a
       ],
-      compilers: Mix.compilers()
+      compilers: maybe_elixir_make() ++ Mix.compilers(),
+      make_makefile: "c_src/Makefile"
     ]
   end
 
@@ -32,7 +33,7 @@ defmodule Cldr.Messages.MixProject do
     """
     Localized and internationalized message formatting using the
     ICU message format integrated with the ex_cldr family supporting
-    over 500 locales
+    over 700 locales
     """
   end
 
@@ -50,6 +51,7 @@ defmodule Cldr.Messages.MixProject do
       {:ex_cldr_units, "~> 3.18", optional: true},
       {:ex_cldr_lists, "~> 2.10", optional: true},
 
+      {:elixir_make, "~> 0.4", runtime: false, optional: true},
       {:nimble_parsec, "~> 1.0"},
       {:jason, "~> 1.1"},
       {:dialyxir, "~> 1.0", optional: true, only: [:dev, :test], runtime: false},
@@ -65,6 +67,7 @@ defmodule Cldr.Messages.MixProject do
       links: links(),
       files: [
         "lib",
+        "c_src",
         "config",
         "mix.exs",
         "README*",
@@ -104,6 +107,19 @@ defmodule Cldr.Messages.MixProject do
 
   defp groups_for_modules do
     []
+  end
+
+  defp maybe_elixir_make do
+    if mf2_nif_enabled?() do
+      [:elixir_make]
+    else
+      []
+    end
+  end
+
+  def mf2_nif_enabled? do
+    String.downcase(System.get_env("CLDR_MESSAGES_MF2_NIF", "false")) == "true" or
+      Application.get_env(:ex_cldr_messages, :mf2_nif, false) == true
   end
 
   defp elixirc_paths(:test), do: ["lib", "mix", "test", "test/support"]
