@@ -197,7 +197,7 @@ Edge cases involving numeric-looking literals (e.g. `0E1`, `1E+2`) may be interp
 
 `ex_cldr_messages` includes an optional NIF that delegates MF2 formatting to [ICU4C](https://icu.unicode.org/). This provides access to the ICU reference implementation of MessageFormat 2 directly from Elixir.
 
-The NIF is **optional**. By default, all formatting uses the pure-Elixir interpreter. The NIF is useful for validation against the reference implementation or when ICU-specific behaviour is required.
+The NIF is **optional**. When available, it is used by default for MF2 messages. When not available, the pure-Elixir interpreter is used automatically.
 
 ### Prerequisites
 
@@ -223,9 +223,32 @@ Or set it permanently in `config/config.exs`:
 config :ex_cldr_messages, :mf2_nif, true
 ```
 
+### Formatter Backend Selection
+
+The `:formatter_backend` option on `Cldr.Message.format/3` controls which engine is used for MF2 messages:
+
+| `:formatter_backend` value | Behaviour |
+|---|---|
+| `:default` (the default) | Uses NIF if available, otherwise pure Elixir |
+| `:nif` | Requires NIF; raises `RuntimeError` if unavailable |
+| `:elixir` | Always uses pure Elixir, even if NIF is available |
+
+```elixir
+# Automatic — NIF when available, Elixir otherwise
+Cldr.Message.format("{{Hello, {$name}!}}", %{"name" => "World"})
+
+# Explicit NIF
+Cldr.Message.format("{{Hello, {$name}!}}", %{"name" => "World"}, formatter_backend: :nif)
+
+# Explicit Elixir
+Cldr.Message.format("{{Hello, {$name}!}}", %{"name" => "World"}, formatter_backend: :elixir)
+```
+
+The `:formatter_backend` option only affects MF2 (v2) messages. Legacy v1 messages always use the pure-Elixir interpreter.
+
 ### Using the NIF Directly
 
-The NIF is exposed through `Cldr.Message.V2.Nif`:
+The NIF module can also be called directly for validation or cross-implementation testing:
 
 ```elixir
 # Check if the NIF is available
@@ -236,20 +259,12 @@ Cldr.Message.V2.Nif.available?()
 Cldr.Message.V2.Nif.validate(".input {$name :string}\n{{Hello, {$name}!}}")
 #=> {:ok, ".input {$name :string}\n{{Hello, {$name}!}}"}
 
-# Format a message using ICU4C
+# Format a message using ICU4C directly
 Cldr.Message.V2.Nif.format(".input {$name :string}\n{{Hello, {$name}!}}", "en", %{"name" => "World"})
 #=> {:ok, "Hello, World!"}
 ```
 
-### Fallback Behaviour
-
-The public API (`Cldr.Message.format/3`) always uses the pure-Elixir interpreter. The NIF is a separate module intended for:
-
-* **Validation**: confirming that a message parses correctly under the ICU reference parser
-* **Cross-implementation testing**: comparing Elixir output against ICU output
-* **Benchmarking**: measuring relative performance of the two implementations
-
-If the NIF is not compiled, `Cldr.Message.V2.Nif.available?/0` returns `false` and calls to `Cldr.Message.V2.Nif.format/3` or `Cldr.Message.V2.Nif.validate/1` will raise `:nif_library_not_loaded`.
+If the NIF is not compiled, `Cldr.Message.V2.Nif.available?/0` returns `false` and direct calls to `Cldr.Message.V2.Nif.format/3` or `Cldr.Message.V2.Nif.validate/1` will raise `:nif_library_not_loaded`.
 
 ## Performance
 

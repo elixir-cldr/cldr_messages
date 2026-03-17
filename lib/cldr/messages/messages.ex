@@ -137,12 +137,20 @@ defmodule Cldr.Message do
     are permitted. Positional arguments are in the format
     `{0}` in the message. The default is `true`.
 
-  * All other aptions are passed to the `to_string/2`
+  * `:formatter_backend` determines which formatting engine to use
+    for MF2 (v2) messages. Accepts `:default`, `:nif`, or `:elixir`.
+    When set to `:default`, the ICU NIF is used if available, otherwise
+    the pure-Elixir interpreter is used. When set to `:nif`, the NIF
+    is required and a `RuntimeError` is raised if it is not available.
+    When set to `:elixir`, the pure-Elixir interpreter is always used.
+    The default is `:default`. This option has no effect on v1 messages.
+
+  * All other options are passed to the `to_string/2`
     function of a formatting module.
 
   ## Returns
 
-  * `{:ok, formatted_mesasge}` or
+  * `{:ok, formatted_message}` or
 
   * `{:error, {module, reason}}`
 
@@ -152,6 +160,8 @@ defmodule Cldr.Message do
       {:ok, "Good morning to you!"}
 
   """
+
+  @type formatter_backend :: :default | :nif | :elixir
 
   @spec format(String.t(), bindings(), options()) ::
           {:ok, String.t()} | {:error, {module(), String.t()}}
@@ -179,6 +189,15 @@ defmodule Cldr.Message do
   end
 
   defp format_v2(message, bindings, options) do
+    {formatter, options} = resolve_formatter_backend(options)
+
+    case formatter do
+      :nif -> format_v2_nif(message, bindings, options)
+      :elixir -> format_v2_elixir(message, bindings, options)
+    end
+  end
+
+  defp format_v2_elixir(message, bindings, options) do
     with {:ok, message} <- maybe_trim(message, options[:trim]),
          {:ok, parsed} <- V2.Parser.parse(message) do
       {locale, backend} = Cldr.locale_and_backend_from(options)
@@ -200,6 +219,80 @@ defmodule Cldr.Message do
       end
     end
   end
+
+  defp format_v2_nif(message, bindings, options) do
+    with {:ok, message} <- maybe_trim(message, options[:trim]) do
+      locale_string = resolve_locale_string(options)
+      bindings_map = normalize_bindings(bindings)
+
+      case V2.Nif.format(message, locale_string, bindings_map) do
+        {:ok, formatted} ->
+          {:ok, formatted}
+
+        {:error, reason} ->
+          {:error, {Cldr.Message.ParseError, reason}}
+      end
+    end
+  end
+
+  defp resolve_formatter_backend(options) do
+    {fb, rest} = Keyword.pop(options, :formatter_backend, :default)
+
+    case fb do
+      :nif ->
+        unless V2.Nif.available?() do
+          raise RuntimeError,
+            "NIF formatter backend requested but not available. " <>
+            "Compile with CLDR_MESSAGES_MF2_NIF=true or set " <>
+            "`config :ex_cldr_messages, :mf2_nif, true` in config.exs."
+        end
+
+        {:nif, rest}
+
+      :elixir ->
+        {:elixir, rest}
+
+      :default ->
+        if V2.Nif.available?() do
+          {:nif, rest}
+        else
+          {:elixir, rest}
+        end
+    end
+  end
+
+  defp resolve_locale_string(options) do
+    case Keyword.get(options, :locale) do
+      nil ->
+        locale = Cldr.get_locale()
+        Kernel.to_string(locale.cldr_locale_name)
+
+      %Cldr.LanguageTag{cldr_locale_name: name} ->
+        Kernel.to_string(name)
+
+      name when is_binary(name) ->
+        name
+
+      name when is_atom(name) ->
+        Atom.to_string(name)
+    end
+  end
+
+  defp normalize_bindings(bindings) when is_map(bindings) do
+    Map.new(bindings, fn
+      {k, v} when is_atom(k) -> {Atom.to_string(k), v}
+      {k, v} -> {k, v}
+    end)
+  end
+
+  defp normalize_bindings(bindings) when is_list(bindings) do
+    Map.new(bindings, fn
+      {k, v} when is_atom(k) -> {Atom.to_string(k), v}
+      {k, v} -> {k, v}
+    end)
+  end
+
+  defp normalize_bindings(bindings), do: bindings
 
   @spec format!(String.t(), bindings(), options()) :: String.t() | no_return
 
