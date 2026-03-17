@@ -326,4 +326,48 @@ defmodule Cldr.Message.V2.FormatErrorTest do
       assert reason =~ "as a datetime"
     end
   end
+
+  describe "format errors inside .match variant bodies" do
+    test "returns error when variant body has invalid type" do
+      message = ~S"""
+      .input {$gender :string}
+      .match $gender
+        male {{He bought {$price :number} items.}}
+        * {{They bought {$price :number} items.}}
+      """
+
+      assert {:error, {Cldr.Message.FormatError, reason}} =
+               Cldr.Message.format(message, %{"gender" => "male", "price" => [1, 2]}, @opts)
+
+      assert reason =~ "cannot format"
+      assert reason =~ "as a number"
+    end
+  end
+
+  describe "invalid unit names" do
+    test "invalid unit name returns error" do
+      assert {:error, _} =
+               Cldr.Message.format("{$x :unit unit=invalid_xyz}", %{"x" => 5}, @opts)
+    end
+
+    test "invalid unit name with struct returns error" do
+      unit = Cldr.Unit.new!(3, :kilometer)
+
+      assert {:error, _} =
+               Cldr.Message.format("{$x :unit unit=invalid_xyz}", %{"x" => unit}, @opts)
+    end
+  end
+
+  describe "invalid numbering system" do
+    test "unknown numbering system returns error" do
+      assert {:error, {Cldr.Message.FormatError, reason}} =
+               Cldr.Message.format(
+                 "{$x :number numberingSystem=bogus}",
+                 %{"x" => 42},
+                 @opts
+               )
+
+      assert reason =~ "unknown numbering system"
+    end
+  end
 end

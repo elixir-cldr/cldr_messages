@@ -207,10 +207,13 @@ defmodule Cldr.Message.V2.Interpreter do
   end
 
   defp atom_key_exists?(name) do
-    String.to_existing_atom(name)
-    true
+    match?({:ok, _}, safe_string_to_atom(name))
+  end
+
+  defp safe_string_to_atom(name) do
+    {:ok, String.to_existing_atom(name)}
   rescue
-    ArgumentError -> false
+    ArgumentError -> {:error, :not_existing}
   end
 
   defp apply_function(value, nil, _options) do
@@ -224,22 +227,22 @@ defmodule Cldr.Message.V2.Interpreter do
   end
 
   defp format_with_function("number", value, func_opts, options) do
-    with {:ok, number} <- ensure_number(value) do
-      cldr_opts = build_cldr_options(options, func_opts)
+    with {:ok, number} <- ensure_number(value),
+         {:ok, cldr_opts} <- build_cldr_options(options, func_opts) do
       format_number(number, cldr_opts)
     end
   end
 
   defp format_with_function("integer", value, func_opts, options) do
-    with {:ok, number} <- ensure_number(value) do
-      cldr_opts = build_cldr_options(options, func_opts)
+    with {:ok, number} <- ensure_number(value),
+         {:ok, cldr_opts} <- build_cldr_options(options, func_opts) do
       format_number(trunc(number), cldr_opts)
     end
   end
 
   defp format_with_function("percent", value, func_opts, options) do
-    with {:ok, number} <- ensure_number(value) do
-      cldr_opts = build_cldr_options(options, func_opts)
+    with {:ok, number} <- ensure_number(value),
+         {:ok, cldr_opts} <- build_cldr_options(options, func_opts) do
       cldr_opts = Keyword.put(cldr_opts, :format, :percent)
       format_number(number, cldr_opts)
     end
@@ -256,15 +259,16 @@ defmodule Cldr.Message.V2.Interpreter do
         Map.put(func_opts, :currency, to_string(Map.get(money, :currency)))
       end
 
-    cldr_opts = build_cldr_options(options, func_opts)
-    cldr_opts = Keyword.merge(cldr_opts, money_format_opts)
-    cldr_opts = map_currency_options(cldr_opts, func_opts)
-    format_number(number, cldr_opts)
+    with {:ok, cldr_opts} <- build_cldr_options(options, func_opts) do
+      cldr_opts = Keyword.merge(cldr_opts, money_format_opts)
+      cldr_opts = map_currency_options(cldr_opts, func_opts)
+      format_number(number, cldr_opts)
+    end
   end
 
   defp format_with_function("currency", value, func_opts, options) do
-    with {:ok, number} <- ensure_number(value) do
-      cldr_opts = build_cldr_options(options, func_opts)
+    with {:ok, number} <- ensure_number(value),
+         {:ok, cldr_opts} <- build_cldr_options(options, func_opts) do
       cldr_opts = map_currency_options(cldr_opts, func_opts)
       format_number(number, cldr_opts)
     end
@@ -307,17 +311,21 @@ defmodule Cldr.Message.V2.Interpreter do
     defp format_with_function("unit", %Cldr.Unit{} = unit_struct, func_opts, options) do
       {locale, backend} = Cldr.locale_and_backend_from(options)
 
-      unit_struct =
+      unit_result =
         if func_opts[:unit] do
-          unit_name = String.to_atom(func_opts[:unit])
-          Cldr.Unit.new!(Map.get(unit_struct, :value), unit_name)
+          case safe_string_to_atom(func_opts[:unit]) do
+            {:ok, unit_name} -> Cldr.Unit.new(Map.get(unit_struct, :value), unit_name)
+            {:error, :not_existing} -> {:error, "unknown unit #{inspect(func_opts[:unit])}"}
+          end
         else
-          unit_struct
+          {:ok, unit_struct}
         end
 
-      cldr_opts = [locale: locale, backend: backend]
-      cldr_opts = map_unit_options(cldr_opts, func_opts)
-      Cldr.Unit.to_string(unit_struct, cldr_opts)
+      with {:ok, unit} <- unit_result do
+        cldr_opts = [locale: locale, backend: backend]
+        cldr_opts = map_unit_options(cldr_opts, func_opts)
+        Cldr.Unit.to_string(unit, cldr_opts)
+      end
     end
 
     defp format_with_function("unit", value, func_opts, options) do
@@ -329,11 +337,18 @@ defmodule Cldr.Message.V2.Interpreter do
             {:error, "the :unit function requires a `unit` option"}
 
           name ->
-            unit_name = String.to_atom(name)
-            unit = Cldr.Unit.new!(number, unit_name)
-            cldr_opts = [locale: locale, backend: backend]
-            cldr_opts = map_unit_options(cldr_opts, func_opts)
-            Cldr.Unit.to_string(unit, cldr_opts)
+            unit_atom_result =
+              case safe_string_to_atom(name) do
+                {:ok, atom} -> {:ok, atom}
+                {:error, :not_existing} -> {:error, "unknown unit #{inspect(name)}"}
+              end
+
+            with {:ok, unit_name} <- unit_atom_result,
+                 {:ok, unit} <- Cldr.Unit.new(number, unit_name) do
+              cldr_opts = [locale: locale, backend: backend]
+              cldr_opts = map_unit_options(cldr_opts, func_opts)
+              Cldr.Unit.to_string(unit, cldr_opts)
+            end
         end
       end
     end
@@ -420,6 +435,9 @@ defmodule Cldr.Message.V2.Interpreter do
 
           {:error, iolist, more_bound, unbound} ->
             {:error, iolist, bound ++ selector_names ++ more_bound, unbound}
+
+          {:format_error, _} = err ->
+            err
         end
 
       :error ->
@@ -520,8 +538,6 @@ defmodule Cldr.Message.V2.Interpreter do
       locale: locale,
       type: plural_type
     )
-  rescue
-    _ -> nil
   end
 
   defp resolve_plural_category(value, plural_type, options) when is_binary(value) do
@@ -566,23 +582,33 @@ defmodule Cldr.Message.V2.Interpreter do
   defp resolve_func_options(func_options, bindings) do
     Enum.reduce(func_options, %{}, fn
       {:option, name, {:literal, value}}, acc ->
-        Map.put(acc, String.to_atom(name), value)
+        Map.put(acc, option_key(name), value)
 
       {:option, name, {:number_literal, value}}, acc ->
-        Map.put(acc, String.to_atom(name), parse_number(value))
+        Map.put(acc, option_key(name), parse_number(value))
 
       {:option, name, {:variable, var_name}}, acc ->
         case resolve_variable(var_name, bindings) do
-          {:ok, value} -> Map.put(acc, String.to_atom(name), value)
-          :error -> Map.put(acc, String.to_atom(name), nil)
+          {:ok, value} -> Map.put(acc, option_key(name), value)
+          :error -> Map.put(acc, option_key(name), nil)
         end
     end)
+  end
+
+  defp option_key(name) do
+    case safe_string_to_atom(name) do
+      {:ok, atom} -> atom
+      {:error, :not_existing} -> name
+    end
   end
 
   defp build_cldr_options(options, func_opts) do
     {locale, backend} = Cldr.locale_and_backend_from(options)
     cldr_opts = [locale: locale, backend: backend]
-    map_func_options(cldr_opts, func_opts)
+
+    with {:ok, cldr_opts} <- map_func_options(cldr_opts, func_opts) do
+      {:ok, cldr_opts}
+    end
   end
 
   defp map_func_options(cldr_opts, func_opts) do
@@ -590,16 +616,24 @@ defmodule Cldr.Message.V2.Interpreter do
     max_fd = get_integer_option(func_opts, :maximumFractionDigits)
     use_grouping = Map.get(func_opts, :useGrouping)
 
-    cldr_opts
-    |> map_fraction_digits(min_fd, max_fd, use_grouping)
-    |> map_use_grouping(use_grouping)
-    |> map_numbering_system(func_opts)
+    cldr_opts =
+      cldr_opts
+      |> map_fraction_digits(min_fd, max_fd, use_grouping)
+      |> map_use_grouping(use_grouping)
+
+    map_numbering_system(cldr_opts, func_opts)
   end
 
   defp map_numbering_system(cldr_opts, func_opts) do
     case Map.get(func_opts, :numberingSystem) do
-      nil -> cldr_opts
-      system -> Keyword.put(cldr_opts, :number_system, String.to_atom(system))
+      nil ->
+        {:ok, cldr_opts}
+
+      system ->
+        case safe_string_to_atom(system) do
+          {:ok, atom} -> {:ok, Keyword.put(cldr_opts, :number_system, atom)}
+          {:error, :not_existing} -> {:error, "unknown numbering system #{inspect(system)}"}
+        end
     end
   end
 
@@ -640,19 +674,24 @@ defmodule Cldr.Message.V2.Interpreter do
 
   defp get_integer_option(func_opts, key) do
     case Map.get(func_opts, key) do
-      nil -> nil
-      value -> ensure_integer(value)
+      nil ->
+        nil
+
+      value when is_integer(value) ->
+        value
+
+      value when is_float(value) ->
+        round(value)
+
+      value when is_binary(value) ->
+        case Integer.parse(value) do
+          {int, ""} -> int
+          _ -> nil
+        end
+
+      _ ->
+        nil
     end
-  end
-
-  defp ensure_integer(value) when is_integer(value), do: value
-  defp ensure_integer(value) when is_float(value), do: round(value)
-  defp ensure_integer(value) when is_binary(value), do: String.to_integer(value)
-
-  defp ensure_integer(value) do
-    raise Cldr.Message.FormatError,
-          "cannot format #{inspect(value)} as an integer. " <>
-            "Expected an integer, float, or numeric string."
   end
 
   defp format_number(number, cldr_opts) do
