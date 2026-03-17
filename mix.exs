@@ -54,6 +54,7 @@ defmodule Cldr.Messages.MixProject do
       {:elixir_make, "~> 0.4", runtime: false, optional: true},
       {:nimble_parsec, "~> 1.0"},
       {:jason, "~> 1.1"},
+      {:benchee, "~> 1.0", only: :dev, runtime: false},
       {:dialyxir, "~> 1.0", optional: true, only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.20", optional: true, runtime: false},
       {:gettext, "~> 0.21 or ~> 1.0", optional: true}
