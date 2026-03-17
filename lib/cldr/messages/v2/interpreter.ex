@@ -34,6 +34,10 @@ defmodule Cldr.Message.V2.Interpreter do
   @spec format_list(list() | tuple(), map() | Keyword.t(), Keyword.t()) ::
           {:ok, list(), list(), list()} | {:error, list(), list(), list()}
 
+  @spec format_list(term(), map() | list(), Keyword.t()) ::
+          {:ok, list(), list(), list()}
+          | {:error, list(), list(), list()}
+          | {:format_error, String.t()}
   def format_list(ast, bindings \\ %{}, options \\ [])
 
   def format_list(ast, bindings, options) when is_list(bindings) do
@@ -171,7 +175,6 @@ defmodule Cldr.Message.V2.Interpreter do
 
   defp format_error_reason({_module, message}) when is_binary(message), do: message
   defp format_error_reason(reason) when is_binary(reason), do: reason
-  defp format_error_reason(reason), do: inspect(reason)
 
   defp resolve_operand(nil, _bindings) do
     {:ok, nil, []}
