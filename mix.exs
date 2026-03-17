@@ -99,6 +99,7 @@ defmodule Cldr.Messages.MixProject do
         "MESSAGE_FORMAT_v2.md",
         "MESSAGE_FORMAT_v1.md"
       ],
+      formatters: ["html", "markdown"],
       groups_for_modules: groups_for_modules(),
       skip_undefined_reference_warnings_on: ["changelog", "CHANGELOG.md", "README.md"]
     ]

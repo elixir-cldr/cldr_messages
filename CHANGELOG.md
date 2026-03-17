@@ -42,9 +42,7 @@ This is the changelog for Cldr_Messages v2.0.0.  For older changelogs please con
 
 ### Known Limitations
 
-* MF2 number formatting options `minimumFractionDigits`, `maximumFractionDigits`, and `useGrouping` are not yet mapped to their `ex_cldr_numbers` equivalents. This requires an upstream update to `ex_cldr_numbers`.
-
-* Unbound variables produce an empty string (unlike ICU which produces a `{$name}` fallback). Unbound variable information is available programmatically in the return tuple.
+* Unbound variables return `{:error, {Cldr.Message.BindError, reason}}` (unlike ICU which produces a `{$name}` fallback string).
 
 * The MF2 `:string` function is a pass-through in the Elixir interpreter. The ICU NIF provides the full ICU `:string` implementation.
 

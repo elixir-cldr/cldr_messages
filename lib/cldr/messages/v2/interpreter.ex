@@ -313,10 +313,7 @@ defmodule Cldr.Message.V2.Interpreter do
 
       unit_result =
         if func_opts[:unit] do
-          case safe_string_to_atom(func_opts[:unit]) do
-            {:ok, unit_name} -> Cldr.Unit.new(Map.get(unit_struct, :value), unit_name)
-            {:error, :not_existing} -> {:error, "unknown unit #{inspect(func_opts[:unit])}"}
-          end
+          Cldr.Unit.new(Map.get(unit_struct, :value), func_opts[:unit])
         else
           {:ok, unit_struct}
         end
@@ -337,14 +334,7 @@ defmodule Cldr.Message.V2.Interpreter do
             {:error, "the :unit function requires a `unit` option"}
 
           name ->
-            unit_atom_result =
-              case safe_string_to_atom(name) do
-                {:ok, atom} -> {:ok, atom}
-                {:error, :not_existing} -> {:error, "unknown unit #{inspect(name)}"}
-              end
-
-            with {:ok, unit_name} <- unit_atom_result,
-                 {:ok, unit} <- Cldr.Unit.new(number, unit_name) do
+            with {:ok, unit} <- Cldr.Unit.new(number, name) do
               cldr_opts = [locale: locale, backend: backend]
               cldr_opts = map_unit_options(cldr_opts, func_opts)
               Cldr.Unit.to_string(unit, cldr_opts)

@@ -169,13 +169,11 @@ When a variable is referenced but no binding is provided:
 
 - **ICU4C**: produces a fallback string `{$variableName}`
 
-- **Elixir**: produces an empty string and tracks the variable as unbound in the returned metadata
-
-Both approaches are valid. The Elixir implementation provides unbound variable information programmatically via the `{:error, iolist, bound, unbound}` return tuple.
+- **Elixir**: returns `{:error, {Cldr.Message.BindError, reason}}` with details of which variables were unbound
 
 ### Number Formatting Options
 
-Some MF2 number formatting options (e.g. `minimumFractionDigits`, `maximumFractionDigits`, `useGrouping`) are not yet mapped to their `ex_cldr_numbers` equivalents. This can cause differences in formatted output for messages that use these options. Standard number, integer, and percent formatting without explicit options works correctly.
+MF2 number formatting options (`minimumFractionDigits`, `maximumFractionDigits`, `useGrouping`, `numberingSystem`) are mapped to their `ex_cldr_numbers` equivalents. See `MESSAGE_FORMAT_v2.md` for full details on supported options.
 
 ### Unicode Normalization (NFC)
 
