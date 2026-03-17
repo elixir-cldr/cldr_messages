@@ -148,7 +148,12 @@ defmodule Cldr.Message.V2.Parser.Combinator do
     |> concat(name_start())
     |> repeat(name_char())
     |> optional(ignore(bidi()))
-    |> reduce({List, :to_string, []})
+    |> reduce(:to_nfc_string)
+  end
+
+  @doc false
+  def to_nfc_string(chars) do
+    chars |> List.to_string() |> :unicode.characters_to_nfc_binary()
   end
 
   # identifier = [namespace ":"] name
@@ -181,10 +186,12 @@ defmodule Cldr.Message.V2.Parser.Combinator do
 
   def wrap_quoted_literal(parts) do
     text =
-      Enum.map_join(parts, fn
+      parts
+      |> Enum.map_join(fn
         {:escape, c} -> c
         s when is_binary(s) -> s
       end)
+      |> :unicode.characters_to_nfc_binary()
 
     {:literal, text}
   end
@@ -221,7 +228,7 @@ defmodule Cldr.Message.V2.Parser.Combinator do
     choice([
       number_literal(),
       times(name_char(), min: 1)
-      |> reduce({List, :to_string, []})
+      |> reduce(:to_nfc_string)
       |> unwrap_and_tag(:literal)
     ])
   end
@@ -537,8 +544,13 @@ defmodule Cldr.Message.V2.Parser.Combinator do
 
   # simple-message = o [simple-start pattern]
   # simple-start = simple-start-char / escaped-char / placeholder
+  #
+  # Leading whitespace in a simple message is significant and part of
+  # the message content per the spec, so we capture it as text rather
+  # than ignoring it.
   def simple_message do
-    o()
+    repeat(choice([ws(), bidi()]))
+    |> post_traverse(:maybe_wrap_leading_ws)
     |> optional(
       choice([
         escaped_char(),
@@ -549,6 +561,13 @@ defmodule Cldr.Message.V2.Parser.Combinator do
       |> concat(pattern())
     )
     |> post_traverse(:coalesce_text)
+  end
+
+  def maybe_wrap_leading_ws(rest, [], context, _line, _offset), do: {rest, [], context}
+
+  def maybe_wrap_leading_ws(rest, chars, context, _line, _offset) do
+    text = chars |> Enum.reverse() |> List.to_string()
+    {rest, [{:text, text}], context}
   end
 
   # message = simple-message / complex-message

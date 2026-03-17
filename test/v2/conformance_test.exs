@@ -3,8 +3,6 @@ defmodule Cldr.Message.V2.ConformanceTest do
 
   alias Cldr.Message.V2.Parser
 
-  @fixtures_dir Path.join([__DIR__, "..", "fixtures", "mf2"])
-
   describe "syntax.json — valid messages should parse" do
     for {test_case, index} <-
           Path.join([__DIR__, "..", "fixtures", "mf2", "syntax.json"])

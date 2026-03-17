@@ -16,19 +16,24 @@ defmodule Cldr.Message.V2.Interpreter do
     format_list(ast, Map.new(bindings), options)
   end
 
-  def format_list([{:complex, _, _} = complex], bindings, options) do
-    format_list(complex, bindings, options)
+  def format_list(ast, bindings, options) when is_map(bindings) do
+    bindings = normalize_binding_keys(bindings)
+    do_format_list(ast, bindings, options)
   end
 
-  def format_list([{:match, _, _} = match], bindings, options) do
-    format_list(match, bindings, options)
+  defp do_format_list([{:complex, _, _} = complex], bindings, options) do
+    do_format_list(complex, bindings, options)
   end
 
-  def format_list([{:quoted_pattern, _} = qp], bindings, options) do
-    format_list(qp, bindings, options)
+  defp do_format_list([{:match, _, _} = match], bindings, options) do
+    do_format_list(match, bindings, options)
   end
 
-  def format_list(ast, bindings, options) when is_list(ast) do
+  defp do_format_list([{:quoted_pattern, _} = qp], bindings, options) do
+    do_format_list(qp, bindings, options)
+  end
+
+  defp do_format_list(ast, bindings, options) when is_list(ast) do
     # A simple message is a bare list of pattern parts
     case format_pattern(ast, bindings, options) do
       {:ok, iolist, bound, unbound} -> {:ok, iolist, bound, unbound}
@@ -36,7 +41,7 @@ defmodule Cldr.Message.V2.Interpreter do
     end
   end
 
-  def format_list({:complex, declarations, body}, bindings, options) do
+  defp do_format_list({:complex, declarations, body}, bindings, options) do
     {bindings, bound} = resolve_declarations(declarations, bindings, options)
 
     case body do
@@ -51,11 +56,11 @@ defmodule Cldr.Message.V2.Interpreter do
     end
   end
 
-  def format_list({:quoted_pattern, parts}, bindings, options) do
+  defp do_format_list({:quoted_pattern, parts}, bindings, options) do
     format_pattern(parts, bindings, options)
   end
 
-  def format_list({:match, selectors, variants}, bindings, options) do
+  defp do_format_list({:match, selectors, variants}, bindings, options) do
     evaluate_match(selectors, variants, bindings, options, [])
   end
 
@@ -134,7 +139,7 @@ defmodule Cldr.Message.V2.Interpreter do
   end
 
   defp resolve_operand({:number_literal, value}, _bindings) do
-    {:ok, parse_number(value), []}
+    {:ok, value, []}
   end
 
   defp resolve_variable(name, bindings) when is_map(bindings) do
@@ -425,4 +430,14 @@ defmodule Cldr.Message.V2.Interpreter do
   defp to_string_value(value) when is_integer(value), do: Integer.to_string(value)
   defp to_string_value(value) when is_float(value), do: Float.to_string(value)
   defp to_string_value(value), do: Kernel.to_string(value)
+
+  defp normalize_binding_keys(bindings) when is_map(bindings) do
+    Map.new(bindings, fn
+      {key, value} when is_binary(key) ->
+        {:unicode.characters_to_nfc_binary(key), value}
+
+      {key, value} ->
+        {key, value}
+    end)
+  end
 end

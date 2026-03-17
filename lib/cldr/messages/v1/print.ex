@@ -49,6 +49,18 @@ defmodule Cldr.Message.V1.Print do
     to_string(head, options)
   end
 
+  def to_string([{:literal, literal} | [{nested, _, _} | _] = rest], %{pretty: true} = options)
+      when nested in [:select, :plural, :select_ordinal] do
+    trimmed = Regex.replace(~r/\n[^\S\n]*\z/, literal, "")
+    [to_string({:literal, trimmed}, options), to_string(rest, options)]
+  end
+
+  def to_string([{:literal, literal} | [{nested, _, _, _} | _] = rest], %{pretty: true} = options)
+      when nested in [:select, :plural, :select_ordinal] do
+    trimmed = Regex.replace(~r/\n[^\S\n]*\z/, literal, "")
+    [to_string({:literal, trimmed}, options), to_string(rest, options)]
+  end
+
   def to_string([head | rest], %{} = options) do
     [to_string(head, options), to_string(rest, options)]
   end

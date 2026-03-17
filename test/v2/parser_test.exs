@@ -12,10 +12,10 @@ defmodule Cldr.Message.V2.ParserTest do
       assert {:ok, [{:text, "Hello, world!"}]} = Parser.parse("Hello, world!")
     end
 
-    test "text with leading whitespace is stripped by simple-message o" do
-      # Leading whitespace in simple-message is consumed by the `o` production.
-      # The first non-whitespace char starts the simple-start.
-      assert {:ok, [{:text, "hello\t"}]} = Parser.parse("\n hello\t")
+    test "text with leading whitespace is preserved" do
+      # Leading whitespace in simple-message is significant and part of the
+      # message content per the MF2 spec.
+      assert {:ok, [{:text, "\n hello\t"}]} = Parser.parse("\n hello\t")
     end
 
     test "escaped characters" do
