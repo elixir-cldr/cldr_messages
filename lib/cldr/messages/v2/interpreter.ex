@@ -271,6 +271,25 @@ defmodule Cldr.Message.V2.Interpreter do
   end
 
   if Code.ensure_loaded?(Cldr.Unit) do
+    defp format_with_function("unit", %Cldr.Unit{} = unit_struct, func_opts, options) do
+      {locale, backend} = Cldr.locale_and_backend_from(options)
+      unit_format_opts = Map.get(unit_struct, :format_options) || []
+
+      unit_name =
+        if func_opts[:unit] do
+          String.to_atom(func_opts[:unit])
+        else
+          Map.get(unit_struct, :unit)
+        end
+
+      number = Map.get(unit_struct, :value)
+      unit = Cldr.Unit.new!(number, unit_name)
+      cldr_opts = [locale: locale, backend: backend]
+      cldr_opts = Keyword.merge(cldr_opts, unit_format_opts)
+      cldr_opts = map_unit_options(cldr_opts, func_opts)
+      Cldr.Unit.to_string!(unit, cldr_opts)
+    end
+
     defp format_with_function("unit", value, func_opts, options) do
       number = ensure_number(value)
       {locale, backend} = Cldr.locale_and_backend_from(options)
@@ -631,6 +650,7 @@ defmodule Cldr.Message.V2.Interpreter do
 
   defp map_unit_options(cldr_opts, func_opts) do
     case func_opts[:unitDisplay] do
+      "long" -> Keyword.put(cldr_opts, :style, :long)
       "short" -> Keyword.put(cldr_opts, :style, :short)
       "narrow" -> Keyword.put(cldr_opts, :style, :narrow)
       _other -> cldr_opts

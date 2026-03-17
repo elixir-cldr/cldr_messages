@@ -118,4 +118,43 @@ defmodule Cldr.Message.V2.UnitOptionsTest do
              ) == "The distance is 42 km."
     end
   end
+
+  describe "Cldr.Unit struct" do
+    test "derives unit from struct" do
+      unit = Cldr.Unit.new!(3, :kilometer)
+      assert format("{$dist :unit}", %{"dist" => unit}) == "3 kilometers"
+    end
+
+    test "derives unit and value from struct with singular" do
+      unit = Cldr.Unit.new!(1, :kilometer)
+      assert format("{$dist :unit}", %{"dist" => unit}) == "1 kilometer"
+    end
+
+    test "explicit unit option overrides struct unit" do
+      unit = Cldr.Unit.new!(3, :kilometer)
+      assert format("{$dist :unit unit=meter}", %{"dist" => unit}) == "3 meters"
+    end
+
+    test "unitDisplay option applied to struct" do
+      unit = Cldr.Unit.new!(3, :kilometer)
+      assert format("{$dist :unit unitDisplay=short}", %{"dist" => unit}) == "3 km"
+    end
+
+    test "struct with format_options applies them" do
+      unit = Cldr.Unit.new!(3, :kilometer, format_options: [style: :short])
+      assert format("{$dist :unit}", %{"dist" => unit}) == "3 km"
+    end
+
+    test "MF2 options override struct format_options" do
+      unit = Cldr.Unit.new!(3, :kilometer, format_options: [style: :short])
+      assert format("{$dist :unit unitDisplay=long}", %{"dist" => unit}) == "3 kilometers"
+    end
+
+    test "struct in a sentence" do
+      unit = Cldr.Unit.new!(42, :kilometer)
+
+      assert format("The distance is {$dist :unit unitDisplay=short}.", %{"dist" => unit}) ==
+               "The distance is 42 km."
+    end
+  end
 end
