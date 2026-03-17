@@ -75,6 +75,7 @@ defmodule Cldr.Message.V2.LocaleFormattingTest do
       end
     end
 
+    @tag :mf2_nif
     test "Elixir and NIF produce identical output for :number" do
       message = "{{{$n :number}}}"
 
@@ -148,6 +149,7 @@ defmodule Cldr.Message.V2.LocaleFormattingTest do
       end
     end
 
+    @tag :mf2_nif
     test "Elixir and NIF produce identical output for :integer" do
       message = "{{{$n :integer}}}"
       bindings = %{"n" => 1234}
@@ -382,6 +384,7 @@ defmodule Cldr.Message.V2.LocaleFormattingTest do
              "expected Thai digits, got Latin: #{inspect(result)}"
     end
 
+    @tag :mf2_nif
     test "Elixir and NIF agree on numberingSystem=arab" do
       message = "{{{$n :number numberingSystem=arab}}}"
       bindings = %{"n" => 123}
