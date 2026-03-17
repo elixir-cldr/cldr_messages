@@ -216,17 +216,28 @@ defmodule Cldr.Message.V2.Interpreter do
     format_number(number, cldr_opts)
   end
 
+  defp format_with_function("currency", %Money{} = money, func_opts, options) do
+    number = Map.get(money, :amount)
+    money_format_opts = Map.get(money, :format_options) || []
+
+    func_opts =
+      if Map.has_key?(func_opts, :currency) do
+        func_opts
+      else
+        Map.put(func_opts, :currency, to_string(Map.get(money, :currency)))
+      end
+
+    cldr_opts = build_cldr_options(options, func_opts)
+    cldr_opts = Keyword.merge(cldr_opts, money_format_opts)
+    cldr_opts = map_currency_options(cldr_opts, func_opts)
+    format_number(number, cldr_opts)
+  end
+
   defp format_with_function("currency", value, func_opts, options) do
     number = ensure_number(value)
     cldr_opts = build_cldr_options(options, func_opts)
-    cldr_opts = Keyword.put(cldr_opts, :format, :currency)
-
-    if currency = func_opts[:currency] do
-      cldr_opts = Keyword.put(cldr_opts, :currency, currency)
-      format_number(number, cldr_opts)
-    else
-      format_number(number, cldr_opts)
-    end
+    cldr_opts = map_currency_options(cldr_opts, func_opts)
+    format_number(number, cldr_opts)
   end
 
   defp format_with_function("string", value, _func_opts, _options) do
@@ -256,6 +267,24 @@ defmodule Cldr.Message.V2.Interpreter do
       cldr_opts = [locale: locale, backend: backend]
       cldr_opts = map_datetime_options(cldr_opts, func_opts)
       Cldr.DateTime.to_string!(value, cldr_opts)
+    end
+  end
+
+  if Code.ensure_loaded?(Cldr.Unit) do
+    defp format_with_function("unit", value, func_opts, options) do
+      number = ensure_number(value)
+      {locale, backend} = Cldr.locale_and_backend_from(options)
+
+      unit_name =
+        case func_opts[:unit] do
+          nil -> raise ArgumentError, "The :unit function requires a `unit` option"
+          name -> String.to_atom(name)
+        end
+
+      unit = Cldr.Unit.new!(number, unit_name)
+      cldr_opts = [locale: locale, backend: backend]
+      cldr_opts = map_unit_options(cldr_opts, func_opts)
+      Cldr.Unit.to_string!(unit, cldr_opts)
     end
   end
 
@@ -595,6 +624,41 @@ defmodule Cldr.Message.V2.Interpreter do
       "long" -> :long
       "full" -> :full
       other -> other
+    end
+  end
+
+  # ── Unit option mapping ─────────────────────────────────────────
+
+  defp map_unit_options(cldr_opts, func_opts) do
+    case func_opts[:unitDisplay] do
+      "short" -> Keyword.put(cldr_opts, :style, :short)
+      "narrow" -> Keyword.put(cldr_opts, :style, :narrow)
+      _other -> cldr_opts
+    end
+  end
+
+  # ── Currency option mapping ──────────────────────────────────────
+
+  defp map_currency_options(cldr_opts, func_opts) do
+    cldr_opts = Keyword.put(cldr_opts, :format, :currency)
+
+    cldr_opts =
+      if currency = func_opts[:currency] do
+        Keyword.put(cldr_opts, :currency, currency)
+      else
+        cldr_opts
+      end
+
+    cldr_opts =
+      case func_opts[:currencyDisplay] do
+        "narrowSymbol" -> Keyword.put(cldr_opts, :currency_symbol, :narrow)
+        "code" -> Keyword.put(cldr_opts, :currency_symbol, :iso)
+        _other -> cldr_opts
+      end
+
+    case func_opts[:currencySign] do
+      "accounting" -> Keyword.put(cldr_opts, :format, :accounting)
+      _other -> cldr_opts
     end
   end
 

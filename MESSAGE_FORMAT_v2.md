@@ -157,11 +157,52 @@ A value of `0.85` formats as `85%` (locale-dependent).
 
 ### `:currency`
 
-Formats a number as a currency amount. Requires the `ex_money` package.
+Formats a number as a currency amount.
 
 ```
 {$amount :currency currency=USD}
+{$amount :currency currency=EUR currencyDisplay=narrowSymbol}
+{$amount :currency currency=USD currencySign=accounting}
 ```
+
+| Option | Values | Description |
+|--------|--------|-------------|
+| `currency` | ISO 4217 code (e.g., `USD`, `EUR`) | The currency to format with (required) |
+| `currencyDisplay` | `symbol` (default), `narrowSymbol`, `code` | How to display the currency identifier |
+| `currencySign` | `standard` (default), `accounting` | `accounting` uses parentheses for negative values |
+
+**Note:** `currencyDisplay=name` is not currently supported.
+
+#### Money struct bindings
+
+When the bound value is a `Money.t` struct (from the `ex_money` package), the currency, amount, and formatting options are derived automatically from the struct:
+
+* The `currency` is taken from the struct's `:currency` field unless an explicit `currency` option is provided in the message.
+
+* The numeric amount is taken from the struct's `:amount` field.
+
+* Any `:format_options` stored on the struct (e.g., `currency_symbol: :iso`) are applied as base formatting options. Options specified in the MF2 message (e.g., `currencyDisplay`, `currencySign`) take precedence over the struct's format options.
+
+This means a `Money.t` value can be formatted without specifying a `currency` option:
+
+```
+{$price :currency}
+```
+
+### `:unit`
+
+Formats a number with a measurement unit. Requires the `ex_cldr_units` package.
+
+```
+{$distance :unit unit=kilometer}
+{$weight :unit unit=kilogram unitDisplay=short}
+{$temp :unit unit=fahrenheit unitDisplay=narrow}
+```
+
+| Option | Values | Description |
+|--------|--------|-------------|
+| `unit` | CLDR unit identifier (e.g., `kilometer`, `kilogram`) | The unit to format with (required) |
+| `unitDisplay` | `long` (default), `short`, `narrow` | How to display the unit name |
 
 ### `:date`
 
@@ -542,7 +583,8 @@ The MF2 specification defines a [default function registry](https://unicode.org/
 | `:time` | Default | Implemented via `Cldr.Time` with `style`/`precision` options (optional dep) |
 | `:datetime` | Default | Implemented via `Cldr.DateTime` with `dateStyle`/`timeStyle`/`dateLength`/`timePrecision` options (optional dep) |
 | `:percent` | Extended | Implemented via `Cldr.Number` with percent format |
-| `:currency` | Extended | Implemented via `Cldr.Number` with currency format |
+| `:currency` | Extended | Implemented via `Cldr.Number` with `currency`/`currencyDisplay`/`currencySign` options |
+| `:unit` | Extended | Implemented via `Cldr.Unit` with `unit`/`unitDisplay` options (optional dep) |
 
 ### Differences from ICU4C Reference Implementation
 
