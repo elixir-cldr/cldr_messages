@@ -1,12 +1,28 @@
 defmodule Cldr.Message.V2.Print do
-  @moduledoc false
+  @moduledoc """
+  Converts a MessageFormat 2 AST back to its canonical string form.
 
-  @doc """
-  Converts a MessageFormat 2 AST back to a string.
-
-  Used for `canonical_message/2` with V2 messages.
+  Used by `Cldr.Message.canonical_message/2` for V2 messages.
   """
   import Kernel, except: [to_string: 1]
+
+  @doc """
+  Converts a parsed MF2 AST back to a canonical message string.
+
+  ## Arguments
+
+  * `ast` is a parsed MF2 message AST as returned by
+    `Cldr.Message.V2.Parser.parse/1`.
+
+  * `options` is a keyword list of options (currently unused
+    but reserved for future use).
+
+  ## Returns
+
+  * A canonical message string.
+
+  """
+  @spec to_string(list() | tuple(), Keyword.t()) :: String.t()
 
   def to_string(ast, options \\ [])
 

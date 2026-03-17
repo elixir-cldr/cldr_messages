@@ -12,8 +12,19 @@ defmodule Cldr.Message.V2.Parser do
   @doc """
   Parses a MessageFormat 2 message string.
 
-  Returns `{:ok, ast}` or `{:error, reason}`.
+  ## Arguments
+
+  * `input` is a MF2 message string.
+
+  ## Returns
+
+  * `{:ok, ast}` where `ast` is the parsed message AST, or
+
+  * `{:error, reason}` if the message cannot be parsed.
+
   """
+  @spec parse(String.t()) :: {:ok, list()} | {:error, String.t()}
+
   def parse(input) when is_binary(input) do
     case message(input) do
       {:ok, result, "", _, _, _} ->
@@ -31,7 +42,12 @@ defmodule Cldr.Message.V2.Parser do
 
   @doc """
   Parses a MessageFormat 2 message string, raising on error.
+
+  Same as `parse/1` but returns the AST directly or raises
+  `ArgumentError`.
   """
+  @spec parse!(String.t()) :: list() | no_return
+
   def parse!(input) when is_binary(input) do
     case parse(input) do
       {:ok, parsed} -> parsed

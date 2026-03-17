@@ -1,5 +1,53 @@
 # Changelog
 
+## Cldr_Messages v2.0.0
+
+This is the changelog for Cldr_Messages v2.0.0.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+
+### Enhancements
+
+* Add full support for [Unicode MessageFormat 2 (MF2)](https://unicode.org/reports/tr35/tr35-messageFormat.html) alongside the existing legacy ICU Message Format (v1).
+
+* Version detection is automatic: messages starting with `.` (`.input`, `.local`, `.match`) or `{{` are treated as MF2; everything else is treated as v1. An explicit `:version` option (`:v1` or `:v2`) overrides auto-detection.
+
+* Add a pure-Elixir MF2 parser (`Cldr.Message.V2.Parser`) built on NimbleParsec with full MF2 ABNF compliance.
+
+* Add a pure-Elixir MF2 interpreter (`Cldr.Message.V2.Interpreter`) supporting:
+  * Variable substitution with `$name` syntax
+  * Declarations (`.input`, `.local`)
+  * Pattern matching with `.match` and variant selection
+  * Built-in formatting functions: `:string`, `:number`, `:integer`, `:percent`, `:currency`, `:date`, `:time`, `:datetime`
+  * Markup elements (open, close, standalone)
+  * Literal and number literal expressions
+
+* Add an MF2 canonical format printer (`Cldr.Message.V2.Print`) for round-tripping AST back to string. `Cldr.Message.canonical_message/2` now auto-detects and handles both v1 and v2 messages.
+
+* Add Unicode NFC normalization for variable names, literal values, and binding map keys per the MF2 specification, ensuring that pre-composed and decomposed Unicode characters are treated as equivalent.
+
+* Add an optional ICU4C NIF backend (`Cldr.Message.V2.Nif`) for MF2 formatting. Requires ICU 75+ and is enabled with `CLDR_MESSAGES_MF2_NIF=true`. The `:formatter_backend` option on `Cldr.Message.format/3` controls NIF vs Elixir dispatch (`:default`, `:nif`, or `:elixir`).
+
+* Add `Cldr.Gettext.Interpolation.V2` — a Gettext interpolation module that supports both v1 and v2 messages in the same `.POT` files. Messages are compiled as V2 first with V1 fallback.
+
+* Add `Cldr.Message.detect_version/1` to programmatically detect whether a message string is v1 or v2.
+
+### Bug Fixes
+
+* Fix V1 pretty-printer whitespace duplication when a literal with trailing whitespace precedes a nested `select`, `plural`, or `select_ordinal` structure.
+
+* Preserve leading whitespace in MF2 simple messages per the MF2 specification. Leading whitespace is significant message content, not syntactic whitespace.
+
+### Breaking Changes
+
+* None. The existing V1 API (`Cldr.Message.format/3`, `Cldr.Message.format!/3`, `Cldr.Message.canonical_message/2`, etc.) is fully backward compatible. V1 messages continue to work without changes.
+
+### Known Limitations
+
+* MF2 number formatting options `minimumFractionDigits`, `maximumFractionDigits`, and `useGrouping` are not yet mapped to their `ex_cldr_numbers` equivalents. This requires an upstream update to `ex_cldr_numbers`.
+
+* Unbound variables produce an empty string (unlike ICU which produces a `{$name}` fallback). Unbound variable information is available programmatically in the return tuple.
+
+* The MF2 `:string` function is a pass-through in the Elixir interpreter. The ICU NIF provides the full ICU `:string` implementation.
+
 ## Cldr_Messages v1.0.4
 
 This is the changelog for Cldr_Messages v1.0.4 released on January 20th, 2025.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
@@ -152,7 +200,7 @@ iex> Cldr.Message.format "this is {one, number, currency}", one: 1
 
 # Forces the :MXP currency
 iex> Cldr.Message.format "this is {one, number, currency}", one: {1, currency: :MXP}
-{:ok, "this is MXP 1.00"}
+{:ok, "this is MXP 1.00"}
 ```
 
 ## Cldr_Messages v0.8.0
@@ -249,4 +297,3 @@ This is the changelog for Cldr_Messages v0.1.0 released on August 26th, 2019.  F
 * Initial release.  This release implements `Cldr.Message.to_string/3` and `Cldr.Message.format/3`
 
 This initial release is the basis for building a complete message localization solution as an alternative to [Gettext](https://hex.pm/packages/gettext).  There is a long way to go until that is accomplished.
-

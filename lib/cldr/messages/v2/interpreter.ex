@@ -7,6 +7,30 @@ defmodule Cldr.Message.V2.Interpreter do
   `{:complex, declarations, body}`, `{:match, selectors, variants}`, etc.
   """
 
+  @doc """
+  Formats a parsed MF2 AST with the given bindings.
+
+  ## Arguments
+
+  * `ast` is a parsed MF2 message AST as returned by
+    `Cldr.Message.V2.Parser.parse/1`.
+
+  * `bindings` is a map or keyword list of variable bindings.
+    String keys are NFC-normalized to match parser output.
+
+  * `options` is a keyword list of options including `:backend`
+    and `:locale`.
+
+  ## Returns
+
+  * `{:ok, iolist, bound, unbound}` on success, where `bound` is
+    the list of variable names that were resolved and `unbound` is
+    empty.
+
+  * `{:error, iolist, bound, unbound}` when one or more variables
+    could not be resolved. The `iolist` contains a partial result.
+
+  """
   @spec format_list(list() | tuple(), map() | Keyword.t(), Keyword.t()) ::
           {:ok, list(), list(), list()} | {:error, list(), list(), list()}
 
@@ -98,16 +122,16 @@ defmodule Cldr.Message.V2.Interpreter do
     format_expression(operand, func, bindings, options)
   end
 
-  defp format_part({:markup_open, name, _options, _attrs}, _bindings, _options_kw) do
-    {:ok, "<#{name}>", []}
+  defp format_part({:markup_open, _name, _options, _attrs}, _bindings, _options_kw) do
+    {:ok, "", []}
   end
 
-  defp format_part({:markup_close, name, _options, _attrs}, _bindings, _options_kw) do
-    {:ok, "</#{name}>", []}
+  defp format_part({:markup_close, _name, _options, _attrs}, _bindings, _options_kw) do
+    {:ok, "", []}
   end
 
-  defp format_part({:markup_standalone, name, _options, _attrs}, _bindings, _options_kw) do
-    {:ok, "<#{name} />", []}
+  defp format_part({:markup_standalone, _name, _options, _attrs}, _bindings, _options_kw) do
+    {:ok, "", []}
   end
 
   # ── Expression formatting ───────────────────────────────────────

@@ -32,9 +32,9 @@ defmodule Cldr.Messages.MixProject do
 
   defp description do
     """
-    Localized and internationalized message formatting using the
-    ICU message format integrated with the ex_cldr family supporting
-    over 700 locales
+    Localized and internationalized message formatting using
+    Unicode MessageFormat 2 (MF2) and legacy ICU Message Format,
+    integrated with the ex_cldr family supporting over 700 locales
     """
   end
 

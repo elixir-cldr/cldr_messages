@@ -291,6 +291,21 @@ defmodule Cldr.Message do
 
   defp normalize_bindings(bindings), do: bindings
 
+  @doc """
+  Formats a message and returns the result or raises on error.
+
+  Same as `format/3` but returns the formatted string directly
+  or raises an exception.
+
+  ## Examples
+
+      iex> Cldr.Message.format! "{greeting} to you!", greeting: "Good morning"
+      "Good morning to you!"
+
+      iex> Cldr.Message.format! "{{Hello, world!}}"
+      "Hello, world!"
+
+  """
   @spec format!(String.t(), bindings(), options()) :: String.t() | no_return
 
   def format!(message, args \\ [], options \\ []) when is_binary(message) do
@@ -335,12 +350,12 @@ defmodule Cldr.Message do
     are permitted. Positional arguments are in the format
     `{0}` in the message. The default is `true`.
 
-  * All other aptions are passed to the `to_string/2`
+  * All other options are passed to the `to_string/2`
     function of a formatting module.
 
   ## Returns
 
-  * `{:ok, formatted_mesasge}` or
+  * `{:ok, formatted_message}` or
 
   * `{:error, {module, reason}}`
 
@@ -416,6 +431,9 @@ defmodule Cldr.Message do
       {:ok, 0.9824561403508771}
 
   """
+  @spec jaro_distance(String.t(), String.t(), Keyword.t()) ::
+          {:ok, float()} | {:error, {module(), String.t()}}
+
   def jaro_distance(message1, message2, options \\ []) do
     with {:ok, message1} <- maybe_trim(message1, options[:trim]),
          {:ok, message2} <- maybe_trim(message2, options[:trim]),
@@ -465,6 +483,8 @@ defmodule Cldr.Message do
       0.9824561403508771
 
   """
+  @spec jaro_distance!(String.t(), String.t(), Keyword.t()) :: float() | no_return
+
   def jaro_distance!(message1, message2, options \\ []) do
     case jaro_distance(message1, message2, options) do
       {:ok, distance} -> distance
@@ -508,6 +528,9 @@ defmodule Cldr.Message do
       {:ok, "{greeting} to you!"}
 
   """
+  @spec canonical_message(String.t(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, {module(), String.t()}}
+
   def canonical_message(message, options \\ []) do
     options = Keyword.put_new(options, :trim, true)
     version = Keyword.get(options, :version, detect_version(message))
@@ -563,6 +586,8 @@ defmodule Cldr.Message do
       "{greeting} to you!"
 
   """
+  @spec canonical_message!(String.t(), Keyword.t()) :: String.t() | no_return
+
   def canonical_message!(message, options \\ []) do
     case canonical_message(message, options) do
       {:ok, message} -> message
@@ -590,6 +615,9 @@ defmodule Cldr.Message do
        ["variable"]
 
   """
+  @spec bindings(String.t() | list() | map()) ::
+          list(String.t()) | {:error, {module(), String.t()}}
+
   def bindings(message) when is_binary(message) do
     with {:ok, parsed} <- Cldr.Message.V1.Parser.parse(message) do
       bindings(parsed)

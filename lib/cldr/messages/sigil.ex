@@ -41,7 +41,10 @@ defmodule Cldr.Message.Sigil do
   The modifier `u` can be applied to return
   a non-pretty-printed string.
 
-  ## Modifi
+  ## Modifiers
+
+  * `p` (default) - pretty-print the message with indentation
+  * `u` - return a non-pretty-printed (compact) string
 
   ## Examples
 

@@ -10,7 +10,7 @@
 ```elixir
 def deps do
   [
-    {:ex_cldr_messages, "~> 1.0"}
+    {:ex_cldr_messages, "~> 2.0"}
   ]
 end
 ```
@@ -157,11 +157,11 @@ end
 
 ## Deviations from ICU MF2
 
-The Elixir MF2 implementation has been validated against the ICU4C reference implementation (via NIF) using the official MF2 test suite. Across 119 test cases, 63% produce identical output. The known deviations are:
+The Elixir MF2 implementation has been validated against the ICU4C reference implementation (via NIF) using the official MF2 test suite. The remaining known deviations are:
 
 ### Markup Rendering
 
-The Elixir interpreter renders MF2 markup nodes as HTML-like tags (e.g. `<bold>text</bold>`), while the ICU4C reference implementation silently drops all markup from the output. Neither behaviour is mandated by the MF2 specification, which leaves markup handling to the implementation.
+The MF2 specification does not prescribe how markup placeholders should appear in formatted string output. Both the Elixir interpreter and the ICU4C reference implementation produce empty string output for markup placeholders in `format-to-string` mode. Markup is structural metadata intended for `format-to-parts` APIs.
 
 ### Unbound Variable Fallback
 
@@ -179,7 +179,7 @@ Some MF2 number formatting options (e.g. `minimumFractionDigits`, `maximumFracti
 
 ### Unicode Normalization (NFC)
 
-The MF2 specification calls for NFC normalization of output text. The Elixir implementation does not currently apply NFC normalization, which can cause differences when messages contain pre-composed vs decomposed Unicode characters (e.g. `U+1E0C` vs `D` + `U+0323`).
+The Elixir implementation applies NFC normalization to variable names, literal values, and binding map keys per the MF2 specification. Pre-composed and decomposed Unicode characters (e.g. `U+1E0C` vs `D` + `U+0323`) are treated as equivalent when used as variable names or match keys.
 
 ### Unknown / Custom Functions
 
@@ -189,9 +189,9 @@ When a message references a function not known to the implementation:
 
 - **Elixir**: produces an empty string
 
-### Literal / Number Ambiguity
+### Exponential Number Literals
 
-Edge cases involving numeric-looking literals (e.g. `0E1`, `1E+2`) may be interpreted differently between the two implementations. These are uncommon in real-world messages.
+Bare number literal expressions (e.g. `{0e1}`, `{1E+2}`) are output as-is in their original string form. When used with the `:number` function, they are parsed and formatted as numbers.
 
 ## ICU NIF Backend
 
@@ -320,12 +320,18 @@ When the message has already been parsed (e.g. at compile time or cached), the E
 
 As of [Gettext 0.19](https://hex.pm/packages/gettext/0.19.0), `Gettext` supports user-defined [interpolation modules](https://hexdocs.pm/gettext/Gettext.html#module-backend-configuration). This makes it easy to combine ICU message formats with the broad `gettext` ecosystem and the inbuilt support for `gettext` in [Phoenix](https://hex.pm/packages/phoenix).
 
-1. A Gettext backend module should use the `:interpolation` option referring to the `ex_cldr_messages` backend you have defined.
-2. The message format uses ICU message format syntax (instead of Gettext's `%{variable}` format).
+Two interpolation modules are available:
+
+| Module | Description |
+|---|---|
+| `Cldr.Gettext.Interpolation` | Legacy v1 messages only |
+| `Cldr.Gettext.Interpolation.V2` | Both v1 and v2 messages with auto-detection. Compiles as V2 first, falls back to V1. |
+
+For new projects, `Cldr.Gettext.Interpolation.V2` is recommended as it handles both formats transparently.
 
 ### Defining a Gettext Interpolation Module
 
-Any [ex_cldr](https://hex.pm/packages/ex_cldr) [backend module](https://hexdocs.pm/ex_cldr/readme.html#backend-module-configuration) that has a `Cldr.Message` provider configured can be used as an interpolation module. Here is an example:
+Any [ex_cldr](https://hex.pm/packages/ex_cldr) [backend module](https://hexdocs.pm/ex_cldr/readme.html#backend-module-configuration) that has a `Cldr.Message` provider configured can be used as an interpolation module. Here is an example using the V2 interpolation module:
 ```elixir
 defmodule MyApp.Cldr do
   use Cldr,
@@ -339,7 +345,7 @@ defmodule MyApp.Cldr do
 end
 
 defmodule MyApp.Gettext.Interpolation do
-  use Cldr.Gettext.Interpolation, cldr_backend: MyApp.Cldr
+  use Cldr.Gettext.Interpolation.V2, cldr_backend: MyApp.Cldr
 end
 
 defmodule MyApp.Gettext do
@@ -350,14 +356,16 @@ defmodule MyApp do
   use Gettext, backend: MyApp.Gettext
 
   def my_module do
+    # V1 messages work as before
     gettext("Created at {created_at}", created_at: ~D[2022-01-22])
+
+    # V2 messages are auto-detected
+    gettext("{{Hello, {$name}!}}", %{"name" => "World"})
   end
 end
 ```
 
-Now you can proceed to use `Gettext` in the normal manner, most typically with the `gettext/3` macro.
-
-Note: Gettext integration currently uses legacy ICU Message Format (v1) only.
+Now you can proceed to use `Gettext` in the normal manner, most typically with the `gettext/3` macro. Both v1 and v2 messages can coexist in the same `.POT` files.
 
 ## Message Format 1 (Supported but Deprecated)
 
