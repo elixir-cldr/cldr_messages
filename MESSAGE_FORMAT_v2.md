@@ -51,11 +51,11 @@ Variable names follow MF2 naming rules: they start with a letter, `_`, or `+`, f
 When formatting, bindings can be provided as a map with string keys or atom keys:
 
 ```elixir
-iex> Cldr.Message.format!("{{Hello, {$name}!}}", %{"name" => "Alice"})
-"Hello, Alice!"
+iex> Cldr.Message.format("{{Hello, {$name}!}}", %{"name" => "Alice"})
+{:ok, "Hello, Alice!"}
 
-iex> Cldr.Message.format!("{{Hello, {$name}!}}", [name: "Alice"])
-"Hello, Alice!"
+iex> Cldr.Message.format("{{Hello, {$name}!}}", [name: "Alice"])
+{:ok, "Hello, Alice!"}
 ```
 
 ## Literals
@@ -372,15 +372,15 @@ MF2 supports markup elements for structured output. Markup nodes are parsed but 
 ### Open and Close Tags
 
 ```elixir
-iex> Cldr.Message.format!("{{Click {#link}here{/link} to continue.}}", %{})
-"Click here to continue."
+iex> Cldr.Message.format("{{Click {#link}here{/link} to continue.}}", %{})
+{:ok, "Click here to continue."}
 ```
 
 ### Self-Closing Tags
 
 ```elixir
-iex> Cldr.Message.format!("{{An image: {#img src=|photo.jpg| /}}}", %{})
-"An image: "
+iex> Cldr.Message.format("{{An image: {#img src=|photo.jpg| /}}}", %{})
+{:ok, "An image: "}
 ```
 
 ### Markup with Options and Attributes
@@ -435,116 +435,116 @@ All examples below use the `en-US` locale (the default) and have been validated 
 ### Simple Greeting
 
 ```elixir
-iex> Cldr.Message.format!("{{Hello, {$name}!}}", %{"name" => "World"})
-"Hello, World!"
+iex> Cldr.Message.format("{{Hello, {$name}!}}", %{"name" => "World"})
+{:ok, "Hello, World!"}
 ```
 
 ### Simple Message (no `{{ }}` wrapper)
 
 ```elixir
-iex> Cldr.Message.format!("Hello, {$name}!", %{"name" => "World"})
-"Hello, World!"
+iex> Cldr.Message.format("Hello, {$name}!", %{"name" => "World"})
+{:ok, "Hello, World!"}
 ```
 
 ### Number Formatting
 
 ```elixir
-iex> Cldr.Message.format!(~S"""
+iex> Cldr.Message.format(~S"""
 ...> .input {$count :number}
 ...> {{You have {$count} items in your cart.}}
 ...> """, %{"count" => 1234})
-"You have 1,234 items in your cart."
+{:ok, "You have 1,234 items in your cart."}
 ```
 
 ### Number Options
 
 ```elixir
-iex> Cldr.Message.format!("{{{$n :number minimumFractionDigits=2}}}", %{"n" => 42})
-"42.00"
+iex> Cldr.Message.format("{{{$n :number minimumFractionDigits=2}}}", %{"n" => 42})
+{:ok, "42.00"}
 
-iex> Cldr.Message.format!("{{{$n :number maximumFractionDigits=2}}}", %{"n" => 3.14159})
-"3.14"
+iex> Cldr.Message.format("{{{$n :number maximumFractionDigits=2}}}", %{"n" => 3.14159})
+{:ok, "3.14"}
 
-iex> Cldr.Message.format!("{{{$n :number useGrouping=never}}}", %{"n" => 12345})
-"12345"
+iex> Cldr.Message.format("{{{$n :number useGrouping=never}}}", %{"n" => 12345})
+{:ok, "12345"}
 ```
 
 ### Integer Formatting
 
 ```elixir
-iex> Cldr.Message.format!("{{{$n :integer}}}", %{"n" => 4.7})
-"4"
+iex> Cldr.Message.format("{{{$n :integer}}}", %{"n" => 4.7})
+{:ok, "4"}
 ```
 
 ### Percent Formatting
 
 ```elixir
-iex> Cldr.Message.format!("{{{$ratio :percent}}}", %{"ratio" => 0.85})
-"85%"
+iex> Cldr.Message.format("{{{$ratio :percent}}}", %{"ratio" => 0.85})
+{:ok, "85%"}
 ```
 
 ### Date Formatting
 
 ```elixir
-iex> Cldr.Message.format!("{|2006-01-02| :date}", %{})
-"Jan 2, 2006"
+iex> Cldr.Message.format("{|2006-01-02| :date}", %{})
+{:ok, "Jan 2, 2006"}
 
-iex> Cldr.Message.format!("{|2006-01-02| :date length=long}", %{})
-"January 2, 2006"
+iex> Cldr.Message.format("{|2006-01-02| :date length=long}", %{})
+{:ok, "January 2, 2006"}
 
-iex> Cldr.Message.format!("{|2006-01-02| :date style=short}", %{})
-"1/2/06"
+iex> Cldr.Message.format("{|2006-01-02| :date style=short}", %{})
+{:ok, "1/2/06"}
 ```
 
 ### Time Formatting
 
 ```elixir
-iex> Cldr.Message.format!("{|2006-01-02T15:04:06| :time}", %{})
-"3:04:06 PM"
+iex> Cldr.Message.format("{|2006-01-02T15:04:06| :time}", %{})
+{:ok, "3:04:06 PM"}
 ```
 
 ### Datetime Formatting
 
 ```elixir
-iex> Cldr.Message.format!("{|2006-01-02T15:04:06| :datetime}", %{})
-"Jan 2, 2006, 3:04:06 PM"
+iex> Cldr.Message.format("{|2006-01-02T15:04:06| :datetime}", %{})
+{:ok, "Jan 2, 2006, 3:04:06 PM"}
 
-iex> Cldr.Message.format!(
+iex> Cldr.Message.format(
 ...>   "{|2006-01-02T15:04:06| :datetime dateStyle=long timeStyle=short}",
 ...>   %{}
 ...> )
-"January 2, 2006, 3:04 PM"
+{:ok, "January 2, 2006, 3:04 PM"}
 ```
 
 ### Plural Selection
 
 ```elixir
-iex> Cldr.Message.format!(~S"""
+iex> Cldr.Message.format(~S"""
 ...> .input {$count :number}
 ...> .match $count
 ...>   0 {{Your cart is empty.}}
 ...>   1 {{You have one item in your cart.}}
 ...>   * {{You have {$count} items in your cart.}}
 ...> """, %{"count" => 3})
-"You have 3 items in your cart."
+{:ok, "You have 3 items in your cart."}
 ```
 
 ### Local Variable Binding
 
 ```elixir
-iex> Cldr.Message.format!(~S"""
+iex> Cldr.Message.format(~S"""
 ...> .input {$first :string}
 ...> .input {$last :string}
 ...> .local $greeting = {|Welcome|}
 ...> {{Dear {$first} {$last}, {$greeting}!}}
 ...> """, %{"first" => "Jane", "last" => "Doe"})
-"Dear Jane Doe, Welcome!"
+{:ok, "Dear Jane Doe, Welcome!"}
 ```
 
 ### Gender and Plural Selection
 
 ```elixir
-iex> Cldr.Message.format!(~S"""
+iex> Cldr.Message.format(~S"""
 ...> .input {$gender :string}
 ...> .input {$count :integer}
 ...> .match $gender $count
@@ -555,7 +555,7 @@ iex> Cldr.Message.format!(~S"""
 ...>   female * {{She bought {$count} items.}}
 ...>   * * {{They bought {$count} items.}}
 ...> """, %{"gender" => "female", "count" => 3})
-"She bought 3 items."
+{:ok, "She bought 3 items."}
 ```
 
 ## Specification Compliance
@@ -608,14 +608,24 @@ The Elixir implementation has been validated against the ICU4C reference impleme
 
 Both the Elixir implementation and ICU4C render markup nodes as empty strings. The MF2 specification does not mandate a particular string output for markup — it is left to the implementation.
 
+#### Error Handling
+
+`Cldr.Message.format/3` returns `{:ok, string}` on success. On failure, it returns `{:error, {module, reason}}` where the module indicates the error type:
+
+* `{:error, {Cldr.Message.ParseError, reason}}` — the message could not be parsed.
+
+* `{:error, {Cldr.Message.BindError, reason}}` — a referenced variable has no binding.
+
+* `{:error, {Cldr.Message.FormatError, reason}}` — a value could not be formatted by the requested function (e.g., a string passed to `:number`, an invalid unit name, or an unknown numbering system).
+
+`Cldr.Message.format!/3` raises the corresponding exception on error.
+
 #### Unbound Variable Fallback
 
 When a variable is referenced but no binding is provided:
 
 - **ICU4C**: produces a fallback string `{$variableName}`
-- **Elixir**: produces an empty string and tracks the unbound variable in the return metadata
-
-The Elixir implementation returns unbound variable information programmatically via the `{:error, iolist, bound, unbound}` return tuple, allowing callers to handle missing bindings as they see fit.
+- **Elixir**: returns `{:error, {Cldr.Message.BindError, reason}}` with details of which variables were unbound
 
 #### Supported Number Formatting Options
 
