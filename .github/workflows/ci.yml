@@ -100,7 +100,7 @@ jobs:
     # Step: Execute the test with the NIF
     - name: Run tests with NIF
       env:
-        CLDR_TRANSFORM_NIF: true
+        CLDR_MESSAGES_MF2_NIF: true
       run: mix test
       
     # Step: Run dialyzer
