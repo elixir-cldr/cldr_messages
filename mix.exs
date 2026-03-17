@@ -1,13 +1,13 @@
 defmodule Cldr.Messages.MixProject do
   use Mix.Project
 
-  @version "1.0.4"
+  @version "2.0.0"
 
   def project do
     [
       app: :ex_cldr_messages,
       version: @version,
-      elixir: "~> 1.11",
+      elixir: "~> 1.12",
       name: "Cldr Messages",
       source_url: "https://github.com/elixir-cldr/cldr_messages",
       docs: docs(),
@@ -73,7 +73,8 @@ defmodule Cldr.Messages.MixProject do
         "mix.exs",
         "README*",
         "CHANGELOG*",
-        "LICENSE*"
+        "LICENSE*",
+        "MESSAGE_FORMAT*"
       ]
     ]
   end
@@ -95,7 +96,8 @@ defmodule Cldr.Messages.MixProject do
         "README.md",
         "LICENSE.md",
         "CHANGELOG.md",
-        "MESSAGE_FORMAT.md"
+        "MESSAGE_FORMAT_v2.md",
+        "MESSAGE_FORMAT_v1.md"
       ],
       groups_for_modules: groups_for_modules(),
       skip_undefined_reference_warnings_on: ["changelog", "CHANGELOG.md", "README.md"]
