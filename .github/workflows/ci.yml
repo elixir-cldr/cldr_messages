@@ -35,10 +35,7 @@ jobs:
           - otp: "28.3.1"
             elixir: "1.20.0-rc.1-otp-28"
             lint: true
-    steps:        
-    - name: Install build tools and ICU
-      run: "sudo apt-get update; sudo apt-get install -y build-essential gcc pkg-config libicu-dev"
-        
+    steps:
     # Step: Setup Elixir + Erlang image as the base.
     - name: Set up Elixir
       uses: erlef/setup-beam@v1
@@ -97,11 +94,12 @@ jobs:
     - name: Run tests without NIF
       run: mix test
 
-    # Step: Execute the test with the NIF
-    - name: Run tests with NIF
-      env:
-        CLDR_MESSAGES_MF2_NIF: true
-      run: mix test
+    # Step: Execute the tests with the NIF (requires ICU 75+ with MF2 support)
+    # Ubuntu's libicu-dev does not yet ship ICU 75+, so skip the NIF tests for now.
+    # - name: Run tests with NIF
+    #   env:
+    #     CLDR_MESSAGES_MF2_NIF: true
+    #   run: mix test
       
     # Step: Run dialyzer
     - name: Run dialyzer
