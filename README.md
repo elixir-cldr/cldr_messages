@@ -41,7 +41,7 @@ The provider `Cldr.Number` is required. All other providers are optional but if 
 
 ## MessageFormat 2
 
-MF2 messages use declarations (`.input`, `.local`) to bind and transform variables, `{{` quoted patterns `}}` for output, and `.match` for pattern matching on selectors.
+MF2 messages use declarations (`.input`, `.local`) to bind and transform variables, `{{` quoted patterns `}}` for output, and `.match` for pattern matching on selectors. See the [Syntax and Usage guide](message_format_v2.html) for full details of the syntax, functions and options.
 
 ### Simple Messages
 
@@ -163,6 +163,10 @@ The Elixir MF2 implementation has been validated against the ICU4C reference imp
 
 The MF2 specification does not prescribe how markup placeholders should appear in formatted string output. Both the Elixir interpreter and the ICU4C reference implementation produce empty string output for markup placeholders in `format-to-string` mode. Markup is structural metadata intended for `format-to-parts` APIs.
 
+### Variable Name Case Sensitivity
+
+Variable names are case sensitive. `$name` and `$Name` are different variables and require separate bindings.
+
 ### Unbound Variable Fallback
 
 When a variable is referenced but no binding is provided:
@@ -173,7 +177,7 @@ When a variable is referenced but no binding is provided:
 
 ### Number Formatting Options
 
-MF2 number formatting options (`minimumFractionDigits`, `maximumFractionDigits`, `useGrouping`, `numberingSystem`) are mapped to their `ex_cldr_numbers` equivalents. See `MESSAGE_FORMAT_v2.md` for full details on supported options.
+MF2 number formatting options (`minimumFractionDigits`, `maximumFractionDigits`, `useGrouping`, `numberingSystem`) are mapped to their `ex_cldr_numbers` equivalents. See the [Syntax and Usage guide](message_format_v2.html) for full details on supported options.
 
 ### Unicode Normalization (NFC)
 

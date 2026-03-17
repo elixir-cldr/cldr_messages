@@ -21,6 +21,28 @@ defmodule Cldr.Message do
   Detects whether a message string is MF2 (`:v2`) or legacy ICU (`:v1`).
 
   MF2 messages start with `.` (declarations/matcher) or `{{` (quoted pattern).
+
+  ### Arguments
+
+  * `message` is an ICU message string.
+
+  ### Returns
+
+  * `:v1` if the message is a legacy ICU Message Format string.
+
+  * `:v2` if the message is an MF2 message.
+
+  ### Examples
+
+      iex> Cldr.Message.detect_version("Hello {name}")
+      :v1
+
+      iex> Cldr.Message.detect_version("{{Hello, world!}}")
+      :v2
+
+      iex> Cldr.Message.detect_version(".input {$count :number}\\n.match $count\\n  1 {{one}}\\n  * {{other}}")
+      :v2
+
   """
   @spec detect_version(String.t()) :: :v1 | :v2
   def detect_version(message) when is_binary(message) do
@@ -62,6 +84,11 @@ defmodule Cldr.Message do
 
   * A translated string.
 
+  ## Examples
+
+      import MyApp.Gettext
+      Cldr.Message.t("{greeting} to you!")
+
   """
   defmacro t(message) when is_binary(message) do
     caller = __CALLER__.module
@@ -95,6 +122,11 @@ defmodule Cldr.Message do
   ## Returns
 
   * A translated string.
+
+  ## Examples
+
+      import MyApp.Gettext
+      Cldr.Message.t("{greeting} to you!", greeting: "Good morning")
 
   """
   defmacro t(message, bindings) when is_binary(message) do

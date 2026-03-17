@@ -1,4 +1,8 @@
-# ICU Message Specification
+# ICU Message Format Syntax and Usage
+
+> Note that the ICU Message format implentation is supported but deprecated.
+> [Unicode MessageFormat 2 (MF2)](https://unicode.org/reports/tr35/tr35-messageFormat.html)
+> is now the preferred approach.
 
 Messages are user-visible strings, often with variable elements like names,
 numbers and dates. Message strings are typically translated into the different

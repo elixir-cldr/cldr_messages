@@ -46,6 +46,10 @@ Variables are prefixed with `$` and refer to values passed as bindings at format
 {$count :number}
 ```
 
+> #### Variable names {: .tip}
+>
+> Variable names are case sensitive: `$name` and `$Name` are different variables.
+
 Variable names follow MF2 naming rules: they start with a letter, `_`, or `+`, followed by letters, digits, `-`, or `.`.
 
 When formatting, bindings can be provided as a map with string keys or atom keys:
@@ -120,10 +124,18 @@ Functions transform or format values. They are invoked with `:functionName` synt
 
 ### `:string`
 
-String coercion. Passes the value through as a string.
+String coercion. Converts the value to a string representation. Numbers, atoms, and other types that implement the `String.Chars` protocol are coerced to their string form.
 
 ```
 {$name :string}
+```
+
+```elixir
+iex> Cldr.Message.format("{{The answer is {$x :string}.}}", %{"x" => 42}, formatter_backend: :elixir)
+{:ok, "The answer is 42."}
+
+iex> Cldr.Message.format("{{Status: {$flag :string}}}", %{"flag" => true}, formatter_backend: :elixir)
+{:ok, "Status: true"}
 ```
 
 ### `:number`
@@ -133,9 +145,20 @@ Locale-aware number formatting using `Cldr.Number`.
 ```
 {$count :number}
 {$price :number minimumFractionDigits=2}
+{$total :number minimumFractionDigits=1 maximumFractionDigits=4}
+{$plain :number useGrouping=never}
+{$arabic :number numberingSystem=arab}
 ```
 
-**Options**: `minimumFractionDigits`, `maximumFractionDigits`, `useGrouping`, `style` and other CLDR number formatting options.
+| Option | Values | Description |
+|--------|--------|-------------|
+| `minimumFractionDigits` | integer (e.g., `2`) | Minimum decimal places — pads with trailing zeros. |
+| `maximumFractionDigits` | integer (e.g., `4`) | Maximum decimal places — rounds or truncates beyond this. |
+| `useGrouping` | `auto` (default), `always`, `min2`, `never` | Controls grouping separators (e.g., commas). `never` suppresses them. `min2` groups only when 2+ digits in the highest group. |
+| `numberingSystem` | `latn` (default), `arab`, `deva`, etc. | Selects a numbering system. Must be valid for the locale. |
+| `select` | `plural` (default), `ordinal`, `exact` | Controls `.match` key resolution: `plural` uses cardinal plural categories, `ordinal` uses ordinal categories, `exact` uses literal value matching only. |
+
+These options also apply to `:integer`, `:percent`, `:currency`, and `:unit` functions.
 
 ### `:integer`
 
@@ -604,9 +627,23 @@ The MF2 specification defines a [default function registry](https://unicode.org/
 
 The Elixir implementation has been validated against the ICU4C reference implementation (via NIF) using the official MF2 conformance test suite. Across 119 comparable test cases, 100% produce identical output.
 
+Cross-locale testing across en, fr, ja, he, th, ar, and de confirms both implementations produce identical output for `:number` and `:integer` formatting, including locale-specific grouping separators and decimal separators.
+
+#### Function Support
+
+The ICU4C NIF supports `:number`, `:integer`, `:string`, `:date`, `:time`, and `:datetime`. The Elixir implementation additionally supports `:percent`, `:currency`, and `:unit` as extended functions. When the NIF encounters an unsupported function (e.g., `:percent`, `:currency`), it produces a fallback string like `{$variableName}`.
+
 #### Markup Handling
 
 Both the Elixir implementation and ICU4C render markup nodes as empty strings. The MF2 specification does not mandate a particular string output for markup — it is left to the implementation.
+
+#### `:string` Coercion
+
+The Elixir implementation coerces non-string values (numbers, booleans, atoms) to their string representation when using the `:string` function. The ICU4C NIF does not coerce and returns an empty string for non-string values.
+
+#### Date/Time Default Style
+
+The Elixir implementation defaults to `:medium` style for `:date`, `:time`, and `:datetime` formatting. The ICU4C NIF defaults to `:short` style. This means the Elixir implementation produces more detailed output by default (e.g., "Mar 15, 2024" vs "3/15/24" for English dates, "15 mars 2024" vs "15/03/2024" for French dates).
 
 #### Error Handling
 
