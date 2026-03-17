@@ -27,6 +27,7 @@ defmodule Cldr.Formatter.Plugin do
   def format(contents, opts) do
     opts = Keyword.put_new(opts, :pretty, true)
     formatted = Cldr.Message.canonical_message!(contents, opts)
+
     if String.ends_with?(contents, "\n") do
       formatted <> "\n"
     else

@@ -139,8 +139,7 @@ defmodule Cldr.Message.V2.ParserTest do
     end
 
     test "markup with options" do
-      assert {:ok,
-              [{:markup_standalone, "img", [{:option, "src", {:literal, "photo.jpg"}}], []}]} =
+      assert {:ok, [{:markup_standalone, "img", [{:option, "src", {:literal, "photo.jpg"}}], []}]} =
                Parser.parse("{#img src=|photo.jpg| /}")
     end
 
@@ -220,8 +219,10 @@ defmodule Cldr.Message.V2.ParserTest do
       assert length(selectors) == 2
       assert length(variants) == 2
 
-      assert [{:variant, [{:literal, "female"}, {:number_literal, "1"}], _},
-              {:variant, [:catchall, :catchall], _}] = variants
+      assert [
+               {:variant, [{:literal, "female"}, {:number_literal, "1"}], _},
+               {:variant, [:catchall, :catchall], _}
+             ] = variants
     end
   end
 

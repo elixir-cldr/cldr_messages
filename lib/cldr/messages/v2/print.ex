@@ -103,11 +103,13 @@ defmodule Cldr.Message.V2.Print do
   defp operand_to_iolist({:number_literal, value}), do: [value]
 
   defp func_to_iolist(nil), do: []
+
   defp func_to_iolist({:function, name, opts}) do
     [" :", identifier_to_iolist(name), options_to_iolist(opts)]
   end
 
   defp options_to_iolist([]), do: []
+
   defp options_to_iolist(opts) do
     Enum.map(opts, fn {:option, name, value} ->
       [" ", name, "=", value_to_iolist(value)]
@@ -115,6 +117,7 @@ defmodule Cldr.Message.V2.Print do
   end
 
   defp attrs_to_iolist([]), do: []
+
   defp attrs_to_iolist(attrs) do
     Enum.map(attrs, fn
       {:attribute, name, nil} -> [" @", name]

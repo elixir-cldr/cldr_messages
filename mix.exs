@@ -21,7 +21,8 @@ defmodule Cldr.Messages.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore_warnings",
-        plt_add_apps: ~w(inets jason mix cldr_utils decimal ex_cldr ex_cldr_numbers ex_cldr_units
+        plt_add_apps:
+          ~w(inets jason mix cldr_utils decimal ex_cldr ex_cldr_numbers ex_cldr_units
           ex_cldr_currencies ex_cldr_dates_times ex_cldr_calendars ex_cldr_lists ex_money gettext)a
       ],
       compilers: maybe_elixir_make() ++ Mix.compilers(),
@@ -50,7 +51,6 @@ defmodule Cldr.Messages.MixProject do
       {:ex_money, "~> 5.9", optional: true},
       {:ex_cldr_units, "~> 3.18", optional: true},
       {:ex_cldr_lists, "~> 2.10", optional: true},
-
       {:elixir_make, "~> 0.4", runtime: false, optional: true},
       {:nimble_parsec, "~> 1.0"},
       {:jason, "~> 1.1"},

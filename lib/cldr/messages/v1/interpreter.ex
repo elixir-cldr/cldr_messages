@@ -515,5 +515,4 @@ defmodule Cldr.Message.V1.Interpreter do
   def configured_message_format(format, backend) do
     Module.concat(backend, :Message).configured_message_format(format)
   end
-
 end

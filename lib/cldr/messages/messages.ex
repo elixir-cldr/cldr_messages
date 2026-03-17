@@ -242,9 +242,9 @@ defmodule Cldr.Message do
       :nif ->
         unless V2.Nif.available?() do
           raise RuntimeError,
-            "NIF formatter backend requested but not available. " <>
-            "Compile with CLDR_MESSAGES_MF2_NIF=true or set " <>
-            "`config :ex_cldr_messages, :mf2_nif, true` in config.exs."
+                "NIF formatter backend requested but not available. " <>
+                  "Compile with CLDR_MESSAGES_MF2_NIF=true or set " <>
+                  "`config :ex_cldr_messages, :mf2_nif, true` in config.exs."
         end
 
         {:nif, rest}

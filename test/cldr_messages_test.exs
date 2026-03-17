@@ -290,7 +290,7 @@ defmodule Cldr_Messages_Test do
              {:ok, "first jab date"}
 
     assert Cldr.Message.format("{ordering,number,ordinal} jab date", ordering: 1) ==
-            {:ok, "1st jab date"}
+             {:ok, "1st jab date"}
   end
 
   test "Binding syntax escaping is correct" do

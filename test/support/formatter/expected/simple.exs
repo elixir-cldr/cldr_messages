@@ -1,5 +1,5 @@
-~M"It's my cat's {year, selectordinal,
-  few {#rd}
+~M"It''s my cat''s {year, selectordinal,
   one {#st}
-  other {#th}
-  two {#nd}} birthday!"
+  two {#nd}
+  few {#rd}
+  other {#th}} birthday!"

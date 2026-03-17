@@ -50,10 +50,14 @@ defmodule Cldr.Message.V2.Parser.Combinator do
   # text-char: omit NULL, \, {, }
   def text_char do
     utf8_char([
-      0x01..0x5B,       # omit NULL (%x00) and \ (%x5C)
-      0x5D..0x7A,       # omit { (%x7B)
-      0x7C,             # include |
-      0x7E..0x10FFFF    # omit } (%x7D)
+      # omit NULL (%x00) and \ (%x5C)
+      0x01..0x5B,
+      # omit { (%x7B)
+      0x5D..0x7A,
+      # include |
+      0x7C,
+      # omit } (%x7D)
+      0x7E..0x10FFFF
     ])
   end
 
@@ -63,20 +67,28 @@ defmodule Cldr.Message.V2.Parser.Combinator do
       0x01..0x08,
       0x0B..0x0C,
       0x0E..0x1F,
-      0x21..0x2D,       # omit . (%x2E)
-      0x2F..0x5B,       # omit \ (%x5C)
-      0x5D..0x7A,       # omit { (%x7B)
-      0x7C,             # include |
-      0x7E..0x2FFF,     # omit } (%x7D)
-      0x3001..0x10FFFF  # omit ideographic space (%x3000)
+      # omit . (%x2E)
+      0x21..0x2D,
+      # omit \ (%x5C)
+      0x2F..0x5B,
+      # omit { (%x7B)
+      0x5D..0x7A,
+      # include |
+      0x7C,
+      # omit } (%x7D)
+      0x7E..0x2FFF,
+      # omit ideographic space (%x3000)
+      0x3001..0x10FFFF
     ])
   end
 
   # quoted-char: omit NULL, \, |
   def quoted_char do
     utf8_char([
-      0x01..0x5B,       # omit NULL and \
-      0x5D..0x7B,       # omit | (%x7C)
+      # omit NULL and \
+      0x01..0x5B,
+      # omit | (%x7C)
+      0x5D..0x7B,
       0x7D..0x10FFFF
     ])
   end
@@ -86,9 +98,12 @@ defmodule Cldr.Message.V2.Parser.Combinator do
   # name-start = ALPHA / _ / + / <extended unicode>
   def name_start do
     utf8_char([
-      ?A..?Z, ?a..?z,
-      0x5F,             # _
-      0x2B,             # +
+      ?A..?Z,
+      ?a..?z,
+      # _
+      0x5F,
+      # +
+      0x2B,
       0xA1..0x61B,
       0x61D..0x167F,
       0x1681..0x1FFF,
@@ -559,9 +574,11 @@ defmodule Cldr.Message.V2.Parser.Combinator do
   # Process in forward order, build result in reverse (which is what
   # NimbleParsec expects as accumulator)
   defp coalesce_text_forward([], result), do: result
+
   defp coalesce_text_forward([{:text, t1}, {:text, t2} | rest], result) do
     coalesce_text_forward([{:text, t1 <> t2} | rest], result)
   end
+
   defp coalesce_text_forward([head | rest], result) do
     coalesce_text_forward(rest, [head | result])
   end

@@ -62,13 +62,13 @@ defmodule Cldr.Messages.GettextInterpolationtest do
   end
 
   test "Compile time interpolation for translation" do
-    Gettext.put_locale MyApp.Gettext, "fr"
-    Cldr.put_locale MyApp.Cldr, "fr"
+    Gettext.put_locale(MyApp.Gettext, "fr")
+    Cldr.put_locale(MyApp.Cldr, "fr")
 
     assert MyApp.Gettext.Use.translate_complex() == "Il est votre 2e jab"
 
-    Gettext.put_locale MyApp.Gettext, "en"
-    Cldr.put_locale MyApp.Cldr, "en"
+    Gettext.put_locale(MyApp.Gettext, "en")
+    Cldr.put_locale(MyApp.Cldr, "en")
   end
 
   test "datetime interpolation" do
@@ -76,21 +76,26 @@ defmodule Cldr.Messages.GettextInterpolationtest do
 
     with_no_default_backend(fn ->
       assert gettext("Created at {created_at}", created_at: ~D[2022-01-22]) ==
-        "Created at Jan 22, 2022"
+               "Created at Jan 22, 2022"
+
       assert gettext("Created at {created_at}", created_at: ~U[2022-01-22T09:43:56.0Z]) ==
-        "Created at Jan 22, 2022, 9:43:56 AM"
+               "Created at Jan 22, 2022, 9:43:56 AM"
+
       assert gettext("Created at {created_at}", created_at: ~T[09:43:56]) ==
-        "Created at 9:43:56 AM"
+               "Created at 9:43:56 AM"
     end)
   end
 
   test "unit interpolation" do
     use Gettext, backend: MyApp.Gettext
-    Cldr.put_locale MyApp.Cldr, "en"
+    Cldr.put_locale(MyApp.Cldr, "en")
 
     with_no_default_backend(fn ->
-      assert gettext("It weighs {weight}", weight: Cldr.Unit.new!("kilogram", 23)) == "It weighs 23 kilograms"
-      assert gettext("It weighs {weight, unit}", weight: Cldr.Unit.new!("kilogram", 23)) == "It weighs 23 kilograms"
+      assert gettext("It weighs {weight}", weight: Cldr.Unit.new!("kilogram", 23)) ==
+               "It weighs 23 kilograms"
+
+      assert gettext("It weighs {weight, unit}", weight: Cldr.Unit.new!("kilogram", 23)) ==
+               "It weighs 23 kilograms"
     end)
   end
 end

@@ -140,10 +140,14 @@ defmodule Cldr.Message.V2.Interpreter do
   defp resolve_variable(name, bindings) when is_map(bindings) do
     # Try string key first, then atom key
     cond do
-      Map.has_key?(bindings, name) -> {:ok, Map.get(bindings, name)}
+      Map.has_key?(bindings, name) ->
+        {:ok, Map.get(bindings, name)}
+
       atom_key_exists?(name) && Map.has_key?(bindings, String.to_existing_atom(name)) ->
         {:ok, Map.get(bindings, String.to_existing_atom(name))}
-      true -> :error
+
+      true ->
+        :error
     end
   end
 
@@ -361,9 +365,14 @@ defmodule Cldr.Message.V2.Interpreter do
 
   defp resolve_func_options(func_options) do
     Enum.reduce(func_options, %{}, fn
-      {:option, name, {:literal, value}}, acc -> Map.put(acc, String.to_atom(name), value)
-      {:option, name, {:number_literal, value}}, acc -> Map.put(acc, String.to_atom(name), parse_number(value))
-      {:option, name, {:variable, _} = _var}, acc -> Map.put(acc, String.to_atom(name), nil)
+      {:option, name, {:literal, value}}, acc ->
+        Map.put(acc, String.to_atom(name), value)
+
+      {:option, name, {:number_literal, value}}, acc ->
+        Map.put(acc, String.to_atom(name), parse_number(value))
+
+      {:option, name, {:variable, _} = _var}, acc ->
+        Map.put(acc, String.to_atom(name), nil)
     end)
   end
 
@@ -384,12 +393,15 @@ defmodule Cldr.Message.V2.Interpreter do
 
   defp parse_number(str) when is_binary(str) do
     case Integer.parse(str) do
-      {int, ""} -> int
+      {int, ""} ->
+        int
+
       {_, _} ->
         case Float.parse(str) do
           {float, ""} -> float
           _ -> str
         end
+
       :error ->
         case Float.parse(str) do
           {float, ""} -> float

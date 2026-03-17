@@ -24,7 +24,8 @@ defmodule Cldr.Message.V2.Parser do
          "Could not parse the remaining #{inspect(rest)} starting at position #{offset + 1}"}
 
       {:error, reason, rest, _, _, offset} ->
-        {:error, "#{reason}. Could not parse the remaining #{inspect(rest)} at position #{offset + 1}"}
+        {:error,
+         "#{reason}. Could not parse the remaining #{inspect(rest)} at position #{offset + 1}"}
     end
   end
 

@@ -5,7 +5,9 @@ if function_exported?(Mix.Tasks.Format, :formatter_for_file, 1) do
     use ExUnit.Case
 
     for input_filename <-
-          Path.wildcard(Application.app_dir(:ex_cldr_messages, "test/support/formatter/input/*.exs")) do
+          Path.wildcard(
+            Application.app_dir(:ex_cldr_messages, "test/support/formatter/input/*.exs")
+          ) do
       name = Path.basename(input_filename, ".exs")
 
       expected_filename =

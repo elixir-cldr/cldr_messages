@@ -10,6 +10,7 @@ defmodule Cldr.Message.V2.InterpreterValidationTest do
   # ── Helpers ───────────────────────────────────────────────────
 
   defp build_bindings(nil), do: %{}
+
   defp build_bindings(params) when is_list(params) do
     Map.new(params, fn %{"name" => name, "value" => value} -> {name, value} end)
   end
@@ -19,6 +20,7 @@ defmodule Cldr.Message.V2.InterpreterValidationTest do
 
     with {:ok, parsed} <- Parser.parse(src) do
       options = [backend: MyApp.Cldr, locale: locale]
+
       case Interpreter.format_list(parsed, bindings, options) do
         {:ok, iolist, _, _} -> {:ok, :erlang.iolist_to_binary(iolist)}
         {:error, iolist, _, _} -> {:ok, :erlang.iolist_to_binary(iolist)}
@@ -52,7 +54,9 @@ defmodule Cldr.Message.V2.InterpreterValidationTest do
     data
     |> Map.get("tests", [])
     |> Enum.with_index()
-    |> Enum.map(fn {test_case, index} -> Map.put(test_case, "_index", index) |> Map.put("_locale", locale) end)
+    |> Enum.map(fn {test_case, index} ->
+      Map.put(test_case, "_index", index) |> Map.put("_locale", locale)
+    end)
   end
 
   # ── Comprehensive validation report ───────────────────────────
@@ -88,6 +92,7 @@ defmodule Cldr.Message.V2.InterpreterValidationTest do
 
                 {{:ok, elixir_out}, {:ok, nif_out}} ->
                   jaro = String.jaro_distance(elixir_out, nif_out)
+
                   diff = %{
                     fixture: fixture_name,
                     index: index,
@@ -97,6 +102,7 @@ defmodule Cldr.Message.V2.InterpreterValidationTest do
                     expected: exp,
                     jaro: Float.round(jaro, 4)
                   }
+
                   {m_acc, [diff | d_acc], e_acc}
 
                 other ->
@@ -123,7 +129,11 @@ defmodule Cldr.Message.V2.InterpreterValidationTest do
       IO.puts("")
       IO.puts("Total test cases compared:  #{total}")
       IO.puts("  Exact matches:            #{length(matches)} (#{pct(length(matches), total)})")
-      IO.puts("  Differences:              #{length(differences)} (#{pct(length(differences), total)})")
+
+      IO.puts(
+        "  Differences:              #{length(differences)} (#{pct(length(differences), total)})"
+      )
+
       IO.puts("  Errors:                   #{length(errors)} (#{pct(length(errors), total)})")
       IO.puts("")
 
@@ -135,7 +145,10 @@ defmodule Cldr.Message.V2.InterpreterValidationTest do
 
           for diff <- Enum.take(diffs, 3) do
             IO.puts("    src: #{inspect(diff.src)}")
-            IO.puts("      Elixir: #{inspect(diff.elixir)}  ICU: #{inspect(diff.nif)}  Jaro: #{diff.jaro}")
+
+            IO.puts(
+              "      Elixir: #{inspect(diff.elixir)}  ICU: #{inspect(diff.nif)}  Jaro: #{diff.jaro}"
+            )
           end
 
           if length(diffs) > 3, do: IO.puts("    ... and #{length(diffs) - 3} more")
@@ -157,7 +170,7 @@ defmodule Cldr.Message.V2.InterpreterValidationTest do
       match_rate = length(matches) / max(total, 1) * 100
 
       assert match_rate > 50,
-        "Match rate too low: #{Float.round(match_rate, 1)}% (#{length(matches)}/#{total})"
+             "Match rate too low: #{Float.round(match_rate, 1)}% (#{length(matches)}/#{total})"
     end
   end
 
@@ -185,8 +198,8 @@ defmodule Cldr.Message.V2.InterpreterValidationTest do
 
         # Unicode normalization
         String.contains?(diff.src, <<0x1E0C::utf8>>) or
-        String.contains?(diff.src, <<0x0323::utf8>>) or
-        String.contains?(diff.src, <<0x0307::utf8>>) ->
+          String.contains?(diff.src, <<0x0323::utf8>>) or
+            String.contains?(diff.src, <<0x0307::utf8>>) ->
           "Unicode normalization (NFC)"
 
         # Literal name handling (e.g. 0E1 treated as name vs number)

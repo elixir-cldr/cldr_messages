@@ -4,7 +4,9 @@ defmodule Cldr.Message.Backend do
     backend = config.backend
     config = Macro.escape(config)
 
-    quote location: :keep, generated: true, bind_quoted: [module: module, backend: backend, config: config] do
+    quote location: :keep,
+          generated: true,
+          bind_quoted: [module: module, backend: backend, config: config] do
       defmodule Message do
         @moduledoc false
 
@@ -82,8 +84,8 @@ defmodule Cldr.Message.Backend do
         {:ok, :erlang.iolist_to_binary(iolist)}
 
       {:error, iolist, _bound, unbound} ->
-        {:missing_bindings, iolist |> prepare_print_literals() |> Cldr.Message.V1.Print.to_string(),
-         unbound}
+        {:missing_bindings,
+         iolist |> prepare_print_literals() |> Cldr.Message.V1.Print.to_string(), unbound}
     end
   end
 
@@ -94,8 +96,8 @@ defmodule Cldr.Message.Backend do
         {:ok, :erlang.iolist_to_binary(iolist)}
 
       {:error, iolist, _bound, unbound} ->
-        {:missing_bindings, iolist |> prepare_print_literals() |> Cldr.Message.V1.Print.to_string(),
-         unbound}
+        {:missing_bindings,
+         iolist |> prepare_print_literals() |> Cldr.Message.V1.Print.to_string(), unbound}
     end
   end
 
@@ -120,7 +122,8 @@ defmodule Cldr.Message.Backend do
   # V2 (MF2) Gettext interpolation — pre-parsed AST (compile time)
 
   @doc false
-  def gettext_interpolate_v2(parsed, bindings, options) when is_list(parsed) or is_tuple(parsed) do
+  def gettext_interpolate_v2(parsed, bindings, options)
+      when is_list(parsed) or is_tuple(parsed) do
     {locale, backend} = Cldr.locale_and_backend_from(options)
 
     v2_options =

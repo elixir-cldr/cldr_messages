@@ -79,7 +79,12 @@ defmodule Cldr.Gettext.Interpolation.V2 do
               {:ok, parsed_message} ->
                 quote do
                   options = [backend: unquote(backend), locale: Cldr.get_locale(unquote(backend))]
-                  Cldr.Message.Backend.gettext_interpolate(unquote(Macro.escape(parsed_message)), unquote(bindings), options)
+
+                  Cldr.Message.Backend.gettext_interpolate(
+                    unquote(Macro.escape(parsed_message)),
+                    unquote(bindings),
+                    options
+                  )
                 end
 
               {:error, {exception, reason}} ->
