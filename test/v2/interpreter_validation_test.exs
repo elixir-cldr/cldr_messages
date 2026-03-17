@@ -122,49 +122,51 @@ defmodule Cldr.Message.V2.InterpreterValidationTest do
       # ── Categorize differences ──────────────────────────────
       categories = categorize_differences(differences)
 
-      # ── Print report ────────────────────────────────────────
-      IO.puts("\n" <> String.duplicate("=", 70))
-      IO.puts("MF2 Interpreter Validation: Elixir vs ICU NIF")
-      IO.puts(String.duplicate("=", 70))
-      IO.puts("")
-      IO.puts("Total test cases compared:  #{total}")
-      IO.puts("  Exact matches:            #{length(matches)} (#{pct(length(matches), total)})")
+      if length(differences) > 0 do
+        # ── Print report ────────────────────────────────────────
+        IO.puts("\n" <> String.duplicate("=", 70))
+        IO.puts("MF2 Interpreter Validation: Elixir vs ICU NIF")
+        IO.puts(String.duplicate("=", 70))
+        IO.puts("")
+        IO.puts("Total test cases compared:  #{total}")
+        IO.puts("  Exact matches:            #{length(matches)} (#{pct(length(matches), total)})")
 
-      IO.puts(
-        "  Differences:              #{length(differences)} (#{pct(length(differences), total)})"
-      )
+        IO.puts(
+          "  Differences:              #{length(differences)} (#{pct(length(differences), total)})"
+        )
 
-      IO.puts("  Errors:                   #{length(errors)} (#{pct(length(errors), total)})")
-      IO.puts("")
+        IO.puts("  Errors:                   #{length(errors)} (#{pct(length(errors), total)})")
+        IO.puts("")
 
-      if differences != [] do
-        IO.puts("Difference categories:")
+        if differences != [] do
+          IO.puts("Difference categories:")
 
-        for {category, diffs} <- categories do
-          IO.puts("  #{category}: #{length(diffs)} cases")
+          for {category, diffs} <- categories do
+            IO.puts("  #{category}: #{length(diffs)} cases")
 
-          for diff <- Enum.take(diffs, 3) do
-            IO.puts("    src: #{inspect(diff.src)}")
+            for diff <- Enum.take(diffs, 3) do
+              IO.puts("    src: #{inspect(diff.src)}")
 
-            IO.puts(
-              "      Elixir: #{inspect(diff.elixir)}  ICU: #{inspect(diff.nif)}  Jaro: #{diff.jaro}"
-            )
+              IO.puts(
+                "      Elixir: #{inspect(diff.elixir)}  ICU: #{inspect(diff.nif)}  Jaro: #{diff.jaro}"
+              )
+            end
+
+            if length(diffs) > 3, do: IO.puts("    ... and #{length(diffs) - 3} more")
+            IO.puts("")
           end
 
-          if length(diffs) > 3, do: IO.puts("    ... and #{length(diffs) - 3} more")
-          IO.puts("")
+          avg_jaro =
+            differences
+            |> Enum.map(& &1.jaro)
+            |> then(fn jaros -> Enum.sum(jaros) / length(jaros) end)
+            |> Float.round(4)
+
+          IO.puts("Average Jaro similarity of differences: #{avg_jaro}")
         end
 
-        avg_jaro =
-          differences
-          |> Enum.map(& &1.jaro)
-          |> then(fn jaros -> Enum.sum(jaros) / length(jaros) end)
-          |> Float.round(4)
-
-        IO.puts("Average Jaro similarity of differences: #{avg_jaro}")
+        IO.puts(String.duplicate("=", 70))
       end
-
-      IO.puts(String.duplicate("=", 70))
 
       # ── Assert a reasonable match rate ──────────────────────
       match_rate = length(matches) / max(total, 1) * 100

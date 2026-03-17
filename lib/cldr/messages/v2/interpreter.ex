@@ -139,7 +139,7 @@ defmodule Cldr.Message.V2.Interpreter do
   defp format_expression(operand, func, bindings, options) do
     case resolve_operand(operand, bindings) do
       {:ok, value, bound_names} ->
-        formatted = apply_function(value, func, options)
+        formatted = apply_function(value, func, Keyword.put(options, :bindings, bindings))
         {:ok, formatted, bound_names}
 
       {:unbound, name} ->
@@ -192,7 +192,8 @@ defmodule Cldr.Message.V2.Interpreter do
   end
 
   defp apply_function(value, {:function, name, func_options}, options) do
-    func_opts = resolve_func_options(func_options)
+    bindings = Keyword.get(options, :bindings, %{})
+    func_opts = resolve_func_options(func_options, bindings)
     format_with_function(name, value, func_opts, options)
   end
 
@@ -203,9 +204,8 @@ defmodule Cldr.Message.V2.Interpreter do
   end
 
   defp format_with_function("integer", value, func_opts, options) do
-    number = ensure_number(value)
+    number = ensure_number(value) |> trunc()
     cldr_opts = build_cldr_options(options, func_opts)
-    cldr_opts = Keyword.put(cldr_opts, :format, "#")
     format_number(number, cldr_opts)
   end
 
@@ -280,7 +280,7 @@ defmodule Cldr.Message.V2.Interpreter do
         {:input, {:expression, {:variable, name}, func, _attrs}} ->
           case resolve_variable(name, bindings_acc) do
             {:ok, value} ->
-              formatted = apply_function(value, func, options)
+              formatted = apply_function(value, func, Keyword.put(options, :bindings, bindings_acc))
               bindings_acc = Map.put(bindings_acc, name, formatted)
               {bindings_acc, [name | bound_acc]}
 
@@ -291,7 +291,7 @@ defmodule Cldr.Message.V2.Interpreter do
         {:local, {:variable, name}, {:expression, operand, func, _attrs}} ->
           case resolve_operand(operand, bindings_acc) do
             {:ok, value, _} ->
-              formatted = apply_function(value, func, options)
+              formatted = apply_function(value, func, Keyword.put(options, :bindings, bindings_acc))
               bindings_acc = Map.put(bindings_acc, name, formatted)
               {bindings_acc, [name | bound_acc]}
 
@@ -392,7 +392,7 @@ defmodule Cldr.Message.V2.Interpreter do
 
   # ── Helpers ─────────────────────────────────────────────────────
 
-  defp resolve_func_options(func_options) do
+  defp resolve_func_options(func_options, bindings) do
     Enum.reduce(func_options, %{}, fn
       {:option, name, {:literal, value}}, acc ->
         Map.put(acc, String.to_atom(name), value)
@@ -400,15 +400,36 @@ defmodule Cldr.Message.V2.Interpreter do
       {:option, name, {:number_literal, value}}, acc ->
         Map.put(acc, String.to_atom(name), parse_number(value))
 
-      {:option, name, {:variable, _} = _var}, acc ->
-        Map.put(acc, String.to_atom(name), nil)
+      {:option, name, {:variable, var_name}}, acc ->
+        case resolve_variable(var_name, bindings) do
+          {:ok, value} -> Map.put(acc, String.to_atom(name), value)
+          :error -> Map.put(acc, String.to_atom(name), nil)
+        end
     end)
   end
 
-  defp build_cldr_options(options, _func_opts) do
+  defp build_cldr_options(options, func_opts) do
     {locale, backend} = Cldr.locale_and_backend_from(options)
-    [locale: locale, backend: backend]
+    cldr_opts = [locale: locale, backend: backend]
+    map_func_options(cldr_opts, func_opts)
   end
+
+  @mf2_to_cldr_options %{
+    minimumFractionDigits: :fractional_digits
+  }
+
+  defp map_func_options(cldr_opts, func_opts) do
+    Enum.reduce(@mf2_to_cldr_options, cldr_opts, fn {mf2_key, cldr_key}, opts ->
+      case Map.get(func_opts, mf2_key) do
+        nil -> opts
+        value -> Keyword.put(opts, cldr_key, ensure_integer(value))
+      end
+    end)
+  end
+
+  defp ensure_integer(value) when is_integer(value), do: value
+  defp ensure_integer(value) when is_float(value), do: round(value)
+  defp ensure_integer(value) when is_binary(value), do: String.to_integer(value)
 
   defp format_number(number, cldr_opts) do
     case Cldr.Number.to_string(number, cldr_opts) do
