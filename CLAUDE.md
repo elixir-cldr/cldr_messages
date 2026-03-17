@@ -30,3 +30,7 @@ All public functions ahould have a standard template format:
 * Bulleted lists use `*` as the bullet marker (not `-`)
 * Each bullet item is followed by a blank line
 * Each bullet item ends with a period
+
+## Code style
+
+* When MF2 messages are presented in heredocs (in code modules, tests, or markdown docs), indent `.match` variant clauses by two spaces relative to `.match` for readability.

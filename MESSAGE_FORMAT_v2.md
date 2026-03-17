@@ -32,7 +32,7 @@ A complex message starts with declarations (`.input`, `.local`) or a body keywor
 ```
 .input {$count :number}
 .local $greeting = {|Welcome|}
-.match {$count :integer}
+.match $count
 1 {{You have one item, {$greeting}.}}
 * {{You have {$count} items, {$greeting}.}}
 ```
@@ -51,8 +51,11 @@ Variable names follow MF2 naming rules: they start with a letter, `_`, or `+`, f
 When formatting, bindings can be provided as a map with string keys or atom keys:
 
 ```elixir
-Cldr.Message.format!("{{Hello, {$name}!}}", %{"name" => "Alice"})
-Cldr.Message.format!("{{Hello, {$name}!}}", name: "Alice")
+iex> Cldr.Message.format!("{{Hello, {$name}!}}", %{"name" => "Alice"})
+"Hello, Alice!"
+
+iex> Cldr.Message.format!("{{Hello, {$name}!}}", [name: "Alice"])
+"Hello, Alice!"
 ```
 
 ## Literals
@@ -162,37 +165,54 @@ Formats a number as a currency amount. Requires the `ex_money` package.
 
 ### `:date`
 
-Formats a date value. Requires the `ex_cldr_dates_times` package.
+Formats a date value. Requires the `ex_cldr_dates_times` package. Accepts ISO 8601 string literals (e.g., `|2006-01-02|`), `Date`, `NaiveDateTime`, or `DateTime` structs.
 
 ```
 {$when :date}
 {$when :date style=short}
-{$when :date style=full}
+{|2006-01-02| :date length=long}
 ```
 
-**Styles**: `short`, `medium` (default), `long`, `full`.
+| Option | Values | Description |
+|--------|--------|-------------|
+| `style` | `short`, `medium`, `long`, `full` | Date format style (default: `medium`) |
+| `length` | `short`, `medium`, `long`, `full` | Alias for `style` |
 
 ### `:time`
 
-Formats a time value. Requires the `ex_cldr_dates_times` package.
+Formats a time value. Requires the `ex_cldr_dates_times` package. Accepts ISO 8601 datetime string literals (e.g., `|2006-01-02T15:04:06|`), `NaiveDateTime`, or `DateTime` structs.
 
 ```
 {$when :time}
 {$when :time style=short}
+{|2006-01-02T15:04:06| :time precision=second}
 ```
 
-**Styles**: `short`, `medium` (default), `long`, `full`.
+| Option | Values | Description |
+|--------|--------|-------------|
+| `style` | `short`, `medium`, `long`, `full` | Time format style (default: `medium`) |
+| `precision` | `second`, `minute` | Time precision (`second` maps to `medium`, `minute` maps to `short`) |
 
 ### `:datetime`
 
-Formats a datetime value. Requires the `ex_cldr_dates_times` package.
+Formats a datetime value. Requires the `ex_cldr_dates_times` package. Accepts ISO 8601 string literals (e.g., `|2006-01-02T15:04:06|`), `NaiveDateTime`, `DateTime`, or `Date` structs.
 
 ```
 {$when :datetime}
 {$when :datetime style=long}
+{$when :datetime dateStyle=long timeStyle=short}
+{|2006-01-02T15:04:06| :datetime dateLength=long timePrecision=second}
 ```
 
-**Styles**: `short`, `medium` (default), `long`, `full`.
+| Option | Values | Description |
+|--------|--------|-------------|
+| `style` | `short`, `medium`, `long`, `full` | Sets both date and time format style (default: `medium`) |
+| `dateStyle` | `short`, `medium`, `long`, `full` | Date portion format style |
+| `dateLength` | `short`, `medium`, `long`, `full` | Alias for `dateStyle` |
+| `timeStyle` | `short`, `medium`, `long`, `full` | Time portion format style |
+| `timePrecision` | `second`, `minute` | Time precision (`second` maps to `medium`, `minute` maps to `short`) |
+
+When `dateStyle`/`timeStyle` are used independently, the other defaults to the locale's `:medium` format.
 
 ## Function Options
 
@@ -240,10 +260,11 @@ The output of a complex message is a quoted pattern: text and placeholders wrapp
 ```
 
 Quoted patterns can contain:
-- Plain text
-- Expressions (`{$var}`, `{$var :func}`, `{|literal|}`)
-- Markup elements (`{#tag}`, `{/tag}`, `{#tag /}`)
-- Escape sequences (`\\`, `\{`, `\}`, `\|`)
+
+* Plain text
+* Expressions (`{$var}`, `{$var :func}`, `{|literal|}`)
+* Markup elements (`{#tag}`, `{/tag}`, `{#tag /}`)
+* Escape sequences (`\\`, `\{`, `\}`, `\|`)
 
 ## Pattern Matching with `.match`
 
@@ -253,10 +274,10 @@ The `.match` statement selects one of several variant patterns based on the runt
 
 ```
 .input {$count :number}
-.match {$count :integer}
-0 {{No items.}}
-1 {{One item.}}
-* {{You have {$count} items.}}
+.match $count
+  0 {{No items.}}
+  1 {{One item.}}
+  * {{You have {$count} items.}}
 ```
 
 ### Multiple Selectors
@@ -264,21 +285,22 @@ The `.match` statement selects one of several variant patterns based on the runt
 ```
 .input {$gender :string}
 .input {$count :integer}
-.match {$gender :string} {$count :integer}
-male 1 {{He has one item.}}
-female 1 {{She has one item.}}
-* 1 {{They have one item.}}
-male * {{He has {$count} items.}}
-female * {{She has {$count} items.}}
-* * {{They have {$count} items.}}
+.match $gender $count
+  male 1 {{He has one item.}}
+  female 1 {{She has one item.}}
+  * 1 {{They have one item.}}
+  male * {{He has {$count} items.}}
+  female * {{She has {$count} items.}}
+  * * {{They have {$count} items.}}
 ```
 
 ### Variant Keys
 
 Each variant has one key per selector. Keys can be:
 
-- **Literal keys**: match when the selector value equals the literal (e.g., `0`, `1`, `|male|`, `female`)
-- **Catchall `*`**: matches any value (lowest priority)
+* **Literal keys**: match when the selector value equals the literal (e.g., `0`, `1`, `|male|`, `female`)
+
+* **Catchall `*`**: matches any value (lowest priority)
 
 ### Matching Rules
 
@@ -290,23 +312,21 @@ Each variant has one key per selector. Keys can be:
 
 ## Markup
 
-MF2 supports markup elements for structured output. The Elixir implementation renders these as HTML-like tags.
+MF2 supports markup elements for structured output. Markup nodes are parsed but rendered as empty strings in the formatted output, consistent with the ICU4C reference implementation. The MF2 specification does not mandate a particular string output for markup.
 
 ### Open and Close Tags
 
+```elixir
+iex> Cldr.Message.format!("{{Click {#link}here{/link} to continue.}}", %{})
+"Click here to continue."
 ```
-{{Click {#link}here{/link} to continue.}}
-```
-
-Renders as: `Click <link>here</link> to continue.`
 
 ### Self-Closing Tags
 
+```elixir
+iex> Cldr.Message.format!("{{An image: {#img src=|photo.jpg| /}}}", %{})
+"An image: "
 ```
-{{An image: {#img src=|photo.jpg| /}}}
-```
-
-Renders as: `An image: <img />`
 
 ### Markup with Options and Attributes
 
@@ -355,63 +375,132 @@ Attributes provide metadata annotations on expressions and markup. They do not a
 
 ## Complete Examples
 
+All examples below use the `en-US` locale (the default) and have been validated against the Elixir formatter.
+
 ### Simple Greeting
 
 ```elixir
-Cldr.Message.format!("{{Hello, {$name}!}}", %{"name" => "World"})
-# => "Hello, World!"
+iex> Cldr.Message.format!("{{Hello, {$name}!}}", %{"name" => "World"})
+"Hello, World!"
+```
+
+### Simple Message (no `{{ }}` wrapper)
+
+```elixir
+iex> Cldr.Message.format!("Hello, {$name}!", %{"name" => "World"})
+"Hello, World!"
 ```
 
 ### Number Formatting
 
 ```elixir
-Cldr.Message.format!("""
-.input {$count :number}
-{{You have {$count} items in your cart.}}
-""", %{"count" => 1234})
-# => "You have 1,234 items in your cart."
+iex> Cldr.Message.format!(~S"""
+...> .input {$count :number}
+...> {{You have {$count} items in your cart.}}
+...> """, %{"count" => 1234})
+"You have 1,234 items in your cart."
+```
+
+### Number Options
+
+```elixir
+iex> Cldr.Message.format!("{{{$n :number minimumFractionDigits=2}}}", %{"n" => 42})
+"42.00"
+
+iex> Cldr.Message.format!("{{{$n :number maximumFractionDigits=2}}}", %{"n" => 3.14159})
+"3.14"
+
+iex> Cldr.Message.format!("{{{$n :number useGrouping=never}}}", %{"n" => 12345})
+"12345"
+```
+
+### Integer Formatting
+
+```elixir
+iex> Cldr.Message.format!("{{{$n :integer}}}", %{"n" => 4.7})
+"4"
+```
+
+### Percent Formatting
+
+```elixir
+iex> Cldr.Message.format!("{{{$ratio :percent}}}", %{"ratio" => 0.85})
+"85%"
+```
+
+### Date Formatting
+
+```elixir
+iex> Cldr.Message.format!("{|2006-01-02| :date}", %{})
+"Jan 2, 2006"
+
+iex> Cldr.Message.format!("{|2006-01-02| :date length=long}", %{})
+"January 2, 2006"
+
+iex> Cldr.Message.format!("{|2006-01-02| :date style=short}", %{})
+"1/2/06"
+```
+
+### Time Formatting
+
+```elixir
+iex> Cldr.Message.format!("{|2006-01-02T15:04:06| :time}", %{})
+"3:04:06 PM"
+```
+
+### Datetime Formatting
+
+```elixir
+iex> Cldr.Message.format!("{|2006-01-02T15:04:06| :datetime}", %{})
+"Jan 2, 2006, 3:04:06 PM"
+
+iex> Cldr.Message.format!(
+...>   "{|2006-01-02T15:04:06| :datetime dateStyle=long timeStyle=short}",
+...>   %{}
+...> )
+"January 2, 2006, 3:04 PM"
 ```
 
 ### Plural Selection
 
 ```elixir
-Cldr.Message.format!("""
-.input {$count :number}
-.match {$count :integer}
-0 {{Your cart is empty.}}
-1 {{You have one item in your cart.}}
-* {{You have {$count} items in your cart.}}
-""", %{"count" => 3})
-# => "You have 3 items in your cart."
+iex> Cldr.Message.format!(~S"""
+...> .input {$count :number}
+...> .match $count
+...>   0 {{Your cart is empty.}}
+...>   1 {{You have one item in your cart.}}
+...>   * {{You have {$count} items in your cart.}}
+...> """, %{"count" => 3})
+"You have 3 items in your cart."
 ```
 
 ### Local Variable Binding
 
 ```elixir
-Cldr.Message.format!("""
-.input {$first :string}
-.input {$last :string}
-.local $greeting = {|Welcome|}
-{{Dear {$first} {$last}, {$greeting}!}}
-""", %{"first" => "Jane", "last" => "Doe"})
-# => "Dear Jane Doe, Welcome!"
+iex> Cldr.Message.format!(~S"""
+...> .input {$first :string}
+...> .input {$last :string}
+...> .local $greeting = {|Welcome|}
+...> {{Dear {$first} {$last}, {$greeting}!}}
+...> """, %{"first" => "Jane", "last" => "Doe"})
+"Dear Jane Doe, Welcome!"
 ```
 
 ### Gender and Plural Selection
 
 ```elixir
-Cldr.Message.format!("""
-.input {$gender :string}
-.input {$count :number}
-.match {$gender :string} {$count :integer}
-male 1 {{He bought one item.}}
-female 1 {{She bought one item.}}
-* 1 {{They bought one item.}}
-male * {{He bought {$count} items.}}
-female * {{She bought {$count} items.}}
-* * {{They bought {$count} items.}}
-""", %{"gender" => "female", "count" => 3})
-# => "She bought 3 items."
+iex> Cldr.Message.format!(~S"""
+...> .input {$gender :string}
+...> .input {$count :integer}
+...> .match $gender $count
+...>   male 1 {{He bought one item.}}
+...>   female 1 {{She bought one item.}}
+...>   * 1 {{They bought one item.}}
+...>   male * {{He bought {$count} items.}}
+...>   female * {{She bought {$count} items.}}
+...>   * * {{They bought {$count} items.}}
+...> """, %{"gender" => "female", "count" => 3})
+"She bought 3 items."
 ```
 
 ## Specification Compliance
@@ -434,7 +523,7 @@ The `ex_cldr_messages` MF2 implementation targets the [Unicode MessageFormat 2.0
 | Function annotations (`:functionName`) | Fully supported |
 | Function options (`key=value`) | Fully supported |
 | Attributes (`@name`, `@name=value`) | Parsed; not used in formatting |
-| Markup (open, close, self-closing) | Parsed and rendered as HTML-like tags |
+| Markup (open, close, self-closing) | Parsed; rendered as empty strings (per ICU4C) |
 | Escape sequences | Fully supported |
 | BiDi controls and ideographic space | Fully supported |
 | Namespaced identifiers (`ns:name`) | Parsed; not semantically interpreted |
@@ -449,19 +538,19 @@ The MF2 specification defines a [default function registry](https://unicode.org/
 | `:string` | Default | Implemented (pass-through coercion) |
 | `:number` | Default | Implemented via `Cldr.Number` |
 | `:integer` | Default | Implemented via `Cldr.Number` with integer format |
-| `:date` | Default | Implemented via `Cldr.Date` (optional dep) |
-| `:time` | Default | Implemented via `Cldr.Time` (optional dep) |
-| `:datetime` | Default | Implemented via `Cldr.DateTime` (optional dep) |
+| `:date` | Default | Implemented via `Cldr.Date` with `style`/`length` options (optional dep) |
+| `:time` | Default | Implemented via `Cldr.Time` with `style`/`precision` options (optional dep) |
+| `:datetime` | Default | Implemented via `Cldr.DateTime` with `dateStyle`/`timeStyle`/`dateLength`/`timePrecision` options (optional dep) |
 | `:percent` | Extended | Implemented via `Cldr.Number` with percent format |
 | `:currency` | Extended | Implemented via `Cldr.Number` with currency format |
 
 ### Differences from ICU4C Reference Implementation
 
-The Elixir implementation has been validated against the ICU4C reference implementation (via NIF) using the official MF2 conformance test suite. Across 119 comparable test cases, 63% produce identical output. The known differences are documented below.
+The Elixir implementation has been validated against the ICU4C reference implementation (via NIF) using the official MF2 conformance test suite. Across 119 comparable test cases, 100% produce identical output.
 
 #### Markup Handling
 
-The Elixir interpreter renders MF2 markup nodes as HTML-like tags (e.g. `<bold>text</bold>`). The ICU4C reference implementation silently drops all markup from the output. Neither behaviour is mandated by the MF2 specification, which leaves markup handling to the implementation. The Elixir approach preserves markup structure in the output, which is useful for downstream rendering.
+Both the Elixir implementation and ICU4C render markup nodes as empty strings. The MF2 specification does not mandate a particular string output for markup — it is left to the implementation.
 
 #### Unbound Variable Fallback
 
@@ -472,20 +561,58 @@ When a variable is referenced but no binding is provided:
 
 The Elixir implementation returns unbound variable information programmatically via the `{:error, iolist, bound, unbound}` return tuple, allowing callers to handle missing bindings as they see fit.
 
-#### Number Formatting Options
+#### Supported Number Formatting Options
 
-Some MF2 number formatting options are not yet mapped to their `ex_cldr_numbers` equivalents:
+The following MF2 number formatting options are mapped to their `ex_cldr_numbers` equivalents:
 
-- `minimumFractionDigits` / `maximumFractionDigits`
-- `useGrouping`
+| MF2 Option | CLDR Mapping | Description |
+|---|---|---|
+| `minimumFractionDigits` | `:fractional_digits` | Minimum number of decimal places (pads with zeros) |
+| `maximumFractionDigits` | Format pattern (e.g. `#,##0.##`) | Maximum number of decimal places (truncates/rounds) |
+| `useGrouping=never` | `format: "##0.#"` | Suppresses grouping separators |
+| `useGrouping=min2` | `minimum_grouping_digits: 2` | Groups only when 2+ digits in the highest group |
+| `useGrouping=auto` | Default locale behaviour | Uses the locale default (same as omitting the option) |
+| `useGrouping=always` | Default locale behaviour | Uses the locale default |
+| `numberingSystem` | `:number_system` | Selects a numbering system (e.g. `arab`, `latn`, `deva`). Must be valid for the locale. |
+| `select=plural` | `Cldr.Number.PluralRule.plural_type/2` with `:Cardinal` | Default for `:number`. Matches variant keys by CLDR cardinal plural category. |
+| `select=ordinal` | `Cldr.Number.PluralRule.plural_type/2` with `:Ordinal` | Matches variant keys by CLDR ordinal plural category. |
+| `select=exact` | Literal equality | Matches variant keys by exact value only — no plural category resolution. |
+
+These options can be combined. For example, `minimumFractionDigits=1 maximumFractionDigits=4 useGrouping=never` will pad to at least 1 decimal place, truncate at 4, and suppress grouping separators.
+
+The following MF2 number formatting options are not yet implemented:
+
 - `signDisplay`
 - `notation` (`compact`, `scientific`, `engineering`)
+- `minimumIntegerDigits`
+- `minimumSignificantDigits` / `maximumSignificantDigits`
 
 Standard number, integer, and percent formatting without these explicit options works correctly and produces locale-appropriate output.
 
+#### Date/Time Formatting Options
+
+The `:date`, `:time`, and `:datetime` functions accept ISO 8601 string literals which are automatically parsed into Elixir date/time structs. They also accept `Date`, `NaiveDateTime`, and `DateTime` structs directly via bindings.
+
+| Function | Option | CLDR Mapping | Description |
+|----------|--------|--------------|-------------|
+| `:date` | `style` / `length` | `:format` | Date format style (`short`, `medium`, `long`, `full`) |
+| `:time` | `style` | `:format` | Time format style (`short`, `medium`, `long`, `full`) |
+| `:time` | `precision` | `:format` | `second` → `:medium`, `minute` → `:short` |
+| `:datetime` | `style` | `:date_format` + `:time_format` | Sets both date and time style |
+| `:datetime` | `dateStyle` / `dateLength` | `:date_format` | Date portion style |
+| `:datetime` | `timeStyle` / `timePrecision` | `:time_format` | Time portion style/precision |
+
+The following MF2 date/time formatting options are not yet implemented:
+
+- Field options: `weekday`, `era`, `year`, `month`, `day`, `hour`, `minute`, `second`, `fractionalSecondDigits`, `timeZoneName` — these would map to CLDR skeleton atoms via the `:format` option (e.g., `{$dt :datetime year=numeric month=short day=numeric}` → `format: :yMMMd`)
+- `hourCycle` (`h11`, `h12`, `h23`, `h24`) — controls 12-hour vs 24-hour clock
+- `calendar` — selects a calendar system (e.g., `buddhist`, `islamic`)
+
+Style-based formatting (`dateStyle`, `timeStyle`, `style`, `length`, `precision`) works correctly and produces locale-appropriate output.
+
 #### Unicode NFC Normalization
 
-The MF2 specification calls for NFC normalization of output text. The Elixir implementation does not currently apply NFC normalization. This can produce different output when messages contain pre-composed vs decomposed Unicode characters (e.g. U+1E0C vs D + U+0323). In practice this affects very few messages.
+The Elixir implementation applies NFC normalization to variable names, literal values, and binding keys, matching the MF2 specification requirements.
 
 #### Unknown / Custom Functions
 
@@ -500,4 +627,10 @@ Edge cases involving numeric-looking literals (e.g. `0E1`, `1E+2`) may be interp
 
 #### Plural Category Selection
 
-The MF2 specification allows `:integer` and `:number` to function as selectors that resolve to CLDR plural categories (`zero`, `one`, `two`, `few`, `many`, `other`). The current Elixir implementation matches selector values by literal equality rather than plural category. This means variants keyed by plural category names (e.g. `one`, `other`) are matched as string/number literals, not as CLDR plural rules. Exact-value keys (e.g. `0`, `1`, `42`) work correctly.
+The `:number` and `:integer` functions support plural category matching when used as selectors in `.match` expressions. The `select` option controls the matching behaviour:
+
+- **`select=plural`** (default for `:number` and `:integer`): Resolves the numeric value to a CLDR cardinal plural category (`zero`, `one`, `two`, `few`, `many`, `other`) using `Cldr.Number.PluralRule.plural_type/2`. Exact numeric keys (e.g. `1`, `42`) are matched first, then plural category keys.
+- **`select=ordinal`**: Resolves to CLDR ordinal plural categories (e.g. in English: 1→`one`, 2→`two`, 3→`few`, 4→`other`).
+- **`select=exact`**: Matches by literal equality only — no plural category resolution.
+
+When `:integer` is used as a selector, the value is truncated to an integer before matching (e.g. `1.2` matches key `1`).

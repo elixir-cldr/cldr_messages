@@ -66,7 +66,7 @@ defmodule Cldr.Message.V2.Interpreter do
   end
 
   defp do_format_list({:complex, declarations, body}, bindings, options) do
-    {bindings, bound} = resolve_declarations(declarations, bindings, options)
+    {bindings, bound, selector_meta} = resolve_declarations(declarations, bindings, options)
 
     case body do
       {:quoted_pattern, parts} ->
@@ -76,7 +76,7 @@ defmodule Cldr.Message.V2.Interpreter do
         end
 
       {:match, selectors, variants} ->
-        evaluate_match(selectors, variants, bindings, options, bound)
+        evaluate_match(selectors, variants, bindings, options, bound, selector_meta)
     end
   end
 
@@ -85,7 +85,7 @@ defmodule Cldr.Message.V2.Interpreter do
   end
 
   defp do_format_list({:match, selectors, variants}, bindings, options) do
-    evaluate_match(selectors, variants, bindings, options, [])
+    evaluate_match(selectors, variants, bindings, options, [], %{})
   end
 
   # ── Pattern formatting ──────────────────────────────────────────
@@ -235,36 +235,27 @@ defmodule Cldr.Message.V2.Interpreter do
 
   if Code.ensure_loaded?(Cldr.Date) do
     defp format_with_function("date", value, func_opts, options) do
-      cldr_opts = build_cldr_options(options, func_opts)
-
-      if style = func_opts[:style] do
-        cldr_opts = Keyword.put(cldr_opts, :format, parse_date_style(style))
-        Cldr.Date.to_string!(value, cldr_opts)
-      else
-        Cldr.Date.to_string!(value, cldr_opts)
-      end
+      value = ensure_date(value)
+      {locale, backend} = Cldr.locale_and_backend_from(options)
+      cldr_opts = [locale: locale, backend: backend]
+      cldr_opts = map_date_options(cldr_opts, func_opts, :format)
+      Cldr.Date.to_string!(value, cldr_opts)
     end
 
     defp format_with_function("time", value, func_opts, options) do
-      cldr_opts = build_cldr_options(options, func_opts)
-
-      if style = func_opts[:style] do
-        cldr_opts = Keyword.put(cldr_opts, :format, parse_date_style(style))
-        Cldr.Time.to_string!(value, cldr_opts)
-      else
-        Cldr.Time.to_string!(value, cldr_opts)
-      end
+      value = ensure_datetime(value)
+      {locale, backend} = Cldr.locale_and_backend_from(options)
+      cldr_opts = [locale: locale, backend: backend]
+      cldr_opts = map_time_options(cldr_opts, func_opts, :format)
+      Cldr.Time.to_string!(value, cldr_opts)
     end
 
     defp format_with_function("datetime", value, func_opts, options) do
-      cldr_opts = build_cldr_options(options, func_opts)
-
-      if style = func_opts[:style] do
-        cldr_opts = Keyword.put(cldr_opts, :format, parse_date_style(style))
-        Cldr.DateTime.to_string!(value, cldr_opts)
-      else
-        Cldr.DateTime.to_string!(value, cldr_opts)
-      end
+      value = ensure_datetime(value)
+      {locale, backend} = Cldr.locale_and_backend_from(options)
+      cldr_opts = [locale: locale, backend: backend]
+      cldr_opts = map_datetime_options(cldr_opts, func_opts)
+      Cldr.DateTime.to_string!(value, cldr_opts)
     end
   end
 
@@ -275,7 +266,7 @@ defmodule Cldr.Message.V2.Interpreter do
   # ── Declarations ────────────────────────────────────────────────
 
   defp resolve_declarations(declarations, bindings, options) do
-    Enum.reduce(declarations, {bindings, []}, fn decl, {bindings_acc, bound_acc} ->
+    Enum.reduce(declarations, {bindings, [], %{}}, fn decl, {bindings_acc, bound_acc, sel_meta} ->
       case decl do
         {:input, {:expression, {:variable, name}, func, _attrs}} ->
           case resolve_variable(name, bindings_acc) do
@@ -283,11 +274,13 @@ defmodule Cldr.Message.V2.Interpreter do
               formatted =
                 apply_function(value, func, Keyword.put(options, :bindings, bindings_acc))
 
+              sel_value = selector_value(value, func)
+              sel_meta = Map.put(sel_meta, name, {sel_value, func})
               bindings_acc = Map.put(bindings_acc, name, formatted)
-              {bindings_acc, [name | bound_acc]}
+              {bindings_acc, [name | bound_acc], sel_meta}
 
             :error ->
-              {bindings_acc, bound_acc}
+              {bindings_acc, bound_acc, sel_meta}
           end
 
         {:local, {:variable, name}, {:expression, operand, func, _attrs}} ->
@@ -296,11 +289,13 @@ defmodule Cldr.Message.V2.Interpreter do
               formatted =
                 apply_function(value, func, Keyword.put(options, :bindings, bindings_acc))
 
+              sel_value = selector_value(value, func)
+              sel_meta = Map.put(sel_meta, name, {sel_value, func})
               bindings_acc = Map.put(bindings_acc, name, formatted)
-              {bindings_acc, [name | bound_acc]}
+              {bindings_acc, [name | bound_acc], sel_meta}
 
             {:unbound, _} ->
-              {bindings_acc, bound_acc}
+              {bindings_acc, bound_acc, sel_meta}
           end
       end
     end)
@@ -308,20 +303,29 @@ defmodule Cldr.Message.V2.Interpreter do
 
   # ── Match evaluation ────────────────────────────────────────────
 
-  defp evaluate_match(selectors, variants, bindings, options, bound) do
-    # Evaluate selector expressions to get values
-    selector_values =
+  defp evaluate_match(selectors, variants, bindings, options, bound, selector_meta) do
+    # Build selector info: original value, formatted value, and function metadata
+    selector_info =
       Enum.map(selectors, fn {:variable, name} ->
-        case resolve_variable(name, bindings) do
-          {:ok, value} -> value
-          :error -> nil
-        end
+        formatted =
+          case resolve_variable(name, bindings) do
+            {:ok, value} -> value
+            :error -> nil
+          end
+
+        {original_value, func} =
+          case Map.get(selector_meta, name) do
+            {orig, func} -> {orig, func}
+            nil -> {formatted, nil}
+          end
+
+        %{name: name, formatted: formatted, original: original_value, func: func}
       end)
 
-    selector_names = Enum.map(selectors, fn {:variable, name} -> name end)
+    selector_names = Enum.map(selector_info, & &1.name)
 
     # Find the best matching variant
-    case find_best_variant(selector_values, variants, bindings, options) do
+    case find_best_variant(selector_info, variants, options) do
       {:ok, {:variant, _keys, {:quoted_pattern, parts}}} ->
         case format_pattern(parts, bindings, options) do
           {:ok, iolist, more_bound, unbound} ->
@@ -336,12 +340,12 @@ defmodule Cldr.Message.V2.Interpreter do
     end
   end
 
-  defp find_best_variant(selector_values, variants, bindings, options) do
+  defp find_best_variant(selector_info, variants, options) do
     # Sort variants by specificity (fewer catchalls = more specific)
     sorted =
       variants
       |> Enum.filter(fn {:variant, keys, _} ->
-        match_keys?(selector_values, keys, bindings, options)
+        match_keys?(selector_info, keys, options)
       end)
       |> Enum.sort_by(fn {:variant, keys, _} ->
         Enum.count(keys, &(&1 == :catchall))
@@ -353,18 +357,91 @@ defmodule Cldr.Message.V2.Interpreter do
     end
   end
 
-  defp match_keys?(selector_values, keys, _bindings, _options) do
-    if length(selector_values) != length(keys) do
+  defp match_keys?(selector_info, keys, options) do
+    if length(selector_info) != length(keys) do
       false
     else
-      Enum.zip(selector_values, keys)
+      Enum.zip(selector_info, keys)
       |> Enum.all?(fn
-        {_value, :catchall} -> true
-        {value, {:literal, key_str}} -> match_value?(value, key_str)
-        {value, {:number_literal, key_str}} -> match_value?(value, parse_number(key_str))
+        {_info, :catchall} -> true
+        {info, key} -> match_selector?(info, key, options)
       end)
     end
   end
+
+  defp match_selector?(info, {:number_literal, key_str}, _options) do
+    # Exact numeric match always takes priority
+    match_value?(info.original, parse_number(key_str))
+  end
+
+  defp match_selector?(info, {:literal, key_str}, options) do
+    # First try exact match against original value
+    if match_value?(info.original, key_str) do
+      true
+    else
+      # Try plural category match for number/integer functions
+      case plural_match_type(info.func) do
+        nil ->
+          false
+
+        :exact ->
+          false
+
+        plural_type ->
+          category = resolve_plural_category(info.original, plural_type, options)
+          category != nil and Atom.to_string(category) == key_str
+      end
+    end
+  end
+
+  defp selector_value(value, {:function, "integer", _}) when is_number(value) do
+    trunc(value)
+  end
+
+  defp selector_value(value, {:function, "integer", _}) when is_binary(value) do
+    trunc(ensure_number(value))
+  end
+
+  defp selector_value(value, _func), do: value
+
+  defp plural_match_type(nil), do: nil
+
+  defp plural_match_type({:function, name, func_options}) when name in ["number", "integer"] do
+    select_opt =
+      Enum.find_value(func_options, fn
+        {:option, "select", {:literal, value}} -> value
+        _ -> nil
+      end)
+
+    case select_opt do
+      "exact" -> :exact
+      "ordinal" -> :Ordinal
+      _ -> :Cardinal
+    end
+  end
+
+  defp plural_match_type(_), do: nil
+
+  defp resolve_plural_category(value, plural_type, options) when is_number(value) do
+    {locale, backend} = Cldr.locale_and_backend_from(options)
+
+    Cldr.Number.PluralRule.plural_type(value,
+      backend: backend,
+      locale: locale,
+      type: plural_type
+    )
+  rescue
+    _ -> nil
+  end
+
+  defp resolve_plural_category(value, plural_type, options) when is_binary(value) do
+    case parse_number(value) do
+      num when is_number(num) -> resolve_plural_category(num, plural_type, options)
+      _ -> nil
+    end
+  end
+
+  defp resolve_plural_category(_, _, _), do: nil
 
   defp match_value?(value, key) when is_integer(value) and is_integer(key) do
     value == key
@@ -418,17 +495,64 @@ defmodule Cldr.Message.V2.Interpreter do
     map_func_options(cldr_opts, func_opts)
   end
 
-  @mf2_to_cldr_options %{
-    minimumFractionDigits: :fractional_digits
-  }
-
   defp map_func_options(cldr_opts, func_opts) do
-    Enum.reduce(@mf2_to_cldr_options, cldr_opts, fn {mf2_key, cldr_key}, opts ->
-      case Map.get(func_opts, mf2_key) do
-        nil -> opts
-        value -> Keyword.put(opts, cldr_key, ensure_integer(value))
-      end
-    end)
+    min_fd = get_integer_option(func_opts, :minimumFractionDigits)
+    max_fd = get_integer_option(func_opts, :maximumFractionDigits)
+    use_grouping = Map.get(func_opts, :useGrouping)
+
+    cldr_opts
+    |> map_fraction_digits(min_fd, max_fd, use_grouping)
+    |> map_use_grouping(use_grouping)
+    |> map_numbering_system(func_opts)
+  end
+
+  defp map_numbering_system(cldr_opts, func_opts) do
+    case Map.get(func_opts, :numberingSystem) do
+      nil -> cldr_opts
+      system -> Keyword.put(cldr_opts, :number_system, String.to_atom(system))
+    end
+  end
+
+  defp map_fraction_digits(cldr_opts, nil, nil, _use_grouping) do
+    cldr_opts
+  end
+
+  defp map_fraction_digits(cldr_opts, min_fd, nil, _use_grouping) do
+    Keyword.put(cldr_opts, :fractional_digits, min_fd)
+  end
+
+  defp map_fraction_digits(cldr_opts, min_fd, max_fd, use_grouping) do
+    min_fd = min_fd || 0
+    grouping = if use_grouping == "never", do: "", else: "#,#"
+    required = String.duplicate("0", min_fd)
+    optional = String.duplicate("#", max(max_fd - min_fd, 0))
+    decimal = if min_fd > 0 or max_fd > 0, do: ".", else: ""
+    format = "#{grouping}#0#{decimal}#{required}#{optional}"
+    Keyword.put(cldr_opts, :format, format)
+  end
+
+  defp map_use_grouping(cldr_opts, use_grouping) do
+    case use_grouping do
+      "never" ->
+        if Keyword.has_key?(cldr_opts, :format) do
+          cldr_opts
+        else
+          Keyword.put(cldr_opts, :format, "##0.#")
+        end
+
+      "min2" ->
+        Keyword.put(cldr_opts, :minimum_grouping_digits, 2)
+
+      _ ->
+        cldr_opts
+    end
+  end
+
+  defp get_integer_option(func_opts, key) do
+    case Map.get(func_opts, key) do
+      nil -> nil
+      value -> ensure_integer(value)
+    end
   end
 
   defp ensure_integer(value) when is_integer(value), do: value
@@ -473,6 +597,105 @@ defmodule Cldr.Message.V2.Interpreter do
       other -> other
     end
   end
+
+  # ── Date/time option mapping ─────────────────────────────────────
+
+  defp map_date_options(cldr_opts, func_opts, format_key) do
+    style =
+      func_opts[:style] || func_opts[:length] || func_opts[:dateStyle] || func_opts[:dateLength]
+
+    if style do
+      Keyword.put(cldr_opts, format_key, parse_date_style(style))
+    else
+      cldr_opts
+    end
+  end
+
+  defp map_time_options(cldr_opts, func_opts, format_key) do
+    style =
+      func_opts[:style] || func_opts[:precision] || func_opts[:timeStyle] ||
+        func_opts[:timePrecision]
+
+    if style do
+      Keyword.put(cldr_opts, format_key, parse_time_style(style))
+    else
+      cldr_opts
+    end
+  end
+
+  defp map_datetime_options(cldr_opts, func_opts) do
+    # Check for style (single style for both date and time)
+    if style = func_opts[:style] do
+      parsed = parse_date_style(style)
+      cldr_opts |> Keyword.put(:date_format, parsed) |> Keyword.put(:time_format, parsed)
+    else
+      cldr_opts
+      |> map_date_options(func_opts, :date_format)
+      |> map_time_options(func_opts, :time_format)
+    end
+  end
+
+  defp parse_time_style(style) when is_binary(style) do
+    case style do
+      "short" -> :short
+      "medium" -> :medium
+      "long" -> :long
+      "full" -> :full
+      "second" -> :medium
+      "minute" -> :short
+      other -> other
+    end
+  end
+
+  # ── Date/time value parsing ──────────────────────────────────────
+
+  defp ensure_date(value) when is_binary(value) do
+    case Date.from_iso8601(value) do
+      {:ok, date} ->
+        date
+
+      {:error, _} ->
+        case NaiveDateTime.from_iso8601(value) do
+          {:ok, ndt} ->
+            NaiveDateTime.to_date(ndt)
+
+          {:error, _} ->
+            case DateTime.from_iso8601(value) do
+              {:ok, dt, _offset} -> DateTime.to_date(dt)
+              {:error, _} -> value
+            end
+        end
+    end
+  end
+
+  defp ensure_date(%Date{} = value), do: value
+  defp ensure_date(%NaiveDateTime{} = value), do: NaiveDateTime.to_date(value)
+  defp ensure_date(%DateTime{} = value), do: DateTime.to_date(value)
+  defp ensure_date(value), do: value
+
+  defp ensure_datetime(value) when is_binary(value) do
+    case NaiveDateTime.from_iso8601(value) do
+      {:ok, ndt} ->
+        ndt
+
+      {:error, _} ->
+        case DateTime.from_iso8601(value) do
+          {:ok, dt, _offset} ->
+            dt
+
+          {:error, _} ->
+            case Date.from_iso8601(value) do
+              {:ok, date} -> NaiveDateTime.new!(date, ~T[00:00:00])
+              {:error, _} -> value
+            end
+        end
+    end
+  end
+
+  defp ensure_datetime(%NaiveDateTime{} = value), do: value
+  defp ensure_datetime(%DateTime{} = value), do: value
+  defp ensure_datetime(%Date{} = value), do: NaiveDateTime.new!(value, ~T[00:00:00])
+  defp ensure_datetime(value), do: value
 
   defp to_string_value(nil), do: ""
   defp to_string_value(value) when is_binary(value), do: value

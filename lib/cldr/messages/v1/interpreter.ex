@@ -52,12 +52,9 @@ defmodule Cldr.Message.V1.Interpreter do
   end
 
   defp format_list({:pos_arg, arg}, args, _options, bound, unbound) when is_map(args) do
-    with {:ok, atom} <- atomize(arg),
-         {:ok, value} <- Map.fetch(args, atom) do
-      {[value], [arg | bound], unbound}
-    else
-      _any ->
-        {[{:pos_arg, arg}], bound, [arg | unbound]}
+    case resolve_map_value(arg, args) do
+      {:ok, value} -> {[value], [arg | bound], unbound}
+      :error -> {[{:pos_arg, arg}], bound, [arg | unbound]}
     end
   end
 
@@ -71,12 +68,9 @@ defmodule Cldr.Message.V1.Interpreter do
   end
 
   defp format_list({:named_arg, arg}, args, _options, bound, unbound) when is_map(args) do
-    with {:ok, atom} <- atomize(arg),
-         {:ok, value} <- Map.fetch(args, atom) do
-      {[value], [arg | bound], unbound}
-    else
-      _any ->
-        {[{:named_arg, arg}], bound, [arg | unbound]}
+    case resolve_map_value(arg, args) do
+      {:ok, value} -> {[value], [arg | bound], unbound}
+      :error -> {[{:named_arg, arg}], bound, [arg | unbound]}
     end
   end
 
@@ -469,6 +463,26 @@ defmodule Cldr.Message.V1.Interpreter do
 
   defp atomize(integer) when is_integer(integer) do
     {:ok, integer}
+  end
+
+  # Try string key first, then atom key for map bindings.
+  # This allows both %{"name" => value} and %{name: value} to work.
+  defp resolve_map_value(arg, map) when is_binary(arg) and is_map(map) do
+    case Map.fetch(map, arg) do
+      {:ok, _value} = ok ->
+        ok
+
+      :error ->
+        with {:ok, atom} <- atomize(arg) do
+          Map.fetch(map, atom)
+        end
+    end
+  end
+
+  defp resolve_map_value(arg, map) when is_map(map) do
+    with {:ok, atom} <- atomize(arg) do
+      Map.fetch(map, atom)
+    end
   end
 
   defp fetch_pos_arg(args, arg) when arg < length(args) do
