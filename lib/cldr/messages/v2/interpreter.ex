@@ -7,7 +7,7 @@ defmodule Cldr.Message.V2.Interpreter do
   `{:complex, declarations, body}`, `{:match, selectors, variants}`, etc.
   """
 
-  @spec format_list(list(), map() | Keyword.t(), Keyword.t()) ::
+  @spec format_list(list() | tuple(), map() | Keyword.t(), Keyword.t()) ::
           {:ok, list(), list(), list()} | {:error, list(), list(), list()}
 
   def format_list(ast, bindings \\ %{}, options \\ [])
