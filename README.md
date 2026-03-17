@@ -201,10 +201,10 @@ The NIF is **optional**. When available, it is used by default for MF2 messages.
 
 ### Prerequisites
 
-ICU 75 or later with MF2 support is required.
+ICU 75 or later is required. The `unicode/messageformat2.h` header was introduced in ICU 75 — earlier versions do not include MF2 support and the NIF will fail to compile.
 
-* **macOS**: `brew install icu4c`
-* **Linux (Debian/Ubuntu)**: `apt-get install libicu-dev` (ensure version 75+)
+* **macOS**: `brew install icu4c` (Homebrew typically ships a recent ICU version)
+* **Linux (Debian/Ubuntu)**: `apt-get install libicu-dev`. Note that many Linux distributions still ship ICU versions older than 75 (e.g. Ubuntu 24.04 ships ICU 74). Check your installed version with `icu-config --version` or `pkg-config --modversion icu-i18n`. If your distribution's ICU is too old, you will need to build ICU 75+ from source or use a distribution that packages a newer version.
 * **FreeBSD**: `pkg install icu`
 
 The `elixir_make` dependency is already included as an optional dependency.
