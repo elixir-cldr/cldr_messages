@@ -36,10 +36,6 @@ This is the changelog for Cldr_Messages v2.0.0.  For older changelogs please con
 
 * Preserve leading whitespace in MF2 simple messages per the MF2 specification. Leading whitespace is significant message content, not syntactic whitespace.
 
-### Breaking Changes
-
-* None. The existing V1 API (`Cldr.Message.format/3`, `Cldr.Message.format!/3`, `Cldr.Message.canonical_message/2`, etc.) is fully backward compatible. V1 messages continue to work without changes.
-
 ### Known Limitations
 
 * Unbound variables return `{:error, {Cldr.Message.BindError, reason}}` (unlike ICU which produces a `{$name}` fallback string).
@@ -48,7 +44,7 @@ This is the changelog for Cldr_Messages v2.0.0.  For older changelogs please con
 
 ## Cldr_Messages v1.0.4
 
-This is the changelog for Cldr_Messages v1.0.4 released on January 20th, 2025.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+This is the changelog for Cldr_Messages v1.0.4 released on March 18th, 2026.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
 
 ### Bug Fixes
 
@@ -58,11 +54,11 @@ This is the changelog for Cldr_Messages v1.0.4 released on January 20th, 2025.  
 
 ## Cldr_Messages v1.0.3
 
-This is the changelog for Cldr_Messages v1.0.3 released on March 18th, 2025.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+This is the changelog for Cldr_Messages v1.0.3 released on January 10th, 2025.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
 
 ### Bug Fixes
 
-* Update documentation, code and tests to reflect the Gettext API as of verison 0.20.
+* Update documentation, code and tests to reflect the Gettext API as of version 0.20.
 
 ## Cldr_Messages v1.0.2
 
