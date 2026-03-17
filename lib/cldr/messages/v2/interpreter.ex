@@ -280,7 +280,9 @@ defmodule Cldr.Message.V2.Interpreter do
         {:input, {:expression, {:variable, name}, func, _attrs}} ->
           case resolve_variable(name, bindings_acc) do
             {:ok, value} ->
-              formatted = apply_function(value, func, Keyword.put(options, :bindings, bindings_acc))
+              formatted =
+                apply_function(value, func, Keyword.put(options, :bindings, bindings_acc))
+
               bindings_acc = Map.put(bindings_acc, name, formatted)
               {bindings_acc, [name | bound_acc]}
 
@@ -291,7 +293,9 @@ defmodule Cldr.Message.V2.Interpreter do
         {:local, {:variable, name}, {:expression, operand, func, _attrs}} ->
           case resolve_operand(operand, bindings_acc) do
             {:ok, value, _} ->
-              formatted = apply_function(value, func, Keyword.put(options, :bindings, bindings_acc))
+              formatted =
+                apply_function(value, func, Keyword.put(options, :bindings, bindings_acc))
+
               bindings_acc = Map.put(bindings_acc, name, formatted)
               {bindings_acc, [name | bound_acc]}
 
