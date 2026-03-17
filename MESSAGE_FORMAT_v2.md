@@ -206,13 +206,11 @@ Formats a number with a measurement unit. Requires the `ex_cldr_units` package.
 
 #### Cldr.Unit struct bindings
 
-When the bound value is a `Cldr.Unit.t` struct, the unit, value, and formatting options are derived automatically from the struct:
+When the bound value is a `Cldr.Unit.t` struct, the unit and value are derived automatically from the struct. Any `:format_options` stored on the struct are automatically merged by `Cldr.Unit.to_string/2`.
 
 * The `unit` is taken from the struct's `:unit` field unless an explicit `unit` option is provided in the message.
 
 * The numeric value is taken from the struct's `:value` field.
-
-* Any `:format_options` stored on the struct (e.g., `style: :short`) are applied as base formatting options. Options specified in the MF2 message (e.g., `unitDisplay`) take precedence over the struct's format options.
 
 This means a `Cldr.Unit.t` value can be formatted without specifying a `unit` option:
 

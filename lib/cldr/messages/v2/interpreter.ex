@@ -62,21 +62,32 @@ defmodule Cldr.Message.V2.Interpreter do
     case format_pattern(ast, bindings, options) do
       {:ok, iolist, bound, unbound} -> {:ok, iolist, bound, unbound}
       {:error, _, _, _} = err -> err
+      {:format_error, _} = err -> err
     end
   end
 
   defp do_format_list({:complex, declarations, body}, bindings, options) do
-    {bindings, bound, selector_meta} = resolve_declarations(declarations, bindings, options)
+    case resolve_declarations(declarations, bindings, options) do
+      {:format_error, _} = err ->
+        err
 
-    case body do
-      {:quoted_pattern, parts} ->
-        case format_pattern(parts, bindings, options) do
-          {:ok, iolist, more_bound, unbound} -> {:ok, iolist, bound ++ more_bound, unbound}
-          {:error, iolist, more_bound, unbound} -> {:error, iolist, bound ++ more_bound, unbound}
+      {bindings, bound, selector_meta} ->
+        case body do
+          {:quoted_pattern, parts} ->
+            case format_pattern(parts, bindings, options) do
+              {:ok, iolist, more_bound, unbound} ->
+                {:ok, iolist, bound ++ more_bound, unbound}
+
+              {:error, iolist, more_bound, unbound} ->
+                {:error, iolist, bound ++ more_bound, unbound}
+
+              {:format_error, _} = err ->
+                err
+            end
+
+          {:match, selectors, variants} ->
+            evaluate_match(selectors, variants, bindings, options, bound, selector_meta)
         end
-
-      {:match, selectors, variants} ->
-        evaluate_match(selectors, variants, bindings, options, bound, selector_meta)
     end
   end
 
@@ -91,22 +102,31 @@ defmodule Cldr.Message.V2.Interpreter do
   # ── Pattern formatting ──────────────────────────────────────────
 
   defp format_pattern(parts, bindings, options) do
-    {iolist, bound, unbound} =
-      Enum.reduce(parts, {[], [], []}, fn part, {io_acc, bound_acc, unbound_acc} ->
+    result =
+      Enum.reduce_while(parts, {[], [], []}, fn part, {io_acc, bound_acc, unbound_acc} ->
         case format_part(part, bindings, options) do
           {:ok, result, new_bound} ->
-            {[result | io_acc], new_bound ++ bound_acc, unbound_acc}
+            {:cont, {[result | io_acc], new_bound ++ bound_acc, unbound_acc}}
 
           {:unbound, var_name} ->
-            {io_acc, bound_acc, [var_name | unbound_acc]}
+            {:cont, {io_acc, bound_acc, [var_name | unbound_acc]}}
+
+          {:format_error, reason} ->
+            {:halt, {:format_error, reason}}
         end
       end)
 
-    iolist = iolist |> Enum.reverse()
+    case result do
+      {:format_error, reason} ->
+        {:format_error, reason}
 
-    case unbound do
-      [] -> {:ok, iolist, Enum.uniq(bound), []}
-      _ -> {:error, iolist, Enum.uniq(bound), Enum.uniq(unbound)}
+      {iolist, bound, unbound} ->
+        iolist = iolist |> Enum.reverse()
+
+        case unbound do
+          [] -> {:ok, iolist, Enum.uniq(bound), []}
+          _ -> {:error, iolist, Enum.uniq(bound), Enum.uniq(unbound)}
+        end
     end
   end
 
@@ -139,13 +159,19 @@ defmodule Cldr.Message.V2.Interpreter do
   defp format_expression(operand, func, bindings, options) do
     case resolve_operand(operand, bindings) do
       {:ok, value, bound_names} ->
-        formatted = apply_function(value, func, Keyword.put(options, :bindings, bindings))
-        {:ok, formatted, bound_names}
+        case apply_function(value, func, Keyword.put(options, :bindings, bindings)) do
+          {:ok, formatted} -> {:ok, formatted, bound_names}
+          {:error, reason} -> {:format_error, format_error_reason(reason)}
+        end
 
       {:unbound, name} ->
         {:unbound, name}
     end
   end
+
+  defp format_error_reason({_module, message}) when is_binary(message), do: message
+  defp format_error_reason(reason) when is_binary(reason), do: reason
+  defp format_error_reason(reason), do: inspect(reason)
 
   defp resolve_operand(nil, _bindings) do
     {:ok, nil, []}
@@ -188,7 +214,7 @@ defmodule Cldr.Message.V2.Interpreter do
   end
 
   defp apply_function(value, nil, _options) do
-    to_string_value(value)
+    {:ok, to_string_value(value)}
   end
 
   defp apply_function(value, {:function, name, func_options}, options) do
@@ -198,22 +224,25 @@ defmodule Cldr.Message.V2.Interpreter do
   end
 
   defp format_with_function("number", value, func_opts, options) do
-    number = ensure_number(value)
-    cldr_opts = build_cldr_options(options, func_opts)
-    format_number(number, cldr_opts)
+    with {:ok, number} <- ensure_number(value) do
+      cldr_opts = build_cldr_options(options, func_opts)
+      format_number(number, cldr_opts)
+    end
   end
 
   defp format_with_function("integer", value, func_opts, options) do
-    number = ensure_number(value) |> trunc()
-    cldr_opts = build_cldr_options(options, func_opts)
-    format_number(number, cldr_opts)
+    with {:ok, number} <- ensure_number(value) do
+      cldr_opts = build_cldr_options(options, func_opts)
+      format_number(trunc(number), cldr_opts)
+    end
   end
 
   defp format_with_function("percent", value, func_opts, options) do
-    number = ensure_number(value)
-    cldr_opts = build_cldr_options(options, func_opts)
-    cldr_opts = Keyword.put(cldr_opts, :format, :percent)
-    format_number(number, cldr_opts)
+    with {:ok, number} <- ensure_number(value) do
+      cldr_opts = build_cldr_options(options, func_opts)
+      cldr_opts = Keyword.put(cldr_opts, :format, :percent)
+      format_number(number, cldr_opts)
+    end
   end
 
   defp format_with_function("currency", %Money{} = money, func_opts, options) do
@@ -234,116 +263,126 @@ defmodule Cldr.Message.V2.Interpreter do
   end
 
   defp format_with_function("currency", value, func_opts, options) do
-    number = ensure_number(value)
-    cldr_opts = build_cldr_options(options, func_opts)
-    cldr_opts = map_currency_options(cldr_opts, func_opts)
-    format_number(number, cldr_opts)
+    with {:ok, number} <- ensure_number(value) do
+      cldr_opts = build_cldr_options(options, func_opts)
+      cldr_opts = map_currency_options(cldr_opts, func_opts)
+      format_number(number, cldr_opts)
+    end
   end
 
   defp format_with_function("string", value, _func_opts, _options) do
-    to_string_value(value)
+    {:ok, to_string_value(value)}
   end
 
   if Code.ensure_loaded?(Cldr.Date) do
     defp format_with_function("date", value, func_opts, options) do
-      value = ensure_date(value)
-      {locale, backend} = Cldr.locale_and_backend_from(options)
-      cldr_opts = [locale: locale, backend: backend]
-      cldr_opts = map_date_options(cldr_opts, func_opts, :format)
-      Cldr.Date.to_string!(value, cldr_opts)
+      with {:ok, value} <- ensure_date(value) do
+        {locale, backend} = Cldr.locale_and_backend_from(options)
+        cldr_opts = [locale: locale, backend: backend]
+        cldr_opts = map_date_options(cldr_opts, func_opts, :format)
+        Cldr.Date.to_string(value, cldr_opts)
+      end
     end
 
     defp format_with_function("time", value, func_opts, options) do
-      value = ensure_datetime(value)
-      {locale, backend} = Cldr.locale_and_backend_from(options)
-      cldr_opts = [locale: locale, backend: backend]
-      cldr_opts = map_time_options(cldr_opts, func_opts, :format)
-      Cldr.Time.to_string!(value, cldr_opts)
+      with {:ok, value} <- ensure_datetime(value) do
+        {locale, backend} = Cldr.locale_and_backend_from(options)
+        cldr_opts = [locale: locale, backend: backend]
+        cldr_opts = map_time_options(cldr_opts, func_opts, :format)
+        Cldr.Time.to_string(value, cldr_opts)
+      end
     end
 
     defp format_with_function("datetime", value, func_opts, options) do
-      value = ensure_datetime(value)
-      {locale, backend} = Cldr.locale_and_backend_from(options)
-      cldr_opts = [locale: locale, backend: backend]
-      cldr_opts = map_datetime_options(cldr_opts, func_opts)
-      Cldr.DateTime.to_string!(value, cldr_opts)
+      with {:ok, value} <- ensure_datetime(value) do
+        {locale, backend} = Cldr.locale_and_backend_from(options)
+        cldr_opts = [locale: locale, backend: backend]
+        cldr_opts = map_datetime_options(cldr_opts, func_opts)
+        Cldr.DateTime.to_string(value, cldr_opts)
+      end
     end
   end
 
   if Code.ensure_loaded?(Cldr.Unit) do
     defp format_with_function("unit", %Cldr.Unit{} = unit_struct, func_opts, options) do
       {locale, backend} = Cldr.locale_and_backend_from(options)
-      unit_format_opts = Map.get(unit_struct, :format_options) || []
 
-      unit_name =
+      unit_struct =
         if func_opts[:unit] do
-          String.to_atom(func_opts[:unit])
+          unit_name = String.to_atom(func_opts[:unit])
+          Cldr.Unit.new!(Map.get(unit_struct, :value), unit_name)
         else
-          Map.get(unit_struct, :unit)
+          unit_struct
         end
 
-      number = Map.get(unit_struct, :value)
-      unit = Cldr.Unit.new!(number, unit_name)
       cldr_opts = [locale: locale, backend: backend]
-      cldr_opts = Keyword.merge(cldr_opts, unit_format_opts)
       cldr_opts = map_unit_options(cldr_opts, func_opts)
-      Cldr.Unit.to_string!(unit, cldr_opts)
+      Cldr.Unit.to_string(unit_struct, cldr_opts)
     end
 
     defp format_with_function("unit", value, func_opts, options) do
-      number = ensure_number(value)
-      {locale, backend} = Cldr.locale_and_backend_from(options)
+      with {:ok, number} <- ensure_number(value) do
+        {locale, backend} = Cldr.locale_and_backend_from(options)
 
-      unit_name =
         case func_opts[:unit] do
-          nil -> raise ArgumentError, "The :unit function requires a `unit` option"
-          name -> String.to_atom(name)
-        end
+          nil ->
+            {:error, "the :unit function requires a `unit` option"}
 
-      unit = Cldr.Unit.new!(number, unit_name)
-      cldr_opts = [locale: locale, backend: backend]
-      cldr_opts = map_unit_options(cldr_opts, func_opts)
-      Cldr.Unit.to_string!(unit, cldr_opts)
+          name ->
+            unit_name = String.to_atom(name)
+            unit = Cldr.Unit.new!(number, unit_name)
+            cldr_opts = [locale: locale, backend: backend]
+            cldr_opts = map_unit_options(cldr_opts, func_opts)
+            Cldr.Unit.to_string(unit, cldr_opts)
+        end
+      end
     end
   end
 
   defp format_with_function(_name, value, _func_opts, _options) do
-    to_string_value(value)
+    {:ok, to_string_value(value)}
   end
 
   # ── Declarations ────────────────────────────────────────────────
 
   defp resolve_declarations(declarations, bindings, options) do
-    Enum.reduce(declarations, {bindings, [], %{}}, fn decl, {bindings_acc, bound_acc, sel_meta} ->
+    Enum.reduce_while(declarations, {bindings, [], %{}}, fn decl,
+                                                            {bindings_acc, bound_acc, sel_meta} ->
       case decl do
         {:input, {:expression, {:variable, name}, func, _attrs}} ->
           case resolve_variable(name, bindings_acc) do
             {:ok, value} ->
-              formatted =
-                apply_function(value, func, Keyword.put(options, :bindings, bindings_acc))
+              case apply_function(value, func, Keyword.put(options, :bindings, bindings_acc)) do
+                {:ok, formatted} ->
+                  sel_value = selector_value(value, func)
+                  sel_meta = Map.put(sel_meta, name, {sel_value, func})
+                  bindings_acc = Map.put(bindings_acc, name, formatted)
+                  {:cont, {bindings_acc, [name | bound_acc], sel_meta}}
 
-              sel_value = selector_value(value, func)
-              sel_meta = Map.put(sel_meta, name, {sel_value, func})
-              bindings_acc = Map.put(bindings_acc, name, formatted)
-              {bindings_acc, [name | bound_acc], sel_meta}
+                {:error, reason} ->
+                  {:halt, {:format_error, format_error_reason(reason)}}
+              end
 
             :error ->
-              {bindings_acc, bound_acc, sel_meta}
+              {:cont, {bindings_acc, bound_acc, sel_meta}}
           end
 
         {:local, {:variable, name}, {:expression, operand, func, _attrs}} ->
           case resolve_operand(operand, bindings_acc) do
             {:ok, value, _} ->
-              formatted =
-                apply_function(value, func, Keyword.put(options, :bindings, bindings_acc))
+              case apply_function(value, func, Keyword.put(options, :bindings, bindings_acc)) do
+                {:ok, formatted} ->
+                  sel_value = selector_value(value, func)
+                  sel_meta = Map.put(sel_meta, name, {sel_value, func})
+                  bindings_acc = Map.put(bindings_acc, name, formatted)
+                  {:cont, {bindings_acc, [name | bound_acc], sel_meta}}
 
-              sel_value = selector_value(value, func)
-              sel_meta = Map.put(sel_meta, name, {sel_value, func})
-              bindings_acc = Map.put(bindings_acc, name, formatted)
-              {bindings_acc, [name | bound_acc], sel_meta}
+                {:error, reason} ->
+                  {:halt, {:format_error, format_error_reason(reason)}}
+              end
 
             {:unbound, _} ->
-              {bindings_acc, bound_acc, sel_meta}
+              {:cont, {bindings_acc, bound_acc, sel_meta}}
           end
       end
     end)
@@ -447,7 +486,10 @@ defmodule Cldr.Message.V2.Interpreter do
   end
 
   defp selector_value(value, {:function, "integer", _}) when is_binary(value) do
-    trunc(ensure_number(value))
+    case parse_number(value) do
+      num when is_number(num) -> trunc(num)
+      _ -> value
+    end
   end
 
   defp selector_value(value, _func), do: value
@@ -607,15 +649,30 @@ defmodule Cldr.Message.V2.Interpreter do
   defp ensure_integer(value) when is_float(value), do: round(value)
   defp ensure_integer(value) when is_binary(value), do: String.to_integer(value)
 
+  defp ensure_integer(value) do
+    raise Cldr.Message.FormatError,
+          "cannot format #{inspect(value)} as an integer. " <>
+            "Expected an integer, float, or numeric string."
+  end
+
   defp format_number(number, cldr_opts) do
-    case Cldr.Number.to_string(number, cldr_opts) do
-      {:ok, formatted} -> formatted
-      {:error, _} -> to_string_value(number)
+    Cldr.Number.to_string(number, cldr_opts)
+  end
+
+  defp ensure_number(value) when is_number(value), do: {:ok, value}
+
+  defp ensure_number(value) when is_binary(value) do
+    case parse_number(value) do
+      num when is_number(num) -> {:ok, num}
+      _ -> {:error, "cannot parse #{inspect(value)} as a number."}
     end
   end
 
-  defp ensure_number(value) when is_number(value), do: value
-  defp ensure_number(value) when is_binary(value), do: parse_number(value)
+  defp ensure_number(value) do
+    {:error,
+     "cannot format #{inspect(value)} as a number. " <>
+       "Expected a number or a numeric string."}
+  end
 
   defp parse_number(str) when is_binary(str) do
     case Integer.parse(str) do
@@ -736,50 +793,70 @@ defmodule Cldr.Message.V2.Interpreter do
   defp ensure_date(value) when is_binary(value) do
     case Date.from_iso8601(value) do
       {:ok, date} ->
-        date
+        {:ok, date}
 
       {:error, _} ->
         case NaiveDateTime.from_iso8601(value) do
           {:ok, ndt} ->
-            NaiveDateTime.to_date(ndt)
+            {:ok, NaiveDateTime.to_date(ndt)}
 
           {:error, _} ->
             case DateTime.from_iso8601(value) do
-              {:ok, dt, _offset} -> DateTime.to_date(dt)
-              {:error, _} -> value
+              {:ok, dt, _offset} ->
+                {:ok, DateTime.to_date(dt)}
+
+              {:error, _} ->
+                {:error,
+                 "cannot parse #{inspect(value)} as a date. " <>
+                   "Expected an ISO 8601 date string."}
             end
         end
     end
   end
 
-  defp ensure_date(%Date{} = value), do: value
-  defp ensure_date(%NaiveDateTime{} = value), do: NaiveDateTime.to_date(value)
-  defp ensure_date(%DateTime{} = value), do: DateTime.to_date(value)
-  defp ensure_date(value), do: value
+  defp ensure_date(%Date{} = value), do: {:ok, value}
+  defp ensure_date(%NaiveDateTime{} = value), do: {:ok, NaiveDateTime.to_date(value)}
+  defp ensure_date(%DateTime{} = value), do: {:ok, DateTime.to_date(value)}
+
+  defp ensure_date(value) do
+    {:error,
+     "cannot format #{inspect(value)} as a date. " <>
+       "Expected a Date, NaiveDateTime, DateTime, or ISO 8601 date string."}
+  end
 
   defp ensure_datetime(value) when is_binary(value) do
     case NaiveDateTime.from_iso8601(value) do
       {:ok, ndt} ->
-        ndt
+        {:ok, ndt}
 
       {:error, _} ->
         case DateTime.from_iso8601(value) do
           {:ok, dt, _offset} ->
-            dt
+            {:ok, dt}
 
           {:error, _} ->
             case Date.from_iso8601(value) do
-              {:ok, date} -> NaiveDateTime.new!(date, ~T[00:00:00])
-              {:error, _} -> value
+              {:ok, date} ->
+                {:ok, NaiveDateTime.new!(date, ~T[00:00:00])}
+
+              {:error, _} ->
+                {:error,
+                 "cannot parse #{inspect(value)} as a datetime. " <>
+                   "Expected an ISO 8601 datetime string."}
             end
         end
     end
   end
 
-  defp ensure_datetime(%NaiveDateTime{} = value), do: value
-  defp ensure_datetime(%DateTime{} = value), do: value
-  defp ensure_datetime(%Date{} = value), do: NaiveDateTime.new!(value, ~T[00:00:00])
-  defp ensure_datetime(value), do: value
+  defp ensure_datetime(%NaiveDateTime{} = value), do: {:ok, value}
+  defp ensure_datetime(%DateTime{} = value), do: {:ok, value}
+  defp ensure_datetime(%Date{} = value), do: {:ok, NaiveDateTime.new!(value, ~T[00:00:00])}
+
+  defp ensure_datetime(value) do
+    {:error,
+     "cannot format #{inspect(value)} as a datetime. " <>
+       "Expected a NaiveDateTime, DateTime, Date, or ISO 8601 datetime string."}
+  end
 
   defp to_string_value(nil), do: ""
   defp to_string_value(value) when is_binary(value), do: value

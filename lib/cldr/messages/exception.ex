@@ -23,6 +23,19 @@ defmodule Cldr.Message.PositionalArgsNotPermitted do
   end
 end
 
+defmodule Cldr.Message.FormatError do
+  @moduledoc """
+  Exception raised when a value cannot be formatted
+  by the requested MF2 function due to an incompatible type.
+
+  """
+  defexception [:message]
+
+  def exception(message) do
+    %__MODULE__{message: message}
+  end
+end
+
 defmodule Cldr.Message.BindError do
   @moduledoc """
   Exception raised when interpreting a

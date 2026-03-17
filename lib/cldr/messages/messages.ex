@@ -213,6 +213,9 @@ defmodule Cldr.Message do
 
         {:error, _iolist, _bound, unbound} ->
           {:error, {Cldr.Message.BindError, "No binding was found for #{inspect(unbound)}"}}
+
+        {:format_error, reason} ->
+          {:error, {Cldr.Message.FormatError, reason}}
       end
     end
   end
