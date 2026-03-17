@@ -99,6 +99,68 @@ defmodule Cldr.Message.Backend do
     end
   end
 
+  # V2 (MF2) Gettext interpolation — binary message (runtime)
+
+  @doc false
+  def gettext_interpolate_v2(message, bindings, options) when is_binary(message) do
+    v2_options = Keyword.put(options, :version, :v2)
+
+    case Cldr.Message.format(message, bindings, v2_options) do
+      {:ok, formatted} ->
+        {:ok, formatted}
+
+      {:error, {Cldr.Message.BindError, reason}} ->
+        {:missing_bindings, message, extract_unbound_names(reason)}
+
+      {:error, {_module, reason}} ->
+        raise Cldr.Message.ParseError, reason
+    end
+  end
+
+  # V2 (MF2) Gettext interpolation — pre-parsed AST (compile time)
+
+  @doc false
+  def gettext_interpolate_v2(parsed, bindings, options) when is_list(parsed) or is_tuple(parsed) do
+    {locale, backend} = Cldr.locale_and_backend_from(options)
+
+    v2_options =
+      options
+      |> Keyword.put_new(:locale, locale)
+      |> Keyword.put_new(:backend, backend)
+
+    case Cldr.Message.V2.Interpreter.format_list(parsed, bindings, v2_options) do
+      {:ok, iolist, _bound, [] = _unbound} ->
+        {:ok, :erlang.iolist_to_binary(iolist)}
+
+      {:error, iolist, _bound, unbound} ->
+        {:missing_bindings, :erlang.iolist_to_binary(iolist), unbound}
+    end
+  end
+
+  # Auto-detecting Gettext interpolation — detects V1 vs V2 at runtime
+
+  @doc false
+  def gettext_interpolate_auto(message, bindings, options) when is_binary(message) do
+    case Cldr.Message.format(message, bindings, options) do
+      {:ok, formatted} ->
+        {:ok, formatted}
+
+      {:error, {Cldr.Message.BindError, reason}} ->
+        {:missing_bindings, message, extract_unbound_names(reason)}
+
+      {:error, {_module, reason}} ->
+        raise Cldr.Message.ParseError, reason
+    end
+  end
+
+  defp extract_unbound_names(reason) when is_binary(reason) do
+    # Extract binding names from error message like "No binding was found for [\"name\"]"
+    case Regex.run(~r/\[(.+)\]/, reason) do
+      [_, names] -> String.split(names, ", ") |> Enum.map(&String.trim(&1, "\""))
+      _ -> [reason]
+    end
+  end
+
   defp prepare_print_literals(iolist), do: Enum.map(iolist, &prepare_print_literal/1)
 
   defp prepare_print_literal(part)

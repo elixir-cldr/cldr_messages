@@ -513,10 +513,20 @@ defmodule Cldr.Message do
   """
   def canonical_message(message, options \\ []) do
     options = Keyword.put_new(options, :trim, true)
+    version = Keyword.get(options, :version, detect_version(message))
 
-    with {:ok, message} <- maybe_trim(message, options[:trim]),
-         {:ok, message_ast} <- V1.Parser.parse(message) do
-      {:ok, V1.Print.to_string(message_ast, options)}
+    with {:ok, message} <- maybe_trim(message, options[:trim]) do
+      case version do
+        :v2 ->
+          with {:ok, ast} <- V2.Parser.parse(message) do
+            {:ok, V2.Print.to_string(ast, options)}
+          end
+
+        :v1 ->
+          with {:ok, ast} <- V1.Parser.parse(message) do
+            {:ok, V1.Print.to_string(ast, options)}
+          end
+      end
     end
   end
 
