@@ -258,7 +258,7 @@ Formats a date value. Requires the `ex_cldr_dates_times` package. Accepts ISO 86
 
 ### `:time`
 
-Formats a time value. Requires the `ex_cldr_dates_times` package. Accepts ISO 8601 datetime string literals (e.g., `|2006-01-02T15:04:06|`), `NaiveDateTime`, or `DateTime` structs.
+Formats a time value. Requires the `ex_cldr_dates_times` package. Accepts ISO 8601 datetime string literals (e.g., `|2006-01-02T15:04:06|`), `Time`, `NaiveDateTime`, or `DateTime` structs.
 
 ```
 {$when :time}
@@ -631,7 +631,7 @@ Cross-locale testing across en, fr, ja, he, th, ar, and de confirms both impleme
 
 #### Function Support
 
-The ICU4C NIF supports `:number`, `:integer`, `:string`, `:date`, `:time`, and `:datetime`. The Elixir implementation additionally supports `:percent`, `:currency`, and `:unit` as extended functions. When the NIF encounters an unsupported function (e.g., `:percent`, `:currency`), it produces a fallback string like `{$variableName}`.
+The ICU4C NIF supports `:number`, `:integer`, `:string`, `:date`, `:time`, and `:datetime`. The Elixir implementation additionally supports `:percent`, `:currency`, and `:unit` as extended functions. When the NIF encounters an unsupported function (e.g., `:percent`, `:currency`), it produces a fallback string like `{$variableName}`. When using Gettext runtime interpolation with the NIF backend as the default formatter, messages using `:currency`, `:unit`, or `:percent` will produce fallback strings. Use `formatter_backend: :elixir` or compile-time interpolation (via `.po` file translations) for full function support.
 
 #### Markup Handling
 
@@ -644,6 +644,10 @@ The Elixir implementation coerces non-string values (numbers, booleans, atoms) t
 #### Date/Time Default Style
 
 The Elixir implementation defaults to `:medium` style for `:date`, `:time`, and `:datetime` formatting. The ICU4C NIF defaults to `:short` style. This means the Elixir implementation produces more detailed output by default (e.g., "Mar 15, 2024" vs "3/15/24" for English dates, "15 mars 2024" vs "15/03/2024" for French dates).
+
+#### `:time` Input Types
+
+The Elixir `:time` function accepts `Time`, `NaiveDateTime`, `DateTime`, `Date`, and ISO 8601 datetime strings. The ICU4C NIF accepts ISO 8601 datetime strings only.
 
 #### Error Handling
 
@@ -661,8 +665,11 @@ The Elixir implementation defaults to `:medium` style for `:date`, `:time`, and 
 
 When a variable is referenced but no binding is provided:
 
-- **ICU4C**: produces a fallback string `{$variableName}`
-- **Elixir**: returns `{:error, {Cldr.Message.BindError, reason}}` with details of which variables were unbound
+* **ICU4C**: produces a fallback string `{$variableName}`.
+
+* **Elixir** (`Cldr.Message.format/3`): returns `{:error, {Cldr.Message.BindError, reason}}` with details of which variables were unbound.
+
+* **Gettext runtime**: when the NIF is the default formatter backend, unbound variables produce fallback strings like ICU4C. When using the Elixir backend, Gettext receives `{:missing_bindings, message, names}` and logs a warning.
 
 #### Supported Number Formatting Options
 
@@ -694,7 +701,7 @@ Standard number, integer, and percent formatting without these explicit options 
 
 #### Date/Time Formatting Options
 
-The `:date`, `:time`, and `:datetime` functions accept ISO 8601 string literals which are automatically parsed into Elixir date/time structs. They also accept `Date`, `NaiveDateTime`, and `DateTime` structs directly via bindings.
+The `:date`, `:time`, and `:datetime` functions accept ISO 8601 string literals which are automatically parsed into Elixir date/time structs. They also accept `Date`, `Time`, `NaiveDateTime`, and `DateTime` structs directly via bindings.
 
 | Function | Option | CLDR Mapping | Description |
 |----------|--------|--------------|-------------|

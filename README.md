@@ -19,7 +19,7 @@ Documentation is at [https://hexdocs.pm/ex_cldr_messages](https://hexdocs.pm/ex_
 
 ## Introduction
 
-Implements [Unicode MessageFormat 2 (MF2)](https://unicode.org/reports/tr35/tr35-messageFormat.html) and the legacy [ICU Message Format](https://unicode-org.github.io/icu/userguide/format_parse/messages) for Elixir, integrated with the [ex_cldr](https://hex.pm/packages/ex_cldr) ecosystem supporting over 700 locales.
+`ex_cldr_message` implements [Unicode MessageFormat 2 (MF2)](https://unicode.org/reports/tr35/tr35-messageFormat.html) and the legacy [ICU Message Format](https://unicode-org.github.io/icu/userguide/format_parse/messages) for Elixir, integrated with the [ex_cldr](https://hex.pm/packages/ex_cldr) ecosystem supporting over 700 locales.
 
 MessageFormat 2 is the next generation of ICU message formatting, designed to be more expressive, extensible and easier to work with than the legacy format. It introduces a clearer syntax with explicit declarations, functions, and pattern matching, while maintaining the same goals: enabling translatable, locale-aware messages with built-in support for plurals, gender selection, and formatted values.
 
@@ -28,6 +28,7 @@ Version detection is automatic: messages starting with `.` (`.input`, `.local`, 
 ## Getting Started
 
 In common with other [ex_cldr](https://hex.pm/packages/ex_cldr)-based libraries, a `Cldr.Message` provider module needs to be configured as part of a [CLDR backend](https://hexdocs.pm/ex_cldr/readme.html#backend-module-configuration) module definition. For example:
+
 ```elixir
 defmodule MyApp.Cldr do
   use Cldr,
@@ -37,7 +38,7 @@ defmodule MyApp.Cldr do
 end
 ```
 
-The provider `Cldr.Number` is required. All other providers are optional but if configured provide formatting of dates, times, lists and units within messages.
+The provider `Cldr.Number`, `Cldr.List` and `Cldr.Message` are required. All other providers are optional but if configured provide formatting of dates, times, lists and units within messages.
 
 ## MessageFormat 2
 
@@ -278,15 +279,15 @@ This measures the complete pipeline: parsing the message string and producing fo
 
 | Message Type | Elixir (ips) | ICU NIF (ips) | Comparison |
 |---|---|---|---|
-| Simple text (`Hello, world!`) | 132K | 75K | Elixir 1.8x faster |
-| Literal expression (`{|hello|}`) | 102K | 69K | Elixir 1.5x faster |
-| Quoted pattern (`{{hello world}}`) | 125K | 79K | Elixir 1.6x faster |
-| Variable substitution (`Hello {$name}!`) | 90K | 63K | Elixir 1.4x faster |
-| Complex with `.input` declaration | 57K | 52K | Comparable |
-| Multiple variables (3 vars + `:number`) | 840 | 16K | NIF 19x faster |
-| Number formatting (`:number`) | 840 | 21K | NIF 25x faster |
-| Match selector (`.match`) | 830 | 9.1K | NIF 11x faster |
-| Nested declarations (`.input` + `.local`) | 840 | 14K | NIF 17x faster |
+| Simple text (`Hello, world!`) | 186K | 64K | Elixir 2.9x faster |
+| Literal expression (`{|hello|}`) | 119K | 75K | Elixir 1.6x faster |
+| Quoted pattern (`{{hello world}}`) | 228K | 69K | Elixir 3.3x faster |
+| Variable substitution (`Hello {$name}!`) | 76K | 53K | Elixir 1.4x faster |
+| Complex with `.input` declaration | 48K | 44K | Comparable |
+| Multiple variables (3 vars + `:number`) | 980 | 17K | NIF 17x faster |
+| Number formatting (`:number`) | 990 | 22K | NIF 22x faster |
+| Match selector (`.match`) | 960 | 9.5K | NIF 10x faster |
+| Nested declarations (`.input` + `.local`) | 480 | 12K | NIF 26x faster |
 
 ### Parse Only
 
@@ -294,10 +295,11 @@ Parsing/validation without formatting. The Elixir parser (NimbleParsec) is consi
 
 | Message Type | Elixir Parser (ips) | ICU NIF Validate (ips) | Comparison |
 |---|---|---|---|
-| Simple text | 456K | 206K | Elixir 2.2x faster |
-| Variable substitution | 230K | 159K | Elixir 1.4x faster |
-| Complex with `.input` | 145K | 121K | Elixir 1.2x faster |
-| Match selector | 66K | 76K | Comparable |
+| Simple text | 220K | 72K | Elixir 3.1x faster |
+| Quoted pattern | 299K | 76K | Elixir 3.9x faster |
+| Variable substitution | 107K | 75K | Elixir 1.4x faster |
+| Complex with `.input` | 71K | 57K | Elixir 1.2x faster |
+| Match selector | 39K | 26K | Elixir 1.5x faster |
 
 ### Interpret Only (Pre-parsed AST)
 
@@ -305,17 +307,22 @@ When the message has already been parsed (e.g. at compile time or cached), the E
 
 | Message Type | Elixir (ips) |
 |---|---|
-| Simple text | 2,950K |
-| Variable substitution | 1,320K |
-| Literal expression | 2,400K |
-| Complex with `.input` | 600K |
-| Number formatting | 859 |
+| Simple text | 1,620K |
+| Quoted pattern | 1,270K |
+| Literal expression | 887K |
+| Variable substitution | 474K |
+| Complex with `.input` | 308K |
+| Number formatting | 1,020 |
+| Match selector | 974 |
 
 ### Summary
 
-* **Simple messages** (text, literals, variable substitution): The pure-Elixir implementation is 1.4-2.2x faster than the NIF due to the overhead of crossing the NIF boundary for small workloads.
-* **Number formatting**: ICU4C is 11-25x faster because number formatting calls through the CLDR/Elixir number formatting stack, which involves significant BEAM-side work. The ICU NIF handles this entirely in C++.
+* **Simple messages** (text, literals, variable substitution): The pure-Elixir implementation is 1.4-3.9x faster than the NIF due to the overhead of crossing the NIF boundary for small workloads.
+
+* **Number formatting**: ICU4C is 10-26x faster because number formatting calls through the CLDR/Elixir number formatting stack, which involves significant BEAM-side work. The ICU NIF handles this entirely in C++.
+
 * **Pre-parsed messages**: When parsing is done at compile time, the Elixir interpreter achieves millions of iterations per second for simple messages, making the parse overhead negligible for production use.
+
 * **Memory**: The NIF uses far less BEAM-side memory per operation. The Elixir implementation's memory usage is typical for a pure-Elixir implementation and is not a concern for normal workloads.
 
 ## Gettext Integration

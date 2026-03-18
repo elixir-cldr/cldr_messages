@@ -112,8 +112,19 @@ defmodule Cldr.Messages.GettextInterpolationV2Test do
     assert formatted =~ "9:43"
   end
 
-  test "time formatting via elixir backend" do
-    # The :time function expects a DateTime or NaiveDateTime, not a bare Time struct
+  test "time formatting with Time struct via elixir backend" do
+    result =
+      Cldr.Message.format("{{{$t :time}}}", %{"t" => ~T[09:43:56]},
+        backend: MyApp.Cldr,
+        locale: "en",
+        formatter_backend: :elixir
+      )
+
+    assert {:ok, formatted} = result
+    assert formatted =~ "9:43"
+  end
+
+  test "time formatting with NaiveDateTime via elixir backend" do
     result =
       Cldr.Message.format("{{{$t :time}}}", %{"t" => ~N[2022-01-22T09:43:56]},
         backend: MyApp.Cldr,

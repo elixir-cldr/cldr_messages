@@ -251,21 +251,23 @@ defmodule Cldr.Message.V2.Interpreter do
     end
   end
 
-  defp format_with_function("currency", %Money{} = money, func_opts, options) do
-    number = Map.get(money, :amount)
-    money_format_opts = Map.get(money, :format_options) || []
+  if Code.ensure_loaded?(Money) do
+    defp format_with_function("currency", %Money{} = money, func_opts, options) do
+      number = Map.get(money, :amount)
+      money_format_opts = Map.get(money, :format_options) || []
 
-    func_opts =
-      if Map.has_key?(func_opts, :currency) do
-        func_opts
-      else
-        Map.put(func_opts, :currency, to_string(Map.get(money, :currency)))
+      func_opts =
+        if Map.has_key?(func_opts, :currency) do
+          func_opts
+        else
+          Map.put(func_opts, :currency, to_string(Map.get(money, :currency)))
+        end
+
+      with {:ok, cldr_opts} <- build_cldr_options(options, func_opts) do
+        cldr_opts = Keyword.merge(cldr_opts, money_format_opts)
+        cldr_opts = map_currency_options(cldr_opts, func_opts)
+        format_number(number, cldr_opts)
       end
-
-    with {:ok, cldr_opts} <- build_cldr_options(options, func_opts) do
-      cldr_opts = Keyword.merge(cldr_opts, money_format_opts)
-      cldr_opts = map_currency_options(cldr_opts, func_opts)
-      format_number(number, cldr_opts)
     end
   end
 
@@ -281,7 +283,7 @@ defmodule Cldr.Message.V2.Interpreter do
     {:ok, to_string_value(value)}
   end
 
-  if Code.ensure_loaded?(Cldr.Date) do
+  if Code.ensure_loaded?(Cldr.DateTime) do
     defp format_with_function("date", value, func_opts, options) do
       with {:ok, value} <- ensure_date(value) do
         {locale, backend} = Cldr.locale_and_backend_from(options)
@@ -289,6 +291,13 @@ defmodule Cldr.Message.V2.Interpreter do
         cldr_opts = map_date_options(cldr_opts, func_opts, :format)
         Cldr.Date.to_string(value, cldr_opts)
       end
+    end
+
+    defp format_with_function("time", %Time{} = value, func_opts, options) do
+      {locale, backend} = Cldr.locale_and_backend_from(options)
+      cldr_opts = [locale: locale, backend: backend]
+      cldr_opts = map_time_options(cldr_opts, func_opts, :format)
+      Cldr.Time.to_string(value, cldr_opts)
     end
 
     defp format_with_function("time", value, func_opts, options) do
@@ -307,6 +316,13 @@ defmodule Cldr.Message.V2.Interpreter do
         cldr_opts = map_datetime_options(cldr_opts, func_opts)
         Cldr.DateTime.to_string(value, cldr_opts)
       end
+    end
+  else
+    defp format_with_function(function, _value, _func_opts, _options)
+         when function in ["date", "time", "datetime"] do
+      {:error,
+       "the :#{function} function requires the hex package `ex_cldr_dates_times` " <>
+         "to be configured in `mix.exs`."}
     end
   end
 
@@ -344,6 +360,12 @@ defmodule Cldr.Message.V2.Interpreter do
             end
         end
       end
+    end
+  else
+    defp format_with_function("unit", _value, _func_opts, _options) do
+      {:error,
+       "the :unit function requires the hex package `ex_cldr_units` " <>
+         "to be configured in `mix.exs`."}
     end
   end
 

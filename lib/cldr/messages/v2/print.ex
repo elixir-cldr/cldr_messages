@@ -142,11 +142,41 @@ defmodule Cldr.Message.V2.Print do
   end
 
   defp value_to_iolist({:variable, name}), do: ["$", name]
-  defp value_to_iolist({:literal, value}), do: ["|", escape_quoted(value), "|"]
+  defp value_to_iolist({:literal, value}), do: literal_to_iolist(value)
   defp value_to_iolist({:number_literal, value}), do: [value]
 
-  defp key_to_iolist({:literal, value}), do: ["|", escape_quoted(value), "|"]
+  defp key_to_iolist({:literal, value}), do: literal_to_iolist(value)
   defp key_to_iolist({:number_literal, value}), do: [value]
+
+  # Emit unquoted form when the value is a valid unquoted-literal
+  # (1*name-char per the MF2 ABNF), otherwise quote with |...|.
+  defp literal_to_iolist(""), do: ["||"]
+
+  defp literal_to_iolist(value) do
+    if unquoted_literal?(value) do
+      [value]
+    else
+      ["|", escape_quoted(value), "|"]
+    end
+  end
+
+  defp unquoted_literal?(value) do
+    value
+    |> String.to_charlist()
+    |> Enum.all?(&name_char?/1)
+  end
+
+  defp name_char?(c) when c in ?0..?9, do: true
+  defp name_char?(c) when c == ?- or c == ?., do: true
+  defp name_char?(c), do: name_start?(c)
+
+  defp name_start?(c) when c in ?a..?z or c in ?A..?Z, do: true
+  defp name_start?(c) when c == ?_ or c == ?+, do: true
+  defp name_start?(c) when c in 0xA1..0x61B, do: true
+  defp name_start?(c) when c in 0x61D..0xD7FF, do: true
+  defp name_start?(c) when c in 0xE000..0xFFFD, do: true
+  defp name_start?(c) when c in 0x10000..0x10FFFF, do: true
+  defp name_start?(_), do: false
 
   defp identifier_to_iolist({:namespace, ns, name}), do: [ns, ":", name]
   defp identifier_to_iolist(name) when is_binary(name), do: [name]

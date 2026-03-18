@@ -47,10 +47,10 @@ defmodule Cldr.Messages.MixProject do
   defp deps do
     [
       {:ex_cldr_numbers, "~> 2.34"},
+      {:ex_cldr_lists, "~> 2.10"},
       {:ex_cldr_dates_times, "~> 2.22", optional: true},
       {:ex_money, "~> 5.9", optional: true},
       {:ex_cldr_units, "~> 3.18", optional: true},
-      {:ex_cldr_lists, "~> 2.10", optional: true},
       {:elixir_make, "~> 0.4", runtime: false, optional: true},
       {:nimble_parsec, "~> 1.0"},
       {:jason, "~> 1.1"},
