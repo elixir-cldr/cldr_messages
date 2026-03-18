@@ -54,10 +54,11 @@ defmodule Cldr.Messages.GettextInterpolationV2Test do
     # variable reference as a fallback string like "{$name}".
     use Gettext, backend: MyApp.Gettext.V2
 
-    log = capture_log(fn ->
-      result = gettext("{{Hello {$name}!}}", %{})
-      assert result =~ "{$name}"
-    end)
+    log =
+      capture_log(fn ->
+        result = gettext("{{Hello {$name}!}}", %{})
+        assert result =~ "{$name}"
+      end)
 
     if !Cldr.Message.V2.Nif.available?() do
       assert log =~ "missing Gettext bindings: [\"name\"]"
