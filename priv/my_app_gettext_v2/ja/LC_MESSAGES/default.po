@@ -1,0 +1,41 @@
+## "msgid"s in this file come from POT (.pot) files.
+##
+## Do not add, change, or remove "msgid"s manually here as
+## they're tied to the ones in the corresponding POT file
+## (with the same domain).
+##
+## Use "mix gettext.extract --merge" or "mix gettext.merge"
+## to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: ja\n"
+
+#, elixir-autogen, icu-format
+#: mix/my_app_gettext_v2_use.ex:6
+msgid "{{Hello {$name}!}}"
+msgstr "{{こんにちは{$name}！}}"
+
+#, elixir-autogen, icu-format
+#: mix/my_app_gettext_v2_use.ex:10
+msgid "{{{$count :number}}}"
+msgstr "{{{$count :number}}}"
+
+#, elixir-autogen, icu-format
+#: mix/my_app_gettext_v2_use.ex:14
+msgid "{{{$amount :currency currency=USD}}}"
+msgstr "{{{$amount :currency currency=USD}}}"
+
+#, elixir-autogen, icu-format
+#: mix/my_app_gettext_v2_use.ex:18
+msgid "{{{$date :date dateStyle=long}}}"
+msgstr "{{{$date :date dateStyle=long}}}"
+
+#, elixir-autogen, icu-format
+#: mix/my_app_gettext_v2_use.ex:23
+msgid ".input {$count :number}\n.match $count\n0 {{Your cart is empty.}}\n1 {{You have one item.}}\n* {{You have {$count :number} items.}}"
+msgstr ".input {$count :number}\n.match $count\n0 {{カートは空です。}}\n1 {{商品が1点あります。}}\n* {{商品が{$count :number}点あります。}}"
+
+#, elixir-autogen, icu-format
+#: mix/my_app_gettext_v2_use.ex:30
+msgid "{{{$value :unit unit=kilometer}}}"
+msgstr "{{{$value :unit unit=kilometer}}}"
