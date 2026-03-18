@@ -34,3 +34,21 @@ All public functions ahould have a standard template format:
 ## Code style
 
 * When MF2 messages are presented in heredocs (in code modules, tests, or markdown docs), indent `.match` variant clauses by two spaces relative to `.match` for readability.
+
+## Release Review
+
+Before releasing a new version, verify each of the following:
+
+* Are the function docs in our standard format (see Function documentation above)?
+
+* Is the README clear and approachable for new users?
+
+* Are the doc examples in the README and Syntax and Usage guide correct? Execute each individually to confirm the documented results match the executed results. Note that examples using optional-dep functions (`:date`, `:time`, `:datetime`, `:unit`, `:percent`, `:currency`) must be tested with `formatter_backend: :elixir` when the NIF is compiled, since the NIF does not support all functions.
+
+* Are the moduledocs complete and clear?
+
+* Is the changelog complete and up-to-date?
+
+* Are all tests passing (`mix test`)?
+
+* Is dialyzer passing (`mix dialyzer`)?

@@ -464,8 +464,10 @@ iex> Cldr.Message.format("{{Hello, {$name}!}}", %{"name" => "World"})
 
 ### Simple Message (no `{{ }}` wrapper)
 
+A simple message without the `{{ }}` wrapper is also valid MF2 but since it cannot be auto-detected (it looks like a V1 message), it requires the `:version` option:
+
 ```elixir
-iex> Cldr.Message.format("Hello, {$name}!", %{"name" => "World"})
+iex> Cldr.Message.format("Hello, {$name}!", %{"name" => "World"}, version: :v2)
 {:ok, "Hello, World!"}
 ```
 
@@ -509,34 +511,34 @@ iex> Cldr.Message.format("{{{$ratio :percent}}}", %{"ratio" => 0.85})
 ### Date Formatting
 
 ```elixir
-iex> Cldr.Message.format("{|2006-01-02| :date}", %{})
+iex> Cldr.Message.format("{{{|2006-01-02| :date}}}", %{})
 {:ok, "Jan 2, 2006"}
 
-iex> Cldr.Message.format("{|2006-01-02| :date length=long}", %{})
+iex> Cldr.Message.format("{{{|2006-01-02| :date length=long}}}", %{})
 {:ok, "January 2, 2006"}
 
-iex> Cldr.Message.format("{|2006-01-02| :date style=short}", %{})
+iex> Cldr.Message.format("{{{|2006-01-02| :date style=short}}}", %{})
 {:ok, "1/2/06"}
 ```
 
 ### Time Formatting
 
 ```elixir
-iex> Cldr.Message.format("{|2006-01-02T15:04:06| :time}", %{})
-{:ok, "3:04:06 PM"}
+iex> Cldr.Message.format("{{{|2006-01-02T15:04:06| :time}}}", %{})
+{:ok, "3:04:06\u202FPM"}
 ```
 
 ### Datetime Formatting
 
 ```elixir
-iex> Cldr.Message.format("{|2006-01-02T15:04:06| :datetime}", %{})
-{:ok, "Jan 2, 2006, 3:04:06 PM"}
+iex> Cldr.Message.format("{{{|2006-01-02T15:04:06| :datetime}}}", %{})
+{:ok, "Jan 2, 2006, 3:04:06\u202FPM"}
 
 iex> Cldr.Message.format(
-...>   "{|2006-01-02T15:04:06| :datetime dateStyle=long timeStyle=short}",
+...>   "{{{|2006-01-02T15:04:06| :datetime dateStyle=long timeStyle=short}}}",
 ...>   %{}
 ...> )
-{:ok, "January 2, 2006, 3:04 PM"}
+{:ok, "January 2, 2006, 3:04\u202FPM"}
 ```
 
 ### Plural Selection

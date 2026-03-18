@@ -16,7 +16,7 @@ This is the changelog for Cldr_Messages v2.0.0.  For older changelogs please con
   * Variable substitution with `$name` syntax
   * Declarations (`.input`, `.local`)
   * Pattern matching with `.match` and variant selection
-  * Built-in formatting functions: `:string`, `:number`, `:integer`, `:percent`, `:currency`, `:date`, `:time`, `:datetime`
+  * Built-in formatting functions: `:string`, `:number`, `:integer`, `:percent`, `:currency`, `:date`, `:time`, `:datetime`, `:unit`
   * Markup elements (open, close, standalone)
   * Literal and number literal expressions
 
