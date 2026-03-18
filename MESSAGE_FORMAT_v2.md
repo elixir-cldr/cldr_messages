@@ -2,7 +2,7 @@
 
 This document is a developer-oriented reference for [Unicode MessageFormat 2](https://unicode.org/reports/tr35/tr35-messageFormat.html) (MF2) syntax as implemented in `ex_cldr_messages`. It covers the grammar, semantics, and built-in functions available when writing MF2 messages.
 
-MF2 is the successor to the legacy ICU Message Format. It provides a clearer, more extensible syntax with explicit declarations, a function registry, pattern matching, and markup support.
+MF2 is the successor to the legacy ICU Message Format. It provides a clearer, more extensible syntax with explicit declarations, a function registry, pattern matching, and markup support. A [translator's guide](https://messageformat.unicode.org/docs/translators/) helps with onboarding the format.
 
 ## Message Structure
 
