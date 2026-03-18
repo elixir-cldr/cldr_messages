@@ -33,9 +33,25 @@ A complex message starts with declarations (`.input`, `.local`) or a body keywor
 .input {$count :number}
 .local $greeting = {|Welcome|}
 .match $count
-1 {{You have one item, {$greeting}.}}
-* {{You have {$count} items, {$greeting}.}}
+  1 {{You have one item, {$greeting}.}}
+  * {{You have {$count} items, {$greeting}.}}
 ```
+
+The real power of the format comes when multiple matches are required. In this case the translator can more easily understand the different combinations of matches and more easily see the intent behind the messages to be translated.
+
+```
+.input {$pronoun :string}
+.input {$count :number}
+.match $pronoun $count
+  he one   {{He has {$count} notification.}}
+  he *     {{He has {$count} notifications.}}
+  she one  {{She has {$count} notification.}}
+  she *    {{She has {$count} notifications.}}
+  * one    {{They have {$count} notification.}}
+  * *      {{They have {$count} notifications.}}
+```
+
+Here the input variables are clear; the various combinations of them is clear and the resulting messages are clear.
 
 ## Variables
 
