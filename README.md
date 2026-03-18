@@ -5,7 +5,17 @@
 [![Hex.pm](https://img.shields.io/hexpm/dw/ex_cldr_messages.svg?)](https://hex.pm/packages/ex_cldr_messages)
 [![Hex.pm](https://img.shields.io/hexpm/l/ex_cldr_messages.svg)](https://hex.pm/packages/ex_cldr_messages)
 
+## Introduction
+
+`ex_cldr_messages` implements [Unicode MessageFormat 2 (MF2)](https://unicode.org/reports/tr35/tr35-messageFormat.html) and the legacy [ICU Message Format](https://unicode-org.github.io/icu/userguide/format_parse/messages) for Elixir, integrated with the [ex_cldr](https://hex.pm/packages/ex_cldr) ecosystem supporting over 700 locales.
+
+MessageFormat 2 is the next generation of ICU message formatting, designed to be more expressive, extensible and easier to work with than the legacy format. It introduces a clearer syntax with explicit declarations, functions, and pattern matching, while maintaining the same goals: enabling translatable, locale-aware messages with built-in support for plurals, gender selection, and formatted values.
+
+Version detection is automatic: messages starting with `.` (`.input`, `.local`, `.match`) or `{{` are treated as MF2; everything else is treated as legacy ICU Message Format (v1). An explicit `:version` option (`:v1` or `:v2`) overrides auto-detection.
+
 ## Installation
+
+Add `ex_cldr_messages` to your `mix.exs`. The required dependencies `ex_cldr_numbers` and `ex_cldr_lists` are included transitively.
 
 ```elixir
 def deps do
@@ -15,15 +25,28 @@ def deps do
 end
 ```
 
+Optional dependencies enable additional MF2 formatting functions:
+
+| Dependency | Enables |
+|---|---|
+| `ex_cldr_dates_times` | `:date`, `:time`, `:datetime` functions |
+| `ex_cldr_units` | `:unit` function |
+| `ex_money` | `:currency` function with `Money` structs |
+
+Add any optional dependencies you need:
+
+```elixir
+def deps do
+  [
+    {:ex_cldr_messages, "~> 2.0"},
+    {:ex_cldr_dates_times, "~> 2.22"},    # optional
+    {:ex_cldr_units, "~> 3.18"},          # optional
+    {:ex_money, "~> 5.9"}                 # optional
+  ]
+end
+```
+
 Documentation is at [https://hexdocs.pm/ex_cldr_messages](https://hexdocs.pm/ex_cldr_messages).
-
-## Introduction
-
-`ex_cldr_message` implements [Unicode MessageFormat 2 (MF2)](https://unicode.org/reports/tr35/tr35-messageFormat.html) and the legacy [ICU Message Format](https://unicode-org.github.io/icu/userguide/format_parse/messages) for Elixir, integrated with the [ex_cldr](https://hex.pm/packages/ex_cldr) ecosystem supporting over 700 locales.
-
-MessageFormat 2 is the next generation of ICU message formatting, designed to be more expressive, extensible and easier to work with than the legacy format. It introduces a clearer syntax with explicit declarations, functions, and pattern matching, while maintaining the same goals: enabling translatable, locale-aware messages with built-in support for plurals, gender selection, and formatted values.
-
-Version detection is automatic: messages starting with `.` (`.input`, `.local`, `.match`) or `{{` are treated as MF2; everything else is treated as legacy ICU Message Format (v1). An explicit `:version` option (`:v1` or `:v2`) overrides auto-detection.
 
 ## Getting Started
 
@@ -38,7 +61,7 @@ defmodule MyApp.Cldr do
 end
 ```
 
-The provider `Cldr.Number`, `Cldr.List` and `Cldr.Message` are required. All other providers are optional but if configured provide formatting of dates, times, lists and units within messages.
+The providers `Cldr.Number`, `Cldr.List` and `Cldr.Message` are required. All other providers are optional but if configured provide formatting of dates, times and units within messages.
 
 ## MessageFormat 2
 
@@ -52,7 +75,7 @@ A simple MF2 message is wrapped in `{{ }}`:
 iex> Cldr.Message.format! "{{Hello, world!}}"
 "Hello, world!"
 
-iex> Cldr.Message.format! ".input {$name :string}\n{{Hello, {$name}!}}", %{"name" => "Alice"}
+iex> Cldr.Message.format! "{{Hello, {$name}!}}", %{"name" => "Alice"}
 "Hello, Alice!"
 ```
 
@@ -75,9 +98,9 @@ The `.match` declaration selects a variant based on the value of one or more sel
 ```elixir
 iex> Cldr.Message.format! """
 ...> .input {$count :number}
-...> .match {$count :integer}
-...> 1 {{You have one item.}}
-...> * {{You have {$count} items.}}
+...> .match $count
+...>   1 {{You have one item.}}
+...>   * {{You have {$count} items.}}
 ...> """, %{"count" => 5}
 "You have 5 items."
 ```
@@ -97,16 +120,17 @@ iex> Cldr.Message.format! """
 
 ### Supported Functions
 
-| Function    | Description                                    |
-|-------------|------------------------------------------------|
-| `:string`   | String coercion / pass-through                 |
-| `:number`   | Locale-aware number formatting                 |
-| `:integer`  | Integer formatting (truncates decimals)         |
-| `:percent`  | Percentage formatting                          |
-| `:currency` | Currency formatting (requires `ex_money`)       |
-| `:date`     | Date formatting (requires `ex_cldr_dates_times`)|
-| `:time`     | Time formatting (requires `ex_cldr_dates_times`)|
-| `:datetime` | DateTime formatting (requires `ex_cldr_dates_times`) |
+| Function    | Description                                    | Required Dependency |
+|-------------|------------------------------------------------|---------------------|
+| `:string`   | String coercion / pass-through                 | _(none)_ |
+| `:number`   | Locale-aware number formatting                 | _(none)_ |
+| `:integer`  | Integer formatting (truncates decimals)         | _(none)_ |
+| `:percent`  | Percentage formatting                          | _(none)_ |
+| `:currency` | Currency formatting                            | `ex_money` (for `Money` structs) |
+| `:date`     | Date formatting                                | `ex_cldr_dates_times` |
+| `:time`     | Time formatting                                | `ex_cldr_dates_times` |
+| `:datetime` | DateTime formatting                            | `ex_cldr_dates_times` |
+| `:unit`     | Unit formatting                                | `ex_cldr_units` |
 
 ### Markup
 
@@ -156,45 +180,54 @@ defmodule SomeModule do
 end
 ```
 
-## Deviations from ICU MF2
+## Gettext Integration
 
-The Elixir MF2 implementation has been validated against the ICU4C reference implementation (via NIF) using the official MF2 test suite. The remaining known deviations are:
+As of [Gettext 0.19](https://hex.pm/packages/gettext/0.19.0), `Gettext` supports user-defined [interpolation modules](https://hexdocs.pm/gettext/Gettext.html#module-backend-configuration). This makes it easy to combine ICU message formats with the broad `gettext` ecosystem and the inbuilt support for `gettext` in [Phoenix](https://hex.pm/packages/phoenix).
 
-### Markup Rendering
+Two interpolation modules are available:
 
-The MF2 specification does not prescribe how markup placeholders should appear in formatted string output. Both the Elixir interpreter and the ICU4C reference implementation produce empty string output for markup placeholders in `format-to-string` mode. Markup is structural metadata intended for `format-to-parts` APIs.
+| Module | Description |
+|---|---|
+| `Cldr.Gettext.Interpolation` | Legacy v1 messages only |
+| `Cldr.Gettext.Interpolation.V2` | Both v1 and v2 messages with auto-detection. Compiles as V2 first, falls back to V1. |
 
-### Variable Name Case Sensitivity
+For new projects, `Cldr.Gettext.Interpolation.V2` is recommended as it handles both formats transparently.
 
-Variable names are case sensitive. `$name` and `$Name` are different variables and require separate bindings.
+### Defining a Gettext Interpolation Module
 
-### Unbound Variable Fallback
+Any [ex_cldr](https://hex.pm/packages/ex_cldr) [backend module](https://hexdocs.pm/ex_cldr/readme.html#backend-module-configuration) that has a `Cldr.Message` provider configured can be used as an interpolation module. Here is an example using the V2 interpolation module:
 
-When a variable is referenced but no binding is provided:
+```elixir
+defmodule MyApp.Cldr do
+  use Cldr,
+    locales: ["en", "fr", "ja", "he", "th", "ar"],
+    default_locale: "en",
+    providers: [Cldr.Number, Cldr.DateTime, Cldr.Unit, Cldr.List, Cldr.Calendar, Cldr.Message],
+    gettext: MyApp.Gettext,
+end
 
-- **ICU4C**: produces a fallback string `{$variableName}`
+defmodule MyApp.Gettext.Interpolation do
+  use Cldr.Gettext.Interpolation.V2, cldr_backend: MyApp.Cldr
+end
 
-- **Elixir**: returns `{:error, {Cldr.Message.BindError, reason}}` with details of which variables were unbound
+defmodule MyApp.Gettext do
+  use Gettext.Backend, otp_app: :my_app, interpolation: MyApp.Gettext.Interpolation
+end
 
-### Number Formatting Options
+defmodule MyApp do
+  use Gettext, backend: MyApp.Gettext
 
-MF2 number formatting options (`minimumFractionDigits`, `maximumFractionDigits`, `useGrouping`, `numberingSystem`) are mapped to their `ex_cldr_numbers` equivalents. See the [Syntax and Usage guide](message_format_v2.html) for full details on supported options.
+  def my_function do
+    # V1 messages work as before
+    gettext("Created at {created_at}", created_at: ~D[2022-01-22])
 
-### Unicode Normalization (NFC)
+    # V2 messages are auto-detected
+    gettext("{{Hello, {$name}!}}", %{"name" => "World"})
+  end
+end
+```
 
-The Elixir implementation applies NFC normalization to variable names, literal values, and binding map keys per the MF2 specification. Pre-composed and decomposed Unicode characters (e.g. `U+1E0C` vs `D` + `U+0323`) are treated as equivalent when used as variable names or match keys.
-
-### Unknown / Custom Functions
-
-When a message references a function not known to the implementation:
-
-- **ICU4C**: produces a fallback string like `{$var :unknownFn}` or `{:unknownFn}`
-
-- **Elixir**: produces an empty string
-
-### Exponential Number Literals
-
-Bare number literal expressions (e.g. `{0e1}`, `{1E+2}`) are output as-is in their original string form. When used with the `:number` function, they are parsed and formatted as numbers.
+Now you can proceed to use `Gettext` in the normal manner, most typically with the `gettext/3` macro. Both v1 and v2 messages can coexist in the same `.POT` files.
 
 ## ICU NIF Backend
 
@@ -207,7 +240,9 @@ The NIF is **optional**. When available, it is used by default for MF2 messages.
 ICU 75 or later is required. The `unicode/messageformat2.h` header was introduced in ICU 75 — earlier versions do not include MF2 support and the NIF will fail to compile.
 
 * **macOS**: `brew install icu4c` (Homebrew typically ships a recent ICU version)
+
 * **Linux (Debian/Ubuntu)**: `apt-get install libicu-dev`. Note that many Linux distributions still ship ICU versions older than 75 (e.g. Ubuntu 24.04 ships ICU 74). Check your installed version with `icu-config --version` or `pkg-config --modversion icu-i18n`. If your distribution's ICU is too old, you will need to build ICU 75+ from source or use a distribution that packages a newer version.
+
 * **FreeBSD**: `pkg install icu`
 
 The `elixir_make` dependency is already included as an optional dependency.
@@ -269,6 +304,46 @@ Cldr.Message.V2.Nif.format(".input {$name :string}\n{{Hello, {$name}!}}", "en", 
 
 If the NIF is not compiled, `Cldr.Message.V2.Nif.available?/0` returns `false` and direct calls to `Cldr.Message.V2.Nif.format/3` or `Cldr.Message.V2.Nif.validate/1` will raise `:nif_library_not_loaded`.
 
+## Deviations from ICU MF2
+
+The Elixir MF2 implementation has been validated against the ICU4C reference implementation (via NIF) using the official MF2 test suite. The remaining known deviations are:
+
+### Markup Rendering
+
+The MF2 specification does not prescribe how markup placeholders should appear in formatted string output. Both the Elixir interpreter and the ICU4C reference implementation produce empty string output for markup placeholders in `format-to-string` mode. Markup is structural metadata intended for `format-to-parts` APIs.
+
+### Variable Name Case Sensitivity
+
+Variable names are case sensitive. `$name` and `$Name` are different variables and require separate bindings.
+
+### Unbound Variable Fallback
+
+When a variable is referenced but no binding is provided:
+
+- **ICU4C**: produces a fallback string `{$variableName}`
+
+- **Elixir**: returns `{:error, {Cldr.Message.BindError, reason}}` with details of which variables were unbound
+
+### Number Formatting Options
+
+MF2 number formatting options (`minimumFractionDigits`, `maximumFractionDigits`, `useGrouping`, `numberingSystem`) are mapped to their `ex_cldr_numbers` equivalents. See the [Syntax and Usage guide](message_format_v2.html) for full details on supported options.
+
+### Unicode Normalization (NFC)
+
+The Elixir implementation applies NFC normalization to variable names, literal values, and binding map keys per the MF2 specification. Pre-composed and decomposed Unicode characters (e.g. `U+1E0C` vs `D` + `U+0323`) are treated as equivalent when used as variable names or match keys.
+
+### Unknown / Custom Functions
+
+When a message references a function not known to the implementation:
+
+- **ICU4C**: produces a fallback string like `{$var :unknownFn}` or `{:unknownFn}`
+
+- **Elixir**: produces an empty string
+
+### Exponential Number Literals
+
+Bare number literal expressions (e.g. `{0e1}`, `{1E+2}`) are output as-is in their original string form. When used with the `:number` function, they are parsed and formatted as numbers.
+
 ## Performance
 
 The following benchmarks compare the pure-Elixir MF2 implementation against the ICU4C NIF across a range of message types. Benchmarks were run using [Benchee](https://hex.pm/packages/benchee) on an Apple Silicon Mac. The benchmark script is at `bench/mf2_bench.exs`.
@@ -324,57 +399,6 @@ When the message has already been parsed (e.g. at compile time or cached), the E
 * **Pre-parsed messages**: When parsing is done at compile time, the Elixir interpreter achieves millions of iterations per second for simple messages, making the parse overhead negligible for production use.
 
 * **Memory**: The NIF uses far less BEAM-side memory per operation. The Elixir implementation's memory usage is typical for a pure-Elixir implementation and is not a concern for normal workloads.
-
-## Gettext Integration
-
-As of [Gettext 0.19](https://hex.pm/packages/gettext/0.19.0), `Gettext` supports user-defined [interpolation modules](https://hexdocs.pm/gettext/Gettext.html#module-backend-configuration). This makes it easy to combine ICU message formats with the broad `gettext` ecosystem and the inbuilt support for `gettext` in [Phoenix](https://hex.pm/packages/phoenix).
-
-Two interpolation modules are available:
-
-| Module | Description |
-|---|---|
-| `Cldr.Gettext.Interpolation` | Legacy v1 messages only |
-| `Cldr.Gettext.Interpolation.V2` | Both v1 and v2 messages with auto-detection. Compiles as V2 first, falls back to V1. |
-
-For new projects, `Cldr.Gettext.Interpolation.V2` is recommended as it handles both formats transparently.
-
-### Defining a Gettext Interpolation Module
-
-Any [ex_cldr](https://hex.pm/packages/ex_cldr) [backend module](https://hexdocs.pm/ex_cldr/readme.html#backend-module-configuration) that has a `Cldr.Message` provider configured can be used as an interpolation module. Here is an example using the V2 interpolation module:
-```elixir
-defmodule MyApp.Cldr do
-  use Cldr,
-    locales: ["en", "fr", "ja", "he", "th", "ar"],
-    default_locale: "en",
-    providers: [Cldr.Number, Cldr.DateTime, Cldr.Unit, Cldr.List, Cldr.Calendar, Cldr.Message],
-    gettext: MyApp.Gettext,
-    message_formats: %{
-      USD: [format: :long]
-    }
-end
-
-defmodule MyApp.Gettext.Interpolation do
-  use Cldr.Gettext.Interpolation.V2, cldr_backend: MyApp.Cldr
-end
-
-defmodule MyApp.Gettext do
-  use Gettext.Backend, otp_app: :my_app, interpolation: MyApp.Gettext.Interpolation
-end
-
-defmodule MyApp do
-  use Gettext, backend: MyApp.Gettext
-
-  def my_module do
-    # V1 messages work as before
-    gettext("Created at {created_at}", created_at: ~D[2022-01-22])
-
-    # V2 messages are auto-detected
-    gettext("{{Hello, {$name}!}}", %{"name" => "World"})
-  end
-end
-```
-
-Now you can proceed to use `Gettext` in the normal manner, most typically with the `gettext/3` macro. Both v1 and v2 messages can coexist in the same `.POT` files.
 
 ## Message Format 1 (Supported but Deprecated)
 
