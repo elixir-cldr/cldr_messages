@@ -4,6 +4,7 @@ defmodule Cldr.Messages.GettextInterpolationV2Test do
   alias MyApp.Gettext.V2.Use
 
   import Cldr.Message.TestHelpers
+  import ExUnit.CaptureLog
 
   test "message_format returns icu-format" do
     assert MyApp.Gettext.Interpolation.V2.message_format() == "icu-format"
@@ -53,8 +54,14 @@ defmodule Cldr.Messages.GettextInterpolationV2Test do
     # variable reference as a fallback string like "{$name}".
     use Gettext, backend: MyApp.Gettext.V2
 
-    result = gettext("{{Hello {$name}!}}", %{})
-    assert result =~ "{$name}"
+    log = capture_log(fn ->
+      result = gettext("{{Hello {$name}!}}", %{})
+      assert result =~ "{$name}"
+    end)
+
+    if !Cldr.Message.V2.Nif.available?() do
+      assert log =~ "missing Gettext bindings: [\"name\"]"
+    end
   end
 
   test "runtime number formatting" do
