@@ -279,6 +279,10 @@ defmodule Cldr_Messages_Test do
              ["video_name", "percentage_watched"]
   end
 
+  test "Extract variable bindings from simple_format messages with no style" do
+    assert Cldr.Message.bindings("Hello, {num, number}") == ["num"]
+  end
+
   test "That positional arguments can be prohibited" do
     assert Cldr.Message.format("Can you see {0}", ["me"], allow_positional_args: false) ==
              {:error,

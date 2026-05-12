@@ -1,5 +1,13 @@
 # Changelog
 
+## Cldr_Messages v2.0.1
+
+This is the changelog for Cldr_Messages v2.0.1 published on May 12th, 2026.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
+
+### Bug Fixes
+
+* Fix `Cldr.Message.bindings/1` to return the argument name for `simple_format` messages with no style (e.g. `{num, number}`), which parse to a 3-tuple AST node. Thanks to @TroyLaurin for the report. Closes #21.
+
 ## Cldr_Messages v2.0.0
 
 This is the changelog for Cldr_Messages v2.0.0.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_messages/tags)
